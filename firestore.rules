@@ -1,0 +1,63 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userProfile(uid) {
+      return get(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function hasProfile(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function hasActiveProfile() {
+      return signedIn()
+        && hasProfile(request.auth.uid)
+        && userProfile(request.auth.uid).data.status == 'active';
+    }
+
+    function isAdmin() {
+      return hasActiveProfile() && userProfile(request.auth.uid).data.role == 'Admin';
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // STAGING BOOTSTRAP:
+    // Any signed-in user may create their own user profile once.
+    // This lets the first user click "Bootstrap me as Admin" from the app.
+    // Tighten before production.
+    match /users/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+      allow create: if isSelf(uid) && !hasProfile(uid);
+      allow update: if isSelf(uid) || isAdmin();
+      allow delete: if false;
+    }
+
+    // STAGING APP DATA:
+    // Active signed-in app users can read/write app data.
+    // This keeps staging easy while still requiring login + active profile.
+    match /categories/{categoryId} {
+      allow read, write: if hasActiveProfile();
+    }
+
+    match /priceItems/{itemId} {
+      allow read, write: if hasActiveProfile();
+    }
+
+    match /priceAuditEntries/{entryId} {
+      allow read, create: if hasActiveProfile();
+      allow update, delete: if false;
+    }
+
+    match /quotes/{quoteId} {
+      allow read, create: if hasActiveProfile();
+      allow update, delete: if false;
+    }
+  }
+}
