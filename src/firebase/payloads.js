@@ -42,30 +42,40 @@ export function buildPriceAuditEntry({ itemId, categoryId, action, previous = {}
   }
 }
 
-export function buildQuotePayload({
+export function buildEstimatePayload({
   id,
   header,
-  lineItems,
-  totals,
-  grandTotal,
-  turnaroundDays,
+  lineItems = [],
+  totals = { print: 0, digital: 0, manual: 0, manpower: 0, additional: 0 },
+  grandTotal = 0,
+  turnaroundDays = 0,
   createdBy,
   sourceQuoteId = null,
+  status = 'created',
+  draft = null,
 }) {
+  const now = new Date().toISOString()
+
   return {
     id,
-    jobNo: header.jobNo,
-    sku: header.sku,
-    client: header.client,
-    project: header.project,
-    date: new Date().toISOString(),
+    jobNo: header?.jobNo ?? '',
+    sku: header?.sku ?? '',
+    client: header?.client ?? '',
+    project: header?.project ?? '',
+    date: now,
+    updatedAt: now,
     createdBy: createdBy.uid,
     createdByName: createdBy.name,
     sourceQuoteId,
+    draft,
     lineItems,
     totals,
     grandTotal,
     turnaroundDays,
-    status: 'finalized',
+    status,
   }
+}
+
+export function buildQuotePayload(input) {
+  return buildEstimatePayload({ ...input, status: input.status === 'draft' ? 'draft' : 'created' })
 }

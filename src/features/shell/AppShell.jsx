@@ -1,10 +1,22 @@
+import { Button } from '../../components/ui/Button'
 import { getVisibleNavigation } from '../auth/authRules'
 
 const viewTitles = {
-  estimation: 'Create Estimation',
+  priceEstimation: 'Price Estimation',
   masterData: 'Price List / Master Data',
-  jobLog: 'Job Log',
   userManagement: 'User Management',
+}
+
+const viewDescriptions = {
+  priceEstimation: 'Manage draft and created price estimates from one workspace.',
+  masterData: 'Maintain catalog rates, defaults, and audit history.',
+  userManagement: 'Manage app-level user roles and access status.',
+}
+
+const navGlyphs = {
+  priceEstimation: 'PE',
+  masterData: 'PL',
+  userManagement: 'UM',
 }
 
 export function AppShell({ activeView, onNavigate, onSignOut, profile, children }) {
@@ -12,46 +24,82 @@ export function AppShell({ activeView, onNavigate, onSignOut, profile, children 
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-900">
-      <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
-        <header className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-600">RAB Calculator</p>
-              <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-                {viewTitles[activeView] ?? 'Dashboard'}
-              </h1>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Signed in as {profile?.name || profile?.email || 'User'} · {profile?.role}
-              </p>
+      <div className="flex min-h-screen">
+        <aside className="hidden w-72 shrink-0 border-r border-slate-800 bg-slate-950 text-white lg:flex lg:flex-col">
+          <div className="border-b border-slate-800 px-6 py-6">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-500 text-sm font-black tracking-wider">
+                RAB
+              </div>
+              <div>
+                <p className="text-sm font-bold">RAB Calculator</p>
+                <p className="text-xs text-slate-400">Print & finishing</p>
+              </div>
             </div>
-            <button
-              className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-              onClick={onSignOut}
-              type="button"
-            >
-              Sign out
-            </button>
           </div>
-        </header>
 
-        <nav className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Primary">
-          {navigationItems.map((item) => (
-            <button
-              className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold shadow-sm transition ${
-                activeView === item.key
-                  ? 'border-blue-300 bg-blue-50 text-blue-800'
-                  : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800'
-              }`}
-              key={item.key}
-              onClick={() => onNavigate(item.key)}
-              type="button"
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
+          <nav className="flex-1 space-y-1 px-3 py-5" aria-label="Primary">
+            {navigationItems.map((item) => (
+              <button
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                  activeView === item.key
+                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-950/30'
+                    : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                }`}
+                key={item.key}
+                onClick={() => onNavigate(item.key)}
+                type="button"
+              >
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-white/10 text-[11px] font-black tracking-wider">
+                  {navGlyphs[item.key]}
+                </span>
+                {item.label}
+              </button>
+            ))}
+          </nav>
 
-        <section className="mt-6 flex-1">{children}</section>
+          <div className="border-t border-slate-800 p-4">
+            <p className="truncate text-sm font-semibold">{profile?.name || profile?.email || 'User'}</p>
+            <p className="text-xs text-slate-400">{profile?.role}</p>
+          </div>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+            <div className="flex flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-600">Admin workspace</p>
+                <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950">
+                  {viewTitles[activeView] ?? 'Dashboard'}
+                </h1>
+                <p className="mt-1 text-sm text-slate-500">{viewDescriptions[activeView]}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="hidden rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-right text-xs text-slate-600 sm:block">
+                  <p className="font-semibold text-slate-900">{profile?.name || profile?.email || 'User'}</p>
+                  <p>{profile?.role}</p>
+                </div>
+                <Button onClick={onSignOut}>Sign out</Button>
+              </div>
+            </div>
+            <nav className="flex gap-2 overflow-x-auto border-t border-slate-100 px-4 py-3 lg:hidden" aria-label="Mobile primary">
+              {navigationItems.map((item) => (
+                <button
+                  className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold ${
+                    activeView === item.key ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'
+                  }`}
+                  key={item.key}
+                  onClick={() => onNavigate(item.key)}
+                  type="button"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+          </header>
+
+          <section className="flex-1 p-4 sm:p-6 lg:p-8">{children}</section>
+        </div>
       </div>
     </main>
   )

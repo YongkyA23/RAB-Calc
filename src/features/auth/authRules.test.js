@@ -28,20 +28,18 @@ describe('auth access rules', () => {
 
   it('shows admin-only navigation only to admins', () => {
     expect(getVisibleNavigation({ role: 'Estimator' }).map((item) => item.label)).toEqual([
-      'Create Estimation',
-      'Job Log',
+      'Price Estimation',
     ])
     expect(getVisibleNavigation({ role: 'Admin' }).map((item) => item.label)).toEqual([
-      'Create Estimation',
+      'Price Estimation',
       'Price List / Master Data',
-      'Job Log',
       'User Management',
     ])
   })
 
   it('prevents estimators from accessing admin menus', () => {
     expect(canAccessMenu({ role: 'Estimator' }, 'masterData')).toBe(false)
-    expect(canAccessMenu({ role: 'Estimator' }, 'jobLog')).toBe(true)
+    expect(canAccessMenu({ role: 'Estimator' }, 'priceEstimation')).toBe(true)
     expect(canAccessMenu({ role: 'Admin' }, 'userManagement')).toBe(true)
   })
 })

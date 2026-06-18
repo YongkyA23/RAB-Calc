@@ -5,24 +5,14 @@ import { BlockedAccessPanel, BootstrapAdminPanel, LoadingPanel } from './feature
 import { AuthPanel } from './features/auth/AuthPanel'
 import { getAccessState } from './features/auth/authRules'
 import { signInWithEmail, signOutUser, signUpWithEmail, subscribeToAuthState } from './features/auth/authService'
-import { EstimationContainer } from './features/estimation/EstimationContainer'
-import { JobLogContainer } from './features/jobLog/JobLogContainer'
 import { MasterDataContainer } from './features/masterData/MasterDataContainer'
+import { PriceEstimationContainer } from './features/priceEstimation/PriceEstimationContainer'
 import { AppShell } from './features/shell/AppShell'
-
-function PlaceholderView({ title, children }) {
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-bold text-slate-950">{title}</h2>
-      <p className="mt-3 text-sm leading-6 text-slate-600">{children}</p>
-    </div>
-  )
-}
+import { UserManagementContainer } from './features/users/UserManagementContainer'
 
 function App() {
-  const [activeView, setActiveView] = useState('estimation')
+  const [activeView, setActiveView] = useState('priceEstimation')
   const [authError, setAuthError] = useState('')
-  const [duplicateDraft, setDuplicateDraft] = useState(null)
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState(null)
   const [profileCount, setProfileCount] = useState(0)
@@ -85,11 +75,6 @@ function App() {
     await runAuthAction(signOutUser)
   }
 
-  function handleDuplicateQuote(draft) {
-    setDuplicateDraft(draft)
-    setActiveView('estimation')
-  }
-
   if (loading) {
     return <LoadingPanel />
   }
@@ -117,14 +102,9 @@ function App() {
 
   return (
     <AppShell activeView={activeView} onNavigate={setActiveView} onSignOut={handleSignOut} profile={profile}>
-      {activeView === 'estimation' ? <EstimationContainer initialDraft={duplicateDraft} profile={profile} /> : null}
+      {activeView === 'priceEstimation' ? <PriceEstimationContainer profile={profile} /> : null}
       {activeView === 'masterData' ? <MasterDataContainer profile={profile} /> : null}
-      {activeView === 'jobLog' ? <JobLogContainer onDuplicateQuote={handleDuplicateQuote} /> : null}
-      {activeView === 'userManagement' ? (
-        <PlaceholderView title="User Management">
-          Role and status management arrives in Part 7.
-        </PlaceholderView>
-      ) : null}
+      {activeView === 'userManagement' ? <UserManagementContainer currentUser={user} /> : null}
     </AppShell>
   )
 }

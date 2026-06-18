@@ -15,7 +15,7 @@ describe('csv helpers', () => {
     ).toBe('Client,Project\r\n"PT Example, Tbk","Box ""A""\nMockup"')
   })
 
-  it('builds job log CSV with required columns', () => {
+  it('builds price estimation CSV with required columns', () => {
     const csv = buildJobLogCsv([
       {
         date: '2026-06-17',
@@ -29,7 +29,7 @@ describe('csv helpers', () => {
       },
     ])
 
-    expect(csv).toContain('Date,No Job,SKU,Client,Project,Created By,Total Print')
-    expect(csv).toContain('2026-06-17,JOB-001,SKU-1,PT Client,Carton Mockup,Admin,1000,2000,3000,4000,5000,15000')
+    expect(csv).toContain('Date,Status,No Job,SKU,Client,Project,Created By,Total Print')
+    expect(csv).toContain('2026-06-17,Created,JOB-001,SKU-1,PT Client,Carton Mockup,Admin,1000,2000,3000,4000,5000,15000')
   })
 })

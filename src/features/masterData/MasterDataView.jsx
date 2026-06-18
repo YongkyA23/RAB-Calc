@@ -13,7 +13,7 @@ function Field({ children, label }) {
 function TextInput(props) {
   return (
     <input
-      className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+      className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
       {...props}
     />
   )
@@ -69,14 +69,14 @@ export function MasterDataView({
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-xl font-bold text-slate-950">Price List / Master Data</h2>
             <p className="mt-2 text-sm text-slate-600">Manage catalog rows used by estimation dropdowns.</p>
           </div>
           <button
-            className="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:bg-slate-300"
+            className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:bg-slate-300"
             disabled={loading}
             onClick={onSeedDefaults}
             type="button"
@@ -88,7 +88,7 @@ export function MasterDataView({
         <div className="mt-6 flex flex-wrap gap-2">
           {categories.map((category) => (
             <button
-              className={`rounded-2xl border px-4 py-2 text-sm font-semibold ${
+              className={`rounded-lg border px-4 py-2 text-sm font-semibold ${
                 selectedLayer === category.layer
                   ? 'border-blue-300 bg-blue-50 text-blue-800'
                   : 'border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -102,7 +102,7 @@ export function MasterDataView({
           ))}
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200">
+        <div className="mt-6 overflow-hidden rounded-lg border border-slate-200">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>
@@ -148,7 +148,7 @@ export function MasterDataView({
       </section>
 
       <aside className="space-y-6">
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h3 className="text-lg font-bold text-slate-950">Edit item</h3>
           <div className="mt-4 space-y-4">
             <Field label="Item name">
@@ -166,7 +166,7 @@ export function MasterDataView({
               <TextInput onChange={(event) => updateDraft('turnaroundDays', event.target.value)} value={draft.turnaroundDays ?? ''} />
             </Field>
             <button
-              className="w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="w-full rounded-lg bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
               onClick={saveDraft}
               type="button"
             >
@@ -175,11 +175,11 @@ export function MasterDataView({
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h3 className="text-lg font-bold text-slate-950">Recent audit</h3>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             {auditEntries.map((entry) => (
-              <li className="rounded-2xl bg-slate-50 p-3" key={entry.id ?? `${entry.itemId}-${entry.action}`}>
+              <li className="rounded-lg bg-slate-50 p-3" key={entry.id ?? `${entry.itemId}-${entry.action}`}>
                 {summarizeAuditEntry(entry)}
               </li>
             ))}

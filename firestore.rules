@@ -56,8 +56,12 @@ service cloud.firestore {
     }
 
     match /quotes/{quoteId} {
+      // All active users can read and create estimates
       allow read, create: if hasActiveProfile();
-      allow update, delete: if false;
+
+      // Authenticated users can delete any estimate in staging
+      // In production, restrict to owner or admin only
+      allow update, delete: if signedIn();
     }
   }
 }

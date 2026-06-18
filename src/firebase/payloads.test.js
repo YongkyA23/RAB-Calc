@@ -71,7 +71,10 @@ describe('firebase payload builders', () => {
       turnaroundDays: 1,
       createdBy: 'u1',
       createdByName: 'Admin',
-      status: 'finalized',
+      sourceQuoteId: null,
+      draft: null,
+      updatedAt: expect.any(String),
+      status: 'created',
     })
   })
 })

@@ -12,7 +12,7 @@ const priceItems = [
 
 describe('EstimationView', () => {
   it('renders quote form and live totals', () => {
-    render(<EstimationView loading={false} onSaveQuote={vi.fn()} priceItems={priceItems} />)
+    render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
 
     expect(screen.getByLabelText('No Job')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add print line' })).toBeInTheDocument()
@@ -20,37 +20,40 @@ describe('EstimationView', () => {
   })
 
   it('adds a print line and recalculates total', () => {
-    render(<EstimationView loading={false} onSaveQuote={vi.fn()} priceItems={priceItems} />)
+    render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Add print line' }))
-    fireEvent.change(screen.getByLabelText('Print item 1'), { target: { value: 'print-duplex' } })
-    fireEvent.change(screen.getByLabelText('Print size 1'), { target: { value: 'B2' } })
-    fireEvent.change(screen.getByLabelText('Print qty 1'), { target: { value: '110' } })
+    fireEvent.change(screen.getByLabelText('Material'), { target: { value: 'print-duplex' } })
+    fireEvent.change(screen.getByLabelText('Size'), { target: { value: 'B2' } })
+    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '110' } })
 
     expect(screen.getAllByText('Rp 4.400.000')).toHaveLength(2)
   })
 
-  it('blocks save when required fields are missing', () => {
-    render(<EstimationView loading={false} onSaveQuote={vi.fn()} priceItems={priceItems} />)
+  it('blocks create when required fields are missing', () => {
+    render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Save quote' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Create Estimate' }))
 
     expect(screen.getByText('No Job is required')).toBeInTheDocument()
   })
 
-  it('saves completed quote', () => {
-    const onSaveQuote = vi.fn()
-    render(<EstimationView loading={false} onSaveQuote={onSaveQuote} priceItems={priceItems} />)
+  it('creates completed estimate', () => {
+    const onCreateEstimate = vi.fn()
+    render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={onCreateEstimate} onSaveDraft={vi.fn()} priceItems={priceItems} />)
 
     fireEvent.change(screen.getByLabelText('No Job'), { target: { value: 'JOB-001' } })
     fireEvent.change(screen.getByLabelText('SKU'), { target: { value: 'SKU-1' } })
     fireEvent.change(screen.getByLabelText('Nama Klien'), { target: { value: 'PT Client' } })
     fireEvent.change(screen.getByLabelText('Judul Project'), { target: { value: 'Mockup' } })
     fireEvent.click(screen.getByRole('button', { name: 'Add print line' }))
-    fireEvent.change(screen.getByLabelText('Print item 1'), { target: { value: 'print-duplex' } })
-    fireEvent.change(screen.getByLabelText('Print qty 1'), { target: { value: '2' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save quote' }))
+    fireEvent.change(screen.getByLabelText('Material'), { target: { value: 'print-duplex' } })
+    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create Estimate' }))
 
-    expect(onSaveQuote).toHaveBeenCalledWith(expect.objectContaining({ grandTotal: 60000 }))
+    expect(onCreateEstimate).toHaveBeenCalledOnce()
+    const estimate = onCreateEstimate.mock.calls[0][0]
+    expect(estimate.grandTotal).toBe(60000)
+    expect(estimate.status).toBe('created')
   })
 })

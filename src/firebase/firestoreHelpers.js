@@ -14,7 +14,7 @@ import {
 import { DEFAULT_CATEGORIES, DEFAULT_PRICE_ITEMS } from '../data/seedData'
 import { db } from './app'
 import { COLLECTIONS } from './collections'
-import { buildPriceAuditEntry, buildQuotePayload, buildUserProfilePayload } from './payloads'
+import { buildEstimatePayload, buildPriceAuditEntry, buildQuotePayload, buildUserProfilePayload } from './payloads'
 
 export async function listCollection(collectionName) {
   const snapshot = await getDocs(collection(db, collectionName))
@@ -132,13 +132,47 @@ export async function deactivatePriceItem(priceItem, editedBy) {
   return savePriceItem({ ...priceItem, active: false }, editedBy, priceItem)
 }
 
+export async function saveEstimate(estimateInput) {
+  const payload = buildEstimatePayload(estimateInput)
+  await setDoc(doc(db, COLLECTIONS.quotes, payload.id), payload)
+  return payload
+}
+
 export async function saveQuote(quoteInput) {
   const payload = buildQuotePayload(quoteInput)
   await setDoc(doc(db, COLLECTIONS.quotes, payload.id), payload)
   return payload
 }
 
-export async function listQuotes() {
+export async function listEstimates() {
   const snapshot = await getDocs(query(collection(db, COLLECTIONS.quotes), orderBy('date', 'desc')))
   return snapshot.docs.map((document) => ({ id: document.id, ...document.data() }))
+}
+
+export async function listQuotes() {
+  return listEstimates()
+}
+
+// Email allowlist management
+export const EMAIL_ALLOWLIST_COLLECTION = 'emailAllowlist'
+
+export async function getAllowlistEmails() {
+  const snapshot = await getDocs(collection(db, EMAIL_ALLOWLIST_COLLECTION))
+  return snapshot.docs.map((doc) => doc.data().email).filter(Boolean)
+}
+
+export async function addAllowedEmail(email, addedBy) {
+  const payload = {
+    email: email.toLowerCase(),
+    addedBy,
+    addedAt: new Date().toISOString(),
+  }
+  await setDoc(doc(db, EMAIL_ALLOWLIST_COLLECTION), payload)
+}
+
+export async function removeAllowedEmail(email) {
+  const querySnapshot = await getDocs(
+    query(collection(db, EMAIL_ALLOWLIST_COLLECTION), where('email', '==', email.toLowerCase())),
+  )
+  await Promise.all(querySnapshot.docs.map((doc) => deleteDoc(doc.ref)))
 }

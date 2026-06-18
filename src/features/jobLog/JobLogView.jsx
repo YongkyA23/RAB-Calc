@@ -15,7 +15,7 @@ function Field({ children, label }) {
 function Input(props) {
   return (
     <input
-      className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+      className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
       {...props}
     />
   )
@@ -36,14 +36,14 @@ export function JobLogView({ loading, onDuplicateQuote, onExportCsv, quotes }) {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.4fr_0.7fr]">
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-xl font-bold text-slate-950">Job Log</h2>
             <p className="mt-2 text-sm text-slate-600">Search, review, duplicate, and export saved quotes.</p>
           </div>
           <button
-            className="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:bg-slate-300"
+            className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:bg-slate-300"
             disabled={loading}
             onClick={exportCsv}
             type="button"
@@ -73,7 +73,7 @@ export function JobLogView({ loading, onDuplicateQuote, onExportCsv, quotes }) {
           </Field>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200">
+        <div className="mt-6 overflow-hidden rounded-lg border border-slate-200">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>
@@ -118,7 +118,7 @@ export function JobLogView({ loading, onDuplicateQuote, onExportCsv, quotes }) {
         </div>
       </section>
 
-      <aside className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <aside className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h3 className="text-lg font-bold text-slate-950">Quote detail</h3>
         {selectedQuote ? (
           <div className="mt-4 space-y-4 text-sm text-slate-600">
@@ -129,7 +129,7 @@ export function JobLogView({ loading, onDuplicateQuote, onExportCsv, quotes }) {
             </div>
             <ul className="space-y-2">
               {(selectedQuote.lineItems ?? []).map((line) => (
-                <li className="rounded-2xl bg-slate-50 p-3" key={line.id}>
+                <li className="rounded-lg bg-slate-50 p-3" key={line.id}>
                   <span className="font-semibold text-slate-900">{line.priceSnapshot?.name ?? line.layer}</span>
                   <span className="ml-2">{formatIdr(line.computedTotal)}</span>
                 </li>

@@ -1,7 +1,6 @@
 export const NAVIGATION_ITEMS = [
-  { key: 'estimation', label: 'Create Estimation', adminOnly: false },
+  { key: 'priceEstimation', label: 'Price Estimation', adminOnly: false },
   { key: 'masterData', label: 'Price List / Master Data', adminOnly: true },
-  { key: 'jobLog', label: 'Job Log', adminOnly: false },
   { key: 'userManagement', label: 'User Management', adminOnly: true },
 ]
 

@@ -47,6 +47,8 @@ export function validateQuoteDraft(draft, priceItems) {
   return errors
 }
 
+export const validateEstimateForCreation = validateQuoteDraft
+
 function itemSnapshot(item) {
   return { ...item }
 }
@@ -108,12 +110,33 @@ export function buildQuoteFromDraft(draft, priceItems, createdBy) {
   const lineItems = [...printLines, ...digitalLines, ...manualLines, ...manpowerLines, ...additionalLines]
 
   return {
-    id: `quote-${Date.now()}`,
+    id: `estimate-${Date.now()}`,
     header: { ...draft.header },
     lineItems,
     totals,
     grandTotal: calculateGrandTotal(totals),
     turnaroundDays: calculateTurnaroundDays(lineItems.map((line) => line.priceSnapshot?.turnaroundDays)),
     createdBy,
+    draft: { ...draft },
+    status: 'created',
+  }
+}
+
+export function buildCreatedEstimateFromDraft(draft, priceItems, createdBy) {
+  return buildQuoteFromDraft(draft, priceItems, createdBy)
+}
+
+export function buildDraftEstimateFromDraft(draft, createdBy, existingId = null) {
+  return {
+    id: existingId ?? `estimate-${Date.now()}`,
+    header: { ...draft.header },
+    lineItems: [],
+    totals: { print: 0, digital: 0, manual: 0, manpower: 0, additional: 0 },
+    grandTotal: 0,
+    turnaroundDays: 0,
+    createdBy,
+    draft: { ...draft },
+    sourceQuoteId: draft.sourceQuoteId ?? null,
+    status: 'draft',
   }
 }

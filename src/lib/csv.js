@@ -17,22 +17,27 @@ export function buildCsv({ rows, columns }) {
   return [headerLine, ...rowLines].join('\r\n')
 }
 
-export function buildJobLogCsv(quotes) {
+export function buildPriceEstimationCsv(estimates) {
   return buildCsv({
-    rows: quotes,
+    rows: estimates,
     columns: [
-      { header: 'Date', value: (quote) => quote.date },
-      { header: 'No Job', value: (quote) => quote.jobNo },
-      { header: 'SKU', value: (quote) => quote.sku },
-      { header: 'Client', value: (quote) => quote.client },
-      { header: 'Project', value: (quote) => quote.project },
-      { header: 'Created By', value: (quote) => quote.createdByName },
-      { header: 'Total Print', value: (quote) => quote.totals?.print ?? 0 },
-      { header: 'Total Digital', value: (quote) => quote.totals?.digital ?? 0 },
-      { header: 'Total Manual', value: (quote) => quote.totals?.manual ?? 0 },
-      { header: 'Total Manpower', value: (quote) => quote.totals?.manpower ?? 0 },
-      { header: 'Total Additional', value: (quote) => quote.totals?.additional ?? 0 },
-      { header: 'Grand Total', value: (quote) => quote.grandTotal ?? 0 },
+      { header: 'Date', value: (estimate) => estimate.date },
+      { header: 'Status', value: (estimate) => (estimate.status === 'draft' ? 'Draft' : 'Created') },
+      { header: 'No Job', value: (estimate) => estimate.jobNo },
+      { header: 'SKU', value: (estimate) => estimate.sku },
+      { header: 'Client', value: (estimate) => estimate.client },
+      { header: 'Project', value: (estimate) => estimate.project },
+      { header: 'Created By', value: (estimate) => estimate.createdByName },
+      { header: 'Total Print', value: (estimate) => estimate.totals?.print ?? 0 },
+      { header: 'Total Digital', value: (estimate) => estimate.totals?.digital ?? 0 },
+      { header: 'Total Manual', value: (estimate) => estimate.totals?.manual ?? 0 },
+      { header: 'Total Manpower', value: (estimate) => estimate.totals?.manpower ?? 0 },
+      { header: 'Total Additional', value: (estimate) => estimate.totals?.additional ?? 0 },
+      { header: 'Grand Total', value: (estimate) => estimate.grandTotal ?? 0 },
     ],
   })
+}
+
+export function buildJobLogCsv(quotes) {
+  return buildPriceEstimationCsv(quotes)
 }
