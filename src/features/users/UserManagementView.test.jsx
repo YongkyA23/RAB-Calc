@@ -7,17 +7,24 @@ const users = [
   { uid: 'u2', name: 'Estimator User', email: 'estimator@example.com', role: 'Estimator', status: 'inactive' },
 ]
 
+const defaultProps = {
+  loading: false,
+  onAddUser: vi.fn(),
+  onUpdateUser: vi.fn(),
+  users,
+}
+
 describe('UserManagementView', () => {
   it('renders help text and users', () => {
-    render(<UserManagementView loading={false} onUpdateUser={vi.fn()} users={users} />)
+    render(<UserManagementView {...defaultProps} />)
 
-    expect(screen.getByText('Create Firebase Auth accounts in Firebase Console, then manage app role/status here.')).toBeInTheDocument()
+    expect(screen.getByText('Add users here. Added users appear in this table and can sign in with Google.')).toBeInTheDocument()
     expect(screen.getByText('admin@example.com')).toBeInTheDocument()
     expect(screen.getByText('estimator@example.com')).toBeInTheDocument()
   })
 
   it('filters users by search', () => {
-    render(<UserManagementView loading={false} onUpdateUser={vi.fn()} users={users} />)
+    render(<UserManagementView {...defaultProps} />)
 
     fireEvent.change(screen.getByLabelText('Search users'), { target: { value: 'estimator' } })
 
@@ -27,13 +34,31 @@ describe('UserManagementView', () => {
 
   it('updates user role and status', () => {
     const onUpdateUser = vi.fn()
-    render(<UserManagementView loading={false} onUpdateUser={onUpdateUser} users={users} />)
+    render(<UserManagementView {...defaultProps} onUpdateUser={onUpdateUser} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Edit Estimator User' }))
-    fireEvent.change(screen.getByLabelText('Role'), { target: { value: 'Admin' } })
-    fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'active' } })
+    fireEvent.change(screen.getAllByLabelText('Role')[1], { target: { value: 'Admin' } })
+    fireEvent.change(screen.getAllByLabelText('Status')[1], { target: { value: 'active' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save user' }))
 
     expect(onUpdateUser).toHaveBeenCalledWith('u2', { name: 'Estimator User', role: 'Admin', status: 'active' })
+  })
+
+  it('adds users from one form', () => {
+    const onAddUser = vi.fn()
+    render(<UserManagementView {...defaultProps} onAddUser={onAddUser} />)
+
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'new@example.com' } })
+    fireEvent.change(screen.getAllByLabelText('Role')[0], { target: { value: 'Estimator' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add user' }))
+
+    expect(onAddUser).toHaveBeenCalledWith({ email: 'new@example.com', role: 'Estimator', status: 'active' })
+  })
+
+  it('shows pending invited users in the user table', () => {
+    render(<UserManagementView {...defaultProps} users={[...users, { id: 'pending_example_com', email: 'pending@example.com', name: 'pending@example.com', role: 'Admin', status: 'active', pending: true }]} />)
+
+    expect(screen.getAllByText('pending@example.com')).toHaveLength(2)
+    expect(screen.getByText('pending')).toBeInTheDocument()
   })
 })

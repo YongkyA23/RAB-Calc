@@ -1,18 +1,26 @@
 import { useEffect, useState } from 'react'
 import { COLLECTIONS } from '../../firebase/collections'
-import { addAllowedEmail, getAllowlistEmails, listCollection, removeAllowedEmail, updateUserProfile } from '../../firebase/firestoreHelpers'
+import { listCollection, listUserInvites, saveUserInvite, updateUserProfile } from '../../firebase/firestoreHelpers'
 import { UserManagementView } from './UserManagementView'
+
+function mergeUsersAndInvites(users, invites) {
+  const userEmails = new Set(users.map((user) => user.email?.toLowerCase()).filter(Boolean))
+  const pendingInvites = invites.filter((invite) => !userEmails.has(invite.email?.toLowerCase()))
+  return [...users, ...pendingInvites]
+}
 
 export function UserManagementContainer({ currentUser }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [success, setSuccess] = useState('')
   const [users, setUsers] = useState([])
-  const [allowlistEmails, setAllowlistEmails] = useState([])
 
   async function loadUsers() {
-    const nextUsers = await listCollection(COLLECTIONS.users)
-    setUsers(nextUsers)
+    const [nextUsers, nextInvites] = await Promise.all([
+      listCollection(COLLECTIONS.users),
+      listUserInvites(),
+    ])
+    setUsers(mergeUsersAndInvites(nextUsers, nextInvites))
   }
 
   useEffect(() => {
@@ -20,8 +28,11 @@ export function UserManagementContainer({ currentUser }) {
 
     async function loadInitialUsers() {
       try {
-        const nextUsers = await listCollection(COLLECTIONS.users)
-        if (!ignore) setUsers(nextUsers)
+        const [nextUsers, nextInvites] = await Promise.all([
+          listCollection(COLLECTIONS.users),
+          listUserInvites(),
+        ])
+        if (!ignore) setUsers(mergeUsersAndInvites(nextUsers, nextInvites))
       } catch (loadError) {
         if (!ignore) setError(loadError.message)
       } finally {
@@ -52,20 +63,7 @@ export function UserManagementContainer({ currentUser }) {
     }
   }
 
-  async function loadAllowlist() {
-    try {
-      const emails = await getAllowlistEmails()
-      setAllowlistEmails(emails)
-    } catch (error) {
-      console.error('Failed to load allowlist:', error)
-    }
-  }
-
-  useEffect(() => {
-    loadAllowlist()
-  }, [])
-
-  async function handleAddEmail(email) {
+  async function handleAddUser(input) {
     if (!currentUser) return
 
     setLoading(true)
@@ -73,25 +71,9 @@ export function UserManagementContainer({ currentUser }) {
     setSuccess('')
 
     try {
-      await addAllowedEmail(email.toLowerCase(), currentUser.email)
-      await loadAllowlist()
-      setSuccess(`Added ${email} to approved list`)
-    } catch (error) {
-      setError(error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function handleRemoveEmail(email) {
-    setLoading(true)
-    setError('')
-    setSuccess('')
-
-    try {
-      await removeAllowedEmail(email)
-      await loadAllowlist()
-      setSuccess(`Removed ${email} from approved list`)
+      await saveUserInvite({ ...input, invitedBy: currentUser.email })
+      await loadUsers()
+      setSuccess(`Added ${input.email} to users`)
     } catch (error) {
       setError(error.message)
     } finally {
@@ -112,12 +94,10 @@ export function UserManagementContainer({ currentUser }) {
         </div>
       ) : null}
       <UserManagementView
-        allowlistEmails={allowlistEmails}
         currentUser={currentUser}
         loading={loading}
+        onAddUser={handleAddUser}
         onUpdateUser={handleUpdateUser}
-        onAddEmail={handleAddEmail}
-        onRemoveEmail={handleRemoveEmail}
         users={users}
       />
     </div>

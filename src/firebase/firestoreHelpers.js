@@ -1,6 +1,7 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -155,24 +156,74 @@ export async function listQuotes() {
 
 // Email allowlist management
 export const EMAIL_ALLOWLIST_COLLECTION = 'emailAllowlist'
+export const USER_INVITES_COLLECTION = 'userInvites'
+export const INITIAL_ADMIN_EMAIL = 'noobsnoobs28@gmail.com'
+export const INITIAL_ALLOWLIST_EMAILS = [INITIAL_ADMIN_EMAIL]
+
+export function normalizeEmail(email) {
+  return email.trim().toLowerCase()
+}
+
+export function getAllowlistDocId(email) {
+  return normalizeEmail(email).replace(/[^a-z0-9]/g, '_')
+}
+
+export function buildInviteProfile(email, role = 'Admin', status = 'active', invitedBy = 'system') {
+  const normalizedEmail = normalizeEmail(email)
+  return {
+    email: normalizedEmail,
+    name: normalizedEmail,
+    role,
+    status,
+    invitedBy,
+    invitedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+}
+
+export async function listUserInvites() {
+  const snapshot = await getDocs(collection(db, USER_INVITES_COLLECTION))
+  return snapshot.docs.map((document) => ({ id: document.id, ...document.data(), pending: true }))
+}
+
+export async function getUserInviteByEmail(email) {
+  const snapshot = await getDoc(doc(db, USER_INVITES_COLLECTION, getAllowlistDocId(email)))
+  return snapshot.exists() ? { id: snapshot.id, ...snapshot.data(), pending: true } : null
+}
+
+export async function saveUserInvite({ email, role = 'Admin', status = 'active', invitedBy = 'system' }) {
+  const payload = buildInviteProfile(email, role, status, invitedBy)
+  await setDoc(doc(db, USER_INVITES_COLLECTION, getAllowlistDocId(payload.email)), payload)
+  await addAllowedEmail(payload.email, invitedBy)
+  return payload
+}
 
 export async function getAllowlistEmails() {
   const snapshot = await getDocs(collection(db, EMAIL_ALLOWLIST_COLLECTION))
-  return snapshot.docs.map((doc) => doc.data().email).filter(Boolean)
+  return snapshot.docs.map((document) => document.data().email).filter(Boolean).map(normalizeEmail)
 }
 
 export async function addAllowedEmail(email, addedBy) {
+  const normalizedEmail = normalizeEmail(email)
   const payload = {
-    email: email.toLowerCase(),
+    email: normalizedEmail,
     addedBy,
     addedAt: new Date().toISOString(),
   }
-  await setDoc(doc(db, EMAIL_ALLOWLIST_COLLECTION), payload)
+  await setDoc(doc(db, EMAIL_ALLOWLIST_COLLECTION, getAllowlistDocId(normalizedEmail)), payload)
 }
 
 export async function removeAllowedEmail(email) {
-  const querySnapshot = await getDocs(
-    query(collection(db, EMAIL_ALLOWLIST_COLLECTION), where('email', '==', email.toLowerCase())),
+  await deleteDoc(doc(db, EMAIL_ALLOWLIST_COLLECTION, getAllowlistDocId(email)))
+}
+
+export async function ensureInitialAllowlistEmails(addedBy = 'system') {
+  await Promise.all(
+    INITIAL_ALLOWLIST_EMAILS.map(async (email) => {
+      const ref = doc(db, USER_INVITES_COLLECTION, getAllowlistDocId(email))
+      const snapshot = await getDoc(ref)
+      if (snapshot.exists()) return
+      await saveUserInvite({ email, role: 'Admin', status: 'active', invitedBy: addedBy })
+    }),
   )
-  await Promise.all(querySnapshot.docs.map((doc) => deleteDoc(doc.ref)))
 }

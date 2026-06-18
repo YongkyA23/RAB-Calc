@@ -5,6 +5,7 @@ import { doc, deleteDoc } from 'firebase/firestore'
 import { listActivePriceItems, listEstimates, saveEstimate } from '../../firebase/firestoreHelpers'
 import { createEmptyQuoteDraft, buildDraftEstimateFromDraft } from '../estimation/estimationModel'
 import { EstimationView } from '../estimation/EstimationView'
+import { PriceEstimationDetailView } from './PriceEstimationDetailView'
 import { buildDraftFromEstimate } from './priceEstimationModel'
 import { PriceEstimationListView } from './PriceEstimationListView'
 
@@ -80,6 +81,13 @@ export function PriceEstimationContainer({ profile }) {
     openForm(buildDraftFromEstimate(estimate))
   }
 
+  function handleViewEstimate(estimate) {
+    setSelectedEstimate(estimate)
+    setMode('detail')
+    setError('')
+    setSuccess('')
+  }
+
   async function runSave(action, message) {
     setLoading(true)
     setError('')
@@ -128,7 +136,9 @@ export function PriceEstimationContainer({ profile }) {
     try {
       await deleteDoc(doc(db, COLLECTIONS.quotes, estimate.id))
       await loadData()
-      setSuccess('Draft deleted')
+      setMode('list')
+      setSelectedEstimate(null)
+      setSuccess('Estimate deleted')
     } catch (deleteError) {
       setError(deleteError.message)
     } finally {
@@ -145,12 +155,24 @@ export function PriceEstimationContainer({ profile }) {
           estimates={estimates}
           loading={loading}
           onCreateNew={handleCreateNew}
+          onDeleteEstimate={handleDeleteDraft}
           onDuplicateEstimate={handleDuplicateEstimate}
           onEditDraft={handleEditDraft}
           onExportCsv={(_visibleEstimates, csv) => downloadCsv(csv)}
-          onDeleteEstimate={handleDeleteDraft}
+          onViewEstimate={handleViewEstimate}
         />
-      ) : (
+      ) : null}
+      {mode === 'detail' ? (
+        <PriceEstimationDetailView
+          estimate={selectedEstimate}
+          loading={loading}
+          onBack={() => setMode('list')}
+          onDelete={handleDeleteDraft}
+          onDuplicate={handleDuplicateEstimate}
+          onEdit={handleEditDraft}
+        />
+      ) : null}
+      {mode === 'form' ? (
         <EstimationView
           key={formKey}
           initialDraft={initialDraft}
@@ -160,7 +182,7 @@ export function PriceEstimationContainer({ profile }) {
           onSaveDraft={handleSaveDraft}
           priceItems={priceItems}
         />
-      )}
+      ) : null}
     </div>
   )
 }

@@ -43,17 +43,15 @@ Current [firestore.rules](firestore.rules) are staging-friendly:
 
 Before production, tighten rules so only Admin users can write master data and user profiles.
 
-### First Admin bootstrap
+### Google sign-in and users
 
-1. Enable Firebase Auth email/password provider in Firebase Console.
-2. Run app locally.
-3. Create/sign in with first account.
+1. Enable Firebase Auth Google provider in Firebase Console.
+2. Deploy Firestore rules from `firestore.rules`.
+3. Start the app and sign in with `noobsnoobs28@gmail.com`.
 4. If no user profiles exist, click **Bootstrap me as Admin**.
-5. Go to **Price List / Master Data** and click **Seed default catalog**.
+5. Open **User Management** and use **Add user** to invite Google emails. Added users appear in the table immediately and can sign in with Google.
 
-### Additional users
-
-Frontend-only v1 cannot securely create Firebase Auth accounts for other users. Create Auth accounts in Firebase Console, then manage app role/status in **User Management**.
+Unlisted Google accounts are signed out immediately and cannot enter the app.
 
 ## Available scripts
 
@@ -66,7 +64,7 @@ npm run dev
 
 ## Implemented features
 
-- Email/password sign-in/sign-up
+- Google sign-in with user invites
 - First-admin bootstrap
 - Role-based navigation
 - Master data seed/edit/deactivate with audit entries

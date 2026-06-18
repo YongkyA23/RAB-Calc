@@ -78,7 +78,7 @@ export const DEFAULT_PRICE_ITEMS = [
   item({ id: 'additional-rush', categoryId: 'additional-costs', categoryLayer: 'additional', name: 'Rush Job', additionalMode: 'manual', turnaroundDays: 0 }),
   item({ id: 'additional-overtime', categoryId: 'additional-costs', categoryLayer: 'additional', name: 'Over Time', additionalMode: 'manual', turnaroundDays: 0 }),
   item({ id: 'additional-in-house', categoryId: 'additional-costs', categoryLayer: 'additional', name: 'In-house Finishing', additionalMode: 'manual', turnaroundDays: 0 }),
-  item({ id: 'additional-metalize', categoryId: 'additional-costs', categoryLayer: 'additional', name: 'Metalize Material', additionalMode: 'rate', rate: 5, unitLabel: 'cm', turnaroundDays: 0 }),
+  item({ id: 'additional-metalize', categoryId: 'additional-costs', categoryLayer: 'additional', name: 'Metalize Material', additionalMode: 'area', rate: 5, unitLabel: 'cm²', turnaroundDays: 0 }),
   item({ id: 'additional-paper', categoryId: 'additional-costs', categoryLayer: 'additional', name: 'Paper Purchase', additionalMode: 'rate', rate: 5000, unitLabel: 'sheet', turnaroundDays: 0 }),
   item({ id: 'additional-product', categoryId: 'additional-costs', categoryLayer: 'additional', name: 'Product Purchase', additionalMode: 'manual', turnaroundDays: 0 }),
   item({ id: 'additional-operator', categoryId: 'additional-costs', categoryLayer: 'additional', name: 'Operator Fee', additionalMode: 'manual', turnaroundDays: 0 }),

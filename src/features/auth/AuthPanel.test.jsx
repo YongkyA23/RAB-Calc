@@ -3,31 +3,25 @@ import { describe, expect, it, vi } from 'vitest'
 import { AuthPanel } from './AuthPanel'
 
 describe('AuthPanel', () => {
-  it('submits email and password for sign in', () => {
-    const onSignIn = vi.fn()
-    render(<AuthPanel error="" loading={false} onSignIn={onSignIn} onSignUp={vi.fn()} />)
+  it('renders Google sign-in action', () => {
+    render(<AuthPanel error="" loading={false} onGoogleSignIn={vi.fn()} />)
 
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'admin@example.com' } })
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret123' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
-
-    expect(onSignIn).toHaveBeenCalledWith({ email: 'admin@example.com', password: 'secret123' })
+    expect(screen.getByRole('button', { name: 'Sign in with Google' })).toBeInTheDocument()
+    expect(screen.getByText('Use your approved Google account to continue.')).toBeInTheDocument()
   })
 
-  it('submits email and password for sign up', () => {
-    const onSignUp = vi.fn()
-    render(<AuthPanel error="" loading={false} onSignIn={vi.fn()} onSignUp={onSignUp} />)
+  it('calls Google sign-in handler', () => {
+    const onGoogleSignIn = vi.fn()
+    render(<AuthPanel error="" loading={false} onGoogleSignIn={onGoogleSignIn} />)
 
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'new@example.com' } })
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret123' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in with Google' }))
 
-    expect(onSignUp).toHaveBeenCalledWith({ email: 'new@example.com', password: 'secret123' })
+    expect(onGoogleSignIn).toHaveBeenCalledTimes(1)
   })
 
   it('shows authentication errors', () => {
-    render(<AuthPanel error="Invalid credentials" loading={false} onSignIn={vi.fn()} onSignUp={vi.fn()} />)
+    render(<AuthPanel error="Access denied: user@example.com is not on the approved list." loading={false} onGoogleSignIn={vi.fn()} />)
 
-    expect(screen.getByText('Invalid credentials')).toBeInTheDocument()
+    expect(screen.getByText('Access denied: user@example.com is not on the approved list.')).toBeInTheDocument()
   })
 })

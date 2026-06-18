@@ -1,6 +1,13 @@
 import { useMemo, useState } from 'react'
 import { Field, Input, Select } from '../../components/ui/Form'
 import { Button } from '../../components/ui/Button'
+import {
+  calculateAdditionalLineTotal,
+  calculateDigitalLineTotal,
+  calculateManualLineTotal,
+  calculateManpowerLineTotal,
+  calculatePrintLineTotal,
+} from '../../lib/calculations'
 import { formatIdr } from '../../lib/format'
 import { createEmptyQuoteDraft, validateQuoteDraft, buildQuoteFromDraft } from './estimationModel'
 
@@ -14,6 +21,22 @@ function LayerCard({ children, onAdd, title, addLabel }) {
       <div className="mt-4 space-y-4">{children}</div>
     </section>
   )
+}
+
+function isMetalizeItem(item) {
+  return item?.id === 'additional-metalize' || item?.name?.toLowerCase().includes('metalize')
+}
+
+function safeLineTotal(callback) {
+  try {
+    return callback()
+  } catch {
+    return 0
+  }
+}
+
+function numberText(value) {
+  return String(value || 0)
 }
 
 export function EstimationView({ initialDraft, loading, onCancel, onCreateEstimate, onSaveDraft, priceItems }) {
@@ -32,13 +55,18 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
     setDraft((current) => ({ ...current, header: { ...current.header, [field]: value } }))
   }
 
+  function firstItem(layer) {
+    return priceItems?.find((item) => item.categoryLayer === layer)
+  }
+
   function addLine(layer) {
+    const firstAdditionalItem = firstItem('additional')
     const defaults = {
-      print: { itemId: priceItems?.find((item) => item.categoryLayer === 'print')?.id ?? '', size: 'A3', qty: 1 },
-      digital: { itemId: priceItems?.find((item) => item.categoryLayer === 'digital')?.id ?? '', size: 'A3', qty: 1 },
-      manual: { itemId: priceItems?.find((item) => item.categoryLayer === 'manual')?.id ?? '', p: 1, l: 1, qty: 1, jmlAlat: 1, manualQuotedAmount: '' },
-      manpower: { itemId: priceItems?.find((item) => item.categoryLayer === 'manpower')?.id ?? '', days: 1 },
-      additional: { itemId: priceItems?.find((item) => item.categoryLayer === 'additional')?.id ?? '', amount: 1, quantity: 1 },
+      print: { itemId: firstItem('print')?.id ?? '', size: 'A3', qty: 1 },
+      digital: { itemId: firstItem('digital')?.id ?? '', size: 'A3', qty: 1 },
+      manual: { itemId: firstItem('manual')?.id ?? '', p: 1, l: 1, qty: 1, jmlAlat: 1, manualQuotedAmount: '' },
+      manpower: { itemId: firstItem('manpower')?.id ?? '', days: 1 },
+      additional: { itemId: firstAdditionalItem?.id ?? '', amount: firstAdditionalItem?.rate ?? 1, quantity: 1, lengthCm: 1, widthCm: 1, notes: '' },
     }
 
     setDraft((current) => ({ ...current, [layer]: [...current[layer], defaults[layer]] }))
@@ -60,13 +88,16 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
     if (nextErrors.length) return
 
     const estimate = buildQuoteFromDraft(draft, priceItems, { uid: 'pending', name: 'Current User' })
-    if (onCreateEstimate) onCreateEstimate(estimate, draft)
-    else onSaveQuote?.(estimate)
+    onCreateEstimate?.(estimate, draft)
   }
 
   function saveDraft() {
     setErrors([])
     onSaveDraft?.(draft)
+  }
+
+  function findItem(itemId) {
+    return priceItems?.find((item) => item.id === itemId)
   }
 
   return (
@@ -91,101 +122,174 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
         </section>
 
         <LayerCard addLabel="Add print line" onAdd={() => addLine('print')} title="Print">
-          {draft.print.map((line, index) => (
-            <div className="grid gap-3 rounded-lg bg-slate-50 p-4 md:grid-cols-3" key={index}>
-              <Field label="Material">
-                <Select onChange={(event) => updateLine('print', index, 'itemId', event.target.value)} value={line.itemId}>
-                  {priceItems?.filter((item) => item.categoryLayer === 'print').map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                </Select>
-              </Field>
-              <Field label="Size">
-                <Select onChange={(event) => updateLine('print', index, 'size', event.target.value)} value={line.size}>
-                  <option value="A3">A3</option>
-                  <option value="B2">B2</option>
-                </Select>
-              </Field>
-              <Field label="Quantity">
-                <Input onChange={(event) => updateLine('print', index, 'qty', event.target.value)} value={line.qty} />
-              </Field>
-            </div>
-          ))}
+          {draft.print.map((line, index) => {
+            const item = findItem(line.itemId)
+            const unitPrice = Number(item?.prices?.[line.size]) || 0
+            const total = safeLineTotal(() => calculatePrintLineTotal({ item, size: line.size ?? 'A3', qty: line.qty }))
+            return (
+              <div className="rounded-lg bg-slate-50 p-4" key={index}>
+                <div className="grid gap-3 md:grid-cols-3">
+                  <Field label="Material">
+                    <Select onChange={(event) => updateLine('print', index, 'itemId', event.target.value)} value={line.itemId}>
+                      {priceItems?.filter((item) => item.categoryLayer === 'print').map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                    </Select>
+                  </Field>
+                  <Field label="Size">
+                    <Select onChange={(event) => updateLine('print', index, 'size', event.target.value)} value={line.size}>
+                      <option value="A3">A3</option>
+                      <option value="B2">B2</option>
+                    </Select>
+                  </Field>
+                  <Field label="Quantity">
+                    <Input onChange={(event) => updateLine('print', index, 'qty', event.target.value)} value={line.qty} />
+                  </Field>
+                </div>
+                <p className="mt-3 text-sm font-semibold text-slate-700">{formatIdr(unitPrice)} × {numberText(line.qty)} = {formatIdr(total)}</p>
+              </div>
+            )
+          })}
         </LayerCard>
 
         <LayerCard addLabel="Add digital line" onAdd={() => addLine('digital')} title="Digital Finishing">
-          {draft.digital.map((line, index) => (
-            <div className="grid gap-3 rounded-lg bg-slate-50 p-4 md:grid-cols-3" key={index}>
-              <Field label="Finishing">
-                <Select onChange={(event) => updateLine('digital', index, 'itemId', event.target.value)} value={line.itemId}>
-                  {priceItems?.filter((item) => item.categoryLayer === 'digital').map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                </Select>
-              </Field>
-              <Field label="Size">
-                <Select onChange={(event) => updateLine('digital', index, 'size', event.target.value)} value={line.size}>
-                  <option value="A3">A3</option>
-                  <option value="B2">B2</option>
-                </Select>
-              </Field>
-              <Field label="Quantity">
-                <Input onChange={(event) => updateLine('digital', index, 'qty', event.target.value)} value={line.qty} />
-              </Field>
-            </div>
-          ))}
+          {draft.digital.map((line, index) => {
+            const item = findItem(line.itemId)
+            const unitPrice = Number(item?.prices?.[line.size]) || 0
+            const total = safeLineTotal(() => calculateDigitalLineTotal({ item, size: line.size ?? 'A3', qty: line.qty }))
+            return (
+              <div className="rounded-lg bg-slate-50 p-4" key={index}>
+                <div className="grid gap-3 md:grid-cols-3">
+                  <Field label="Finishing">
+                    <Select onChange={(event) => updateLine('digital', index, 'itemId', event.target.value)} value={line.itemId}>
+                      {priceItems?.filter((item) => item.categoryLayer === 'digital').map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                    </Select>
+                  </Field>
+                  <Field label="Size">
+                    <Select onChange={(event) => updateLine('digital', index, 'size', event.target.value)} value={line.size}>
+                      <option value="A3">A3</option>
+                      <option value="B2">B2</option>
+                    </Select>
+                  </Field>
+                  <Field label="Quantity">
+                    <Input onChange={(event) => updateLine('digital', index, 'qty', event.target.value)} value={line.qty} />
+                  </Field>
+                </div>
+                <p className="mt-3 text-sm font-semibold text-slate-700">{formatIdr(unitPrice)} × {numberText(line.qty)} = {formatIdr(total)}</p>
+              </div>
+            )
+          })}
         </LayerCard>
 
         <LayerCard addLabel="Add manual line" onAdd={() => addLine('manual')} title="Manual Finishing">
-          {draft.manual.map((line, index) => (
-            <div className="grid gap-3 rounded-lg bg-slate-50 p-4 md:grid-cols-5" key={index}>
-              <Field label="Finishing">
-                <Select onChange={(event) => updateLine('manual', index, 'itemId', event.target.value)} value={line.itemId}>
-                  {priceItems?.filter((item) => item.categoryLayer === 'manual').map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                </Select>
-              </Field>
-              {[
-                ['p', 'Length (cm)'],
-                ['l', 'Width (cm)'],
-                ['qty', 'Quantity'],
-                ['jmlAlat', 'Tool count'],
-                ['manualQuotedAmount', 'Quoted amount'],
-              ].map(([field, label]) => (
-                <Field key={field} label={label}>
-                  <Input onChange={(event) => updateLine('manual', index, field, event.target.value)} value={line[field] ?? ''} />
-                </Field>
-              ))}
-            </div>
-          ))}
+          {draft.manual.map((line, index) => {
+            const item = findItem(line.itemId)
+            const result = safeLineTotal(() => calculateManualLineTotal({ item, ...line })) || { total: 0 }
+            const total = result.total ?? 0
+            return (
+              <div className="rounded-lg bg-slate-50 p-4" key={index}>
+                <div className="grid gap-3 md:grid-cols-5">
+                  <Field label="Finishing">
+                    <Select onChange={(event) => updateLine('manual', index, 'itemId', event.target.value)} value={line.itemId}>
+                      {priceItems?.filter((item) => item.categoryLayer === 'manual').map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                    </Select>
+                  </Field>
+                  {[
+                    ['p', 'Length (cm)'],
+                    ['l', 'Width (cm)'],
+                    ['qty', 'Quantity'],
+                    ['jmlAlat', 'Tool count'],
+                    ['manualQuotedAmount', 'Quoted amount'],
+                  ].map(([field, label]) => (
+                    <Field key={field} label={label}>
+                      <Input onChange={(event) => updateLine('manual', index, field, event.target.value)} value={line[field] ?? ''} />
+                    </Field>
+                  ))}
+                </div>
+                <p className="mt-3 text-sm font-semibold text-slate-700">Line total = {formatIdr(total)}</p>
+              </div>
+            )
+          })}
         </LayerCard>
 
         <LayerCard addLabel="Add manpower line" onAdd={() => addLine('manpower')} title="Manpower">
-          {draft.manpower.map((line, index) => (
-            <div className="grid gap-3 rounded-lg bg-slate-50 p-4 md:grid-cols-2" key={index}>
-              <Field label="Manpower">
-                <Select onChange={(event) => updateLine('manpower', index, 'itemId', event.target.value)} value={line.itemId}>
-                  {priceItems?.filter((item) => item.categoryLayer === 'manpower').map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                </Select>
-              </Field>
-              <Field label="Days">
-                <Input onChange={(event) => updateLine('manpower', index, 'days', event.target.value)} value={line.days} />
-              </Field>
-            </div>
-          ))}
+          {draft.manpower.map((line, index) => {
+            const item = findItem(line.itemId)
+            const rate = Number(item?.dailyRate) || 0
+            const total = safeLineTotal(() => calculateManpowerLineTotal({ days: line.days, rate }))
+            return (
+              <div className="rounded-lg bg-slate-50 p-4" key={index}>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <Field label="Manpower">
+                    <Select onChange={(event) => updateLine('manpower', index, 'itemId', event.target.value)} value={line.itemId}>
+                      {priceItems?.filter((item) => item.categoryLayer === 'manpower').map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                    </Select>
+                  </Field>
+                  <Field label="Days">
+                    <Input onChange={(event) => updateLine('manpower', index, 'days', event.target.value)} value={line.days} />
+                  </Field>
+                </div>
+                <p className="mt-3 text-sm font-semibold text-slate-700">{formatIdr(rate)} × {numberText(line.days)} = {formatIdr(total)}</p>
+              </div>
+            )
+          })}
         </LayerCard>
 
         <LayerCard addLabel="Add additional line" onAdd={() => addLine('additional')} title="Additional Costs">
-          {draft.additional.map((line, index) => (
-            <div className="grid gap-3 rounded-lg bg-slate-50 p-4 md:grid-cols-3" key={index}>
-              <Field label="Cost type">
-                <Select onChange={(event) => updateLine('additional', index, 'itemId', event.target.value)} value={line.itemId}>
-                  {priceItems?.filter((item) => item.categoryLayer === 'additional').map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                </Select>
-              </Field>
-              <Field label="Amount">
-                <Input onChange={(event) => updateLine('additional', index, 'amount', event.target.value)} value={line.amount} />
-              </Field>
-              <Field label="Quantity">
-                <Input onChange={(event) => updateLine('additional', index, 'quantity', event.target.value)} value={line.quantity} />
-              </Field>
-            </div>
-          ))}
+          {draft.additional.map((line, index) => {
+            const item = findItem(line.itemId)
+            const metalize = isMetalizeItem(item)
+            const amount = line.amount || item?.rate || 5000
+            const total = safeLineTotal(() => calculateAdditionalLineTotal({
+              mode: item?.additionalMode,
+              amount,
+              quantity: line.quantity,
+              rate: item?.rate,
+              lengthCm: line.lengthCm,
+              widthCm: line.widthCm,
+            }))
+            return (
+              <div className="rounded-lg bg-slate-50 p-4" key={index}>
+                <div className={`grid gap-3 ${metalize ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
+                  <Field label="Cost type">
+                    <Select onChange={(event) => updateLine('additional', index, 'itemId', event.target.value)} value={line.itemId}>
+                      {priceItems?.filter((item) => item.categoryLayer === 'additional').map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                    </Select>
+                  </Field>
+                  {metalize ? (
+                    <>
+                      <Field label="Length (cm)">
+                        <Input onChange={(event) => updateLine('additional', index, 'lengthCm', event.target.value)} value={line.lengthCm ?? ''} />
+                      </Field>
+                      <Field label="Width (cm)">
+                        <Input onChange={(event) => updateLine('additional', index, 'widthCm', event.target.value)} value={line.widthCm ?? ''} />
+                      </Field>
+                      <Field label="Quantity">
+                        <Input onChange={(event) => updateLine('additional', index, 'quantity', event.target.value)} value={line.quantity} />
+                      </Field>
+                    </>
+                  ) : (
+                    <>
+                      <Field label="Amount">
+                        <Input onChange={(event) => updateLine('additional', index, 'amount', event.target.value)} value={amount} />
+                      </Field>
+                      <Field label="Quantity">
+                        <Input onChange={(event) => updateLine('additional', index, 'quantity', event.target.value)} value={line.quantity} />
+                      </Field>
+                    </>
+                  )}
+                </div>
+                <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+                  <Field label="Notes">
+                    <Input onChange={(event) => updateLine('additional', index, 'notes', event.target.value)} value={line.notes ?? ''} />
+                  </Field>
+                  <p className="text-sm font-semibold text-slate-700">
+                    {metalize
+                      ? `${line.lengthCm || 0} × ${line.widthCm || 0} × ${line.quantity || 0} × Rp ${item?.rate || 0} = ${formatIdr(total)}`
+                      : `${formatIdr(amount)} × ${line.quantity || 0} = ${formatIdr(total)}`}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
         </LayerCard>
       </div>
 

@@ -72,13 +72,20 @@ export function calculateManpowerLineTotal({ days, rate }) {
   return requirePositiveNumber(days, 'Days') * requirePositiveNumber(rate, 'Rate')
 }
 
-export function calculateAdditionalLineTotal({ mode, amount, quantity, rate }) {
+export function calculateAdditionalLineTotal({ mode, amount, quantity, rate, lengthCm, widthCm }) {
   if (mode === 'manual') {
     return requirePositiveNumber(amount, 'Amount')
   }
 
   if (mode === 'rate') {
     return requirePositiveNumber(quantity, 'Quantity') * requirePositiveNumber(rate, 'Rate')
+  }
+
+  if (mode === 'area') {
+    return requirePositiveNumber(lengthCm, 'Length')
+      * requirePositiveNumber(widthCm, 'Width')
+      * requirePositiveNumber(quantity, 'Quantity')
+      * requirePositiveNumber(rate, 'Rate')
   }
 
   return 0

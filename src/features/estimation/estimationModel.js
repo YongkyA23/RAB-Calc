@@ -96,6 +96,8 @@ export function buildQuoteFromDraft(draft, priceItems, createdBy) {
       amount: line.amount,
       quantity: line.quantity,
       rate: item.rate,
+      lengthCm: line.lengthCm,
+      widthCm: line.widthCm,
     })
     return buildLine({ layer: 'additional', input: line, item, computedTotal })
   })

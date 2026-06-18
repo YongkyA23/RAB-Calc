@@ -113,6 +113,10 @@ describe('calculation engine', () => {
     expect(calculateAdditionalLineTotal({ mode: 'rate', quantity: 200, rate: 5000 })).toBe(1000000)
   })
 
+  it('calculates additional area-rate totals', () => {
+    expect(calculateAdditionalLineTotal({ mode: 'area', lengthCm: 10, widthCm: 20, quantity: 2, rate: 5 })).toBe(2000)
+  })
+
   it('calculates grand total from layer totals', () => {
     expect(
       calculateGrandTotal({

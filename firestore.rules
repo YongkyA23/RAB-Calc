@@ -39,6 +39,26 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /emailAllowlist/{emailId} {
+      allow read: if signedIn();
+      allow create: if isAdmin()
+        || (signedIn()
+          && request.auth.token.email == 'noobsnoobs28@gmail.com'
+          && emailId == 'noobsnoobs28_gmail_com'
+          && request.resource.data.email == 'noobsnoobs28@gmail.com');
+      allow update, delete: if isAdmin();
+    }
+
+    match /userInvites/{inviteId} {
+      allow read: if signedIn();
+      allow create: if isAdmin()
+        || (signedIn()
+          && request.auth.token.email == 'noobsnoobs28@gmail.com'
+          && inviteId == 'noobsnoobs28_gmail_com'
+          && request.resource.data.email == 'noobsnoobs28@gmail.com');
+      allow update, delete: if isAdmin();
+    }
+
     // STAGING APP DATA:
     // Active signed-in app users can read/write app data.
     // This keeps staging easy while still requiring login + active profile.

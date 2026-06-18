@@ -8,6 +8,7 @@ const priceItems = [
   { id: 'manual-die', categoryLayer: 'manual', name: 'Die Cut Manual', toolingRate: 3500, laborRate: 15, minimumType: 'numeric', minimumCharge: 250000, turnaroundDays: 3 },
   { id: 'manpower-default', categoryLayer: 'manpower', name: 'Default Manpower', dailyRate: 275000, turnaroundDays: 0 },
   { id: 'additional-paper', categoryLayer: 'additional', name: 'Paper Purchase', additionalMode: 'rate', rate: 5000, unitLabel: 'sheet', turnaroundDays: 0 },
+  { id: 'additional-metalize', categoryLayer: 'additional', name: 'Metalize Material', additionalMode: 'area', rate: 5, unitLabel: 'cm²', turnaroundDays: 0 },
 ]
 
 describe('EstimationView', () => {
@@ -28,6 +29,29 @@ describe('EstimationView', () => {
     fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '110' } })
 
     expect(screen.getAllByText('Rp 4.400.000')).toHaveLength(2)
+    expect(screen.getByText('Rp 40.000 × 110 = Rp 4.400.000')).toBeInTheDocument()
+  })
+
+  it('defaults paper purchase amount to 5000', () => {
+    render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add additional line' }))
+
+    expect(screen.getByLabelText('Amount')).toHaveValue('5000')
+    expect(screen.getByText('Rp 5.000 × 1 = Rp 5.000')).toBeInTheDocument()
+  })
+
+  it('shows metalize length width fields and calculates area price', () => {
+    render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add additional line' }))
+    fireEvent.change(screen.getByLabelText('Cost type'), { target: { value: 'additional-metalize' } })
+    fireEvent.change(screen.getByLabelText('Length (cm)'), { target: { value: '10' } })
+    fireEvent.change(screen.getByLabelText('Width (cm)'), { target: { value: '20' } })
+    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '2' } })
+
+    expect(screen.getByLabelText('Notes')).toBeInTheDocument()
+    expect(screen.getByText('10 × 20 × 2 × Rp 5 = Rp 2.000')).toBeInTheDocument()
   })
 
   it('blocks create when required fields are missing', () => {
@@ -44,8 +68,8 @@ describe('EstimationView', () => {
 
     fireEvent.change(screen.getByLabelText('No Job'), { target: { value: 'JOB-001' } })
     fireEvent.change(screen.getByLabelText('SKU'), { target: { value: 'SKU-1' } })
-    fireEvent.change(screen.getByLabelText('Nama Klien'), { target: { value: 'PT Client' } })
-    fireEvent.change(screen.getByLabelText('Judul Project'), { target: { value: 'Mockup' } })
+    fireEvent.change(screen.getByLabelText('Client'), { target: { value: 'PT Client' } })
+    fireEvent.change(screen.getByLabelText('Project'), { target: { value: 'Mockup' } })
     fireEvent.click(screen.getByRole('button', { name: 'Add print line' }))
     fireEvent.change(screen.getByLabelText('Material'), { target: { value: 'print-duplex' } })
     fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '2' } })

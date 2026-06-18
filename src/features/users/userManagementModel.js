@@ -8,11 +8,12 @@ export function filterUsers(users, filters) {
   const query = normalizeSearchText(filters.query)
 
   return users.filter((user) => {
-    const haystack = normalizeSearchText([user.name, user.email, user.role, user.status].join(' '))
+    const displayStatus = user.pending ? 'pending' : user.status
+    const haystack = normalizeSearchText([user.name, user.email, user.role, displayStatus].join(' '))
 
     if (query && !haystack.includes(query)) return false
     if (filters.role !== 'all' && user.role !== filters.role) return false
-    if (filters.status !== 'all' && user.status !== filters.status) return false
+    if (filters.status !== 'all' && displayStatus !== filters.status) return false
 
     return true
   })
