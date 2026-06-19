@@ -83,6 +83,40 @@ describe('MasterDataView', () => {
     expect(onSaveItem).toHaveBeenCalledWith(expect.objectContaining({ name: 'Duplex Updated', prices: expect.objectContaining({ B2: 45000 }) }))
   })
 
+  it('shows manual finishing fields instead of print size prices', () => {
+    const onSaveItem = vi.fn()
+    render(
+      <MasterDataView
+        auditEntries={[]}
+        categories={[...categories, { id: 'manual-finishing', name: 'Manual Finishing', layer: 'manual' }]}
+        loading={false}
+        onDeactivateItem={vi.fn()}
+        onSaveItem={onSaveItem}
+        onSeedDefaults={vi.fn()}
+        priceItems={[]}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Manual Finishing' }))
+
+    expect(screen.queryByLabelText('A3 price')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('B2 price')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Labor rate')).toBeInTheDocument()
+    expect(screen.getByLabelText('Minimum charge')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Item name'), { target: { value: 'UV Varnish Matte' } })
+    fireEvent.change(screen.getByLabelText('Labor rate'), { target: { value: '0.75' } })
+    fireEvent.change(screen.getByLabelText('Minimum charge'), { target: { value: '0' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add item' }))
+
+    expect(onSaveItem).toHaveBeenCalledWith(expect.objectContaining({
+      categoryLayer: 'manual',
+      laborRate: 0.75,
+      minimumCharge: 0,
+      name: 'UV Varnish Matte',
+    }))
+  })
+
   it('deactivates an item', () => {
     const onDeactivateItem = vi.fn()
     render(
@@ -99,5 +133,22 @@ describe('MasterDataView', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Deactivate Duplex 270–350 gsm' }))
     expect(onDeactivateItem).toHaveBeenCalledWith(priceItems[0])
+  })
+
+  it('shows skeleton rows in the table while price items load', () => {
+    render(
+      <MasterDataView
+        auditEntries={[]}
+        categories={categories}
+        loading={true}
+        onDeactivateItem={vi.fn()}
+        onSaveItem={vi.fn()}
+        onSeedDefaults={vi.fn()}
+        priceItems={priceItems}
+      />,
+    )
+
+    expect(screen.getAllByTestId('table-skeleton-row').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Duplex 270–350 gsm')).not.toBeInTheDocument()
   })
 })

@@ -1,4 +1,4 @@
-import { AlertTriangle, Loader2, ShieldCheck } from 'lucide-react'
+import { AlertTriangle, ShieldCheck } from 'lucide-react'
 
 function AccessShell({ children }) {
   return (
@@ -6,17 +6,6 @@ function AccessShell({ children }) {
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.05)_1px,transparent_1px)] bg-[size:28px_28px] opacity-50" />
       {children}
     </section>
-  )
-}
-
-export function LoadingPanel() {
-  return (
-    <AccessShell>
-      <div className="relative rounded-4xl border border-white/80 bg-white/90 p-8 text-center shadow-2xl shadow-slate-300/60 backdrop-blur-xl">
-        <Loader2 className="mx-auto animate-spin text-blue-600" size={30} />
-        <p className="mt-4 text-sm font-bold text-slate-600">Loading workspace…</p>
-      </div>
-    </AccessShell>
   )
 }
 

@@ -34,4 +34,11 @@ describe('PriceEstimationView', () => {
 
     expect(onDeleteEstimate).toHaveBeenCalledWith(estimates[1])
   })
+
+  it('shows skeleton rows in the table while estimates load', () => {
+    renderWithRouter(<PriceEstimationListView estimates={estimates} loading={true} onCreateNew={vi.fn()} onDuplicateEstimate={vi.fn()} onEditDraft={vi.fn()} onExportCsv={vi.fn()} onDeleteEstimate={vi.fn()} />)
+
+    expect(screen.getAllByTestId('table-skeleton-row').length).toBeGreaterThan(0)
+    expect(screen.queryByText('JOB-002')).not.toBeInTheDocument()
+  })
 })

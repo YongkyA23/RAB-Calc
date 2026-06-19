@@ -71,4 +71,11 @@ describe('JobLogView', () => {
 
     expect(onExportCsv).toHaveBeenCalledWith([quotes[1]], expect.stringContaining('JOB-002'))
   })
+
+  it('shows skeleton rows in the table while quotes load', () => {
+    render(<JobLogView loading={true} onDuplicateQuote={vi.fn()} onExportCsv={vi.fn()} quotes={quotes} />)
+
+    expect(screen.getAllByTestId('table-skeleton-row').length).toBeGreaterThan(0)
+    expect(screen.queryByText('JOB-001')).not.toBeInTheDocument()
+  })
 })

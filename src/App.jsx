@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
 import {
@@ -10,14 +10,15 @@ import {
   normalizeEmail,
   saveUserProfile,
 } from './firebase/firestoreHelpers'
-import { BlockedAccessPanel, BootstrapAdminPanel, LoadingPanel } from './features/auth/AccessStatePanels'
+import { BlockedAccessPanel, BootstrapAdminPanel } from './features/auth/AccessStatePanels'
 import { AuthPanel } from './features/auth/AuthPanel'
 import { getAccessState, getVisibleNavigation } from './features/auth/authRules'
 import { signInWithGoogle, signOutUser, subscribeToAuthState } from './features/auth/authService'
-import { MasterDataContainer } from './features/masterData/MasterDataContainer'
-import { PriceEstimationContainer } from './features/priceEstimation/PriceEstimationContainer'
 import { AppShell } from './features/shell/AppShell'
-import { UserManagementContainer } from './features/users/UserManagementContainer'
+
+const MasterDataContainer = lazy(() => import('./features/masterData/MasterDataContainer').then((module) => ({ default: module.MasterDataContainer })))
+const PriceEstimationContainer = lazy(() => import('./features/priceEstimation/PriceEstimationContainer').then((module) => ({ default: module.PriceEstimationContainer })))
+const UserManagementContainer = lazy(() => import('./features/users/UserManagementContainer').then((module) => ({ default: module.UserManagementContainer })))
 
 function App() {
   const [authError, setAuthError] = useState('')
@@ -142,7 +143,7 @@ function App() {
   }
 
   if (loading) {
-    return <LoadingPanel />
+    return null
   }
 
   const accessState = getAccessState({ user, profile, profileCount })
@@ -164,16 +165,18 @@ function App() {
 
   return (
     <AppShell onSignOut={handleSignOut} profile={profile}>
-      <Routes>
-        <Route element={<Navigate replace to="/estimates" />} path="/" />
-        <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates" />
-        <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/new" />
-        <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/:estimateId" />
-        <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/:estimateId/edit" />
-        <Route element={canAccess('masterData') ? <MasterDataContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/master-data" />
-        <Route element={canAccess('userManagement') ? <UserManagementContainer currentUser={user} /> : <Navigate replace to="/estimates" />} path="/users" />
-        <Route element={<Navigate replace to="/estimates" />} path="*" />
-      </Routes>
+      <Suspense fallback={null}>
+        <Routes>
+          <Route element={<Navigate replace to="/estimates" />} path="/" />
+          <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates" />
+          <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/new" />
+          <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/:estimateId" />
+          <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/:estimateId/edit" />
+          <Route element={canAccess('masterData') ? <MasterDataContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/master-data" />
+          <Route element={canAccess('userManagement') ? <UserManagementContainer currentUser={user} /> : <Navigate replace to="/estimates" />} path="/users" />
+          <Route element={<Navigate replace to="/estimates" />} path="*" />
+        </Routes>
+      </Suspense>
     </AppShell>
   )
 }

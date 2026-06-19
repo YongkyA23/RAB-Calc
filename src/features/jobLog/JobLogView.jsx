@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { TableSkeletonRows } from '../../components/ui/Table'
 import { buildJobLogCsv } from '../../lib/csv'
 import { formatIdr } from '../../lib/format'
 import { buildDraftFromQuote, filterQuotes, getEmptyQuoteFilters } from './jobLogModel'
@@ -85,7 +86,9 @@ export function JobLogView({ loading, onDuplicateQuote, onExportCsv, quotes }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {visibleQuotes.map((quote) => (
+              {loading ? (
+                <TableSkeletonRows columns={5} />
+              ) : visibleQuotes.map((quote) => (
                 <tr key={quote.id}>
                   <td className="px-4 py-3 font-semibold text-slate-900">{quote.jobNo}</td>
                   <td className="px-4 py-3 text-slate-600">{quote.client}</td>

@@ -48,6 +48,22 @@ describe('firebase payload builders', () => {
     })
   })
 
+  it('omits undefined values from price audit diffs', () => {
+    const entry = buildPriceAuditEntry({
+      itemId: 'item-1',
+      categoryId: 'cat-1',
+      action: 'create',
+      previous: {},
+      next: { id: 'item-1', name: 'New', rate: undefined },
+      editedBy: 'u1',
+    })
+
+    expect(entry.changedFields).toEqual(['id', 'name'])
+    expect(Object.hasOwn(entry.previousValues, 'id')).toBe(false)
+    expect(Object.hasOwn(entry.previousValues, 'name')).toBe(false)
+    expect(entry.newValues).toEqual({ id: 'item-1', name: 'New' })
+  })
+
   it('builds immutable quote payload with summary fields', () => {
     expect(
       buildQuotePayload({

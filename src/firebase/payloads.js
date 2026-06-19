@@ -18,9 +18,9 @@ export function diffChangedFields(previous = {}, next = {}) {
 
   for (const key of keys) {
     if (JSON.stringify(previous[key]) !== JSON.stringify(next[key])) {
-      changedFields.push(key)
-      previousValues[key] = previous[key]
-      newValues[key] = next[key]
+      if (previous[key] !== undefined || next[key] !== undefined) changedFields.push(key)
+      if (previous[key] !== undefined) previousValues[key] = previous[key]
+      if (next[key] !== undefined) newValues[key] = next[key]
     }
   }
 

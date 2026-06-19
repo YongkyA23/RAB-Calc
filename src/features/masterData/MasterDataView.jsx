@@ -1,5 +1,6 @@
 import { Clock, Database, Edit3, History, Layers, Save, Trash2, UploadCloud } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { TableSkeletonRows } from '../../components/ui/Table'
 import { buildPriceItemPayload, filterPriceItemsByLayer, getEmptyPriceItemDraft, summarizeAuditEntry } from './masterDataModel'
 
 function Field({ children, label }) {
@@ -68,6 +69,13 @@ export function MasterDataView({
     )
   }
 
+  const editingExistingItem = Boolean(draft.id)
+  const saveLabel = editingExistingItem ? 'Save item' : 'Add item'
+  const usesSizePrices = selectedLayer === 'print' || selectedLayer === 'digital'
+  const usesManualRates = selectedLayer === 'manual'
+  const usesManpowerRate = selectedLayer === 'manpower'
+  const usesAdditionalRate = selectedLayer === 'additional'
+
   return (
     <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
       <section className="overflow-hidden rounded-4xl border border-white/80 bg-white shadow-xl shadow-slate-300/40">
@@ -125,7 +133,9 @@ export function MasterDataView({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {visibleItems.map((item) => (
+              {loading ? (
+                <TableSkeletonRows columns={5} />
+              ) : visibleItems.map((item) => (
                 <tr className="transition hover:bg-blue-50/30" key={item.id}>
                   <td className="px-5 py-4 font-bold text-slate-900">{item.name}</td>
                   <td className="px-5 py-4 text-slate-600">{item.prices?.A3 ?? '-'}</td>
@@ -166,20 +176,50 @@ export function MasterDataView({
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-50 text-blue-600">
               <Edit3 size={20} />
             </span>
-            <h3 className="text-lg font-black tracking-tight text-slate-950">Edit item</h3>
+            <div>
+              <h3 className="text-lg font-black tracking-tight text-slate-950">{editingExistingItem ? 'Edit item' : 'Add item'}</h3>
+              <p className="mt-1 text-sm font-medium text-slate-500">{selectedCategory?.name ?? selectedLayer} fields only.</p>
+            </div>
           </div>
           <div className="mt-5 space-y-4">
             <Field label="Item name">
-              <TextInput onChange={(event) => updateDraft('name', event.target.value)} value={draft.name} />
+              <TextInput onChange={(event) => updateDraft('name', event.target.value)} placeholder="e.g. UV Varnish Matte" value={draft.name} />
             </Field>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="A3 price">
-                <TextInput onChange={(event) => updateDraft('prices.A3', event.target.value)} value={draft.prices?.A3 ?? ''} />
+            {usesSizePrices ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="A3 price">
+                  <TextInput onChange={(event) => updateDraft('prices.A3', event.target.value)} value={draft.prices?.A3 ?? ''} />
+                </Field>
+                <Field label="B2 price">
+                  <TextInput onChange={(event) => updateDraft('prices.B2', event.target.value)} value={draft.prices?.B2 ?? ''} />
+                </Field>
+              </div>
+            ) : null}
+            {usesManualRates ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Labor rate">
+                  <TextInput onChange={(event) => updateDraft('laborRate', event.target.value)} value={draft.laborRate ?? ''} />
+                </Field>
+                <Field label="Minimum charge">
+                  <TextInput onChange={(event) => updateDraft('minimumCharge', event.target.value)} value={draft.minimumCharge ?? ''} />
+                </Field>
+              </div>
+            ) : null}
+            {usesManpowerRate ? (
+              <Field label="Daily rate">
+                <TextInput onChange={(event) => updateDraft('dailyRate', event.target.value)} value={draft.dailyRate ?? ''} />
               </Field>
-              <Field label="B2 price">
-                <TextInput onChange={(event) => updateDraft('prices.B2', event.target.value)} value={draft.prices?.B2 ?? ''} />
-              </Field>
-            </div>
+            ) : null}
+            {usesAdditionalRate ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Amount / rate">
+                  <TextInput onChange={(event) => updateDraft('rate', event.target.value)} value={draft.rate ?? ''} />
+                </Field>
+                <Field label="Unit label">
+                  <TextInput onChange={(event) => updateDraft('unitLabel', event.target.value)} value={draft.unitLabel ?? ''} />
+                </Field>
+              </div>
+            ) : null}
             <Field label="Turnaround days">
               <TextInput onChange={(event) => updateDraft('turnaroundDays', event.target.value)} value={draft.turnaroundDays ?? ''} />
             </Field>
@@ -189,7 +229,7 @@ export function MasterDataView({
               type="button"
             >
               <Save size={17} />
-              Save item
+              {saveLabel}
             </button>
           </div>
         </section>

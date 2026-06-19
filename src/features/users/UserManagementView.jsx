@@ -1,5 +1,6 @@
 import { Edit3, MailPlus, Save, Search, Shield, UserCog, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { TableSkeletonRows } from '../../components/ui/Table'
 import { buildUserUpdatePayload, filterUsers, getEmptyUserFilters } from './userManagementModel'
 
 function Field({ children, label }) {
@@ -112,7 +113,9 @@ export function UserManagementView({ loading, onAddUser, onUpdateUser, users }) 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {visibleUsers.map((user) => (
+              {loading ? (
+                <TableSkeletonRows columns={5} />
+              ) : visibleUsers.map((user) => (
                 <tr className="transition hover:bg-blue-50/30" key={user.uid ?? user.id ?? user.email}>
                   <td className="px-5 py-4 font-bold text-slate-900">{user.name}</td>
                   <td className="px-5 py-4 text-slate-600">{user.email}</td>

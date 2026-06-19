@@ -2,6 +2,7 @@ import { Copy, Download, Edit3, Eye, Plus, Search, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '../../components/ui/Button'
+import { TableSkeletonRows } from '../../components/ui/Table'
 import { buildPriceEstimationCsv } from '../../lib/csv'
 import { formatIdr } from '../../lib/format'
 import { filterEstimates, getEmptyEstimateFilters, getStatusLabel, normalizeEstimateStatus } from './priceEstimationModel'
@@ -116,7 +117,9 @@ export function PriceEstimationListView({ estimates, loading, onCreateNew, onDel
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
-            {visibleEstimates.map((estimate) => (
+            {loading ? (
+              <TableSkeletonRows columns={6} />
+            ) : visibleEstimates.map((estimate) => (
               <tr className="transition hover:bg-blue-50/30" key={estimate.id}>
                 <td className="px-4 py-3 font-semibold text-slate-900">{estimateLabel(estimate)}</td>
                 <td className="px-4 py-3 text-slate-600">{estimate.client || '-'}</td>

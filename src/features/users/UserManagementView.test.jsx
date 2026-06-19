@@ -61,4 +61,11 @@ describe('UserManagementView', () => {
     expect(screen.getAllByText('pending@example.com')).toHaveLength(2)
     expect(screen.getByText('pending')).toBeInTheDocument()
   })
+
+  it('shows skeleton rows in the table while users load', () => {
+    render(<UserManagementView {...defaultProps} loading={true} />)
+
+    expect(screen.getAllByTestId('table-skeleton-row').length).toBeGreaterThan(0)
+    expect(screen.queryByText('admin@example.com')).not.toBeInTheDocument()
+  })
 })
