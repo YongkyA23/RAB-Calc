@@ -99,4 +99,23 @@ describe('PriceEstimationDetailView', () => {
     expect(onDuplicate).toHaveBeenCalledWith(estimate)
     expect(onDelete).toHaveBeenCalledWith(estimate)
   })
+
+  it('calls PDF generation handler for the current estimate', () => {
+    const onGeneratePdf = vi.fn()
+    render(
+      <PriceEstimationDetailView
+        estimate={estimate}
+        loading={false}
+        onBack={vi.fn()}
+        onDelete={vi.fn()}
+        onDuplicate={vi.fn()}
+        onEdit={vi.fn()}
+        onGeneratePdf={onGeneratePdf}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Generate PDF' }))
+
+    expect(onGeneratePdf).toHaveBeenCalledWith(estimate)
+  })
 })

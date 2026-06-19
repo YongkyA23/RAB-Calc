@@ -71,10 +71,7 @@ export function PriceEstimationListView({ estimates, loading, onCreateNew, onDel
           <p className="mt-1 text-sm font-medium text-slate-500">Manage draft and created price estimates.</p>
         </div>
         <div className="flex gap-2">
-          <Button disabled={loading} onClick={exportCsv}>
-            <Download size={17} />
-            Export CSV
-          </Button>
+         
           <Link className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700" onClick={onCreateNew} to="/estimates/new">
             <Plus size={17} />
             Create New

@@ -43,14 +43,7 @@ export function JobLogView({ loading, onDuplicateQuote, onExportCsv, quotes }) {
             <h2 className="text-xl font-bold text-slate-950">Job Log</h2>
             <p className="mt-2 text-sm text-slate-600">Search, review, duplicate, and export saved quotes.</p>
           </div>
-          <button
-            className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:bg-slate-300"
-            disabled={loading}
-            onClick={exportCsv}
-            type="button"
-          >
-            Export CSV
-          </button>
+         
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">

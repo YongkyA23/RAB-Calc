@@ -4,6 +4,7 @@ import { COLLECTIONS } from '../../firebase/collections'
 import { db } from '../../firebase/app'
 import { doc, deleteDoc } from 'firebase/firestore'
 import { listActivePriceItems, listEstimates, saveEstimate } from '../../firebase/firestoreHelpers'
+import { printInternalEstimatePdf } from '../../lib/estimatePdf'
 import { createEmptyQuoteDraft, buildDraftEstimateFromDraft } from '../estimation/estimationModel'
 import { EstimationView } from '../estimation/EstimationView'
 import { PriceEstimationDetailView } from './PriceEstimationDetailView'
@@ -180,6 +181,7 @@ export function PriceEstimationContainer({ profile }) {
           onDelete={handleDeleteDraft}
           onDuplicate={handleDuplicateEstimate}
           onEdit={handleEditDraft}
+          onGeneratePdf={printInternalEstimatePdf}
         />
       ) : null}
       {routeMode === 'form' ? (
