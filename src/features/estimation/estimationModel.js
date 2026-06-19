@@ -28,6 +28,24 @@ function hasAnyLine(draft) {
   return ['print', 'digital', 'manual', 'manpower', 'additional'].some((layer) => draft[layer]?.length > 0)
 }
 
+function isPositiveNumber(value) {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0
+}
+
+function isNonNegativeNumber(value) {
+  const number = Number(value)
+  return Number.isFinite(number) && number >= 0
+}
+
+function validatePositive(errors, value, message) {
+  if (!isPositiveNumber(value)) errors.push(message)
+}
+
+function validateNonNegative(errors, value, message) {
+  if (!isNonNegativeNumber(value)) errors.push(message)
+}
+
 export function validateQuoteDraft(draft, priceItems) {
   const errors = []
 
@@ -37,10 +55,39 @@ export function validateQuoteDraft(draft, priceItems) {
   if (!draft.header.project?.trim()) errors.push('Project is required')
   if (!hasAnyLine(draft)) errors.push('At least one cost line is required')
 
+  for (const line of draft.print ?? []) {
+    validatePositive(errors, line.qty, 'Print quantity must be greater than 0')
+  }
+
+  for (const line of draft.digital ?? []) {
+    validatePositive(errors, line.qty, 'Digital quantity must be greater than 0')
+  }
+
   for (const line of draft.manual ?? []) {
     const item = findItem(priceItems, line.itemId)
+    validatePositive(errors, line.p, 'Manual length must be greater than 0')
+    validatePositive(errors, line.l, 'Manual width must be greater than 0')
+    validatePositive(errors, line.qty, 'Manual quantity must be greater than 0')
+    validateNonNegative(errors, line.jmlAlat ?? 0, 'Manual tool count cannot be negative')
+
     if (item?.minimumType === 'byRequest' && (!Number(line.manualQuotedAmount) || Number(line.manualQuotedAmount) <= 0)) {
       errors.push(`Manual quoted amount is required for ${item.name}`)
+    }
+  }
+
+  for (const line of draft.manpower ?? []) {
+    validatePositive(errors, line.days, 'Manpower days must be greater than 0')
+  }
+
+  for (const line of draft.additional ?? []) {
+    const item = findItem(priceItems, line.itemId)
+    validatePositive(errors, line.quantity, 'Additional quantity must be greater than 0')
+
+    if (item?.additionalMode === 'area') {
+      validatePositive(errors, line.lengthCm, 'Additional length must be greater than 0')
+      validatePositive(errors, line.widthCm, 'Additional width must be greater than 0')
+    } else {
+      validatePositive(errors, line.amount ?? item?.rate, 'Additional amount must be greater than 0')
     }
   }
 

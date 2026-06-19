@@ -23,6 +23,19 @@ function LayerCard({ children, onAdd, title, addLabel }) {
   )
 }
 
+function LineRow({ children, onRemove, removeLabel }) {
+  return (
+    <div className="rounded-lg bg-slate-50 p-4">
+      <div className="mb-3 flex justify-end">
+        <Button aria-label={removeLabel} onClick={onRemove} variant="danger">
+          Remove
+        </Button>
+      </div>
+      {children}
+    </div>
+  )
+}
+
 function isMetalizeItem(item) {
   return item?.id === 'additional-metalize' || item?.name?.toLowerCase().includes('metalize')
 }
@@ -81,6 +94,13 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
     }))
   }
 
+  function removeLine(layer, index) {
+    setDraft((current) => ({
+      ...current,
+      [layer]: current[layer].filter((_, lineIndex) => lineIndex !== index),
+    }))
+  }
+
   function createEstimate() {
     const nextErrors = validateQuoteDraft(draft, priceItems)
     setErrors(nextErrors)
@@ -127,7 +147,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
             const unitPrice = Number(item?.prices?.[line.size]) || 0
             const total = safeLineTotal(() => calculatePrintLineTotal({ item, size: line.size ?? 'A3', qty: line.qty }))
             return (
-              <div className="rounded-lg bg-slate-50 p-4" key={index}>
+              <LineRow key={index} onRemove={() => removeLine('print', index)} removeLabel={`Remove print line ${index + 1}`}>
                 <div className="grid gap-3 md:grid-cols-3">
                   <Field label="Material">
                     <Select onChange={(event) => updateLine('print', index, 'itemId', event.target.value)} value={line.itemId}>
@@ -145,7 +165,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
                   </Field>
                 </div>
                 <p className="mt-3 text-sm font-semibold text-slate-700">{formatIdr(unitPrice)} × {numberText(line.qty)} = {formatIdr(total)}</p>
-              </div>
+              </LineRow>
             )
           })}
         </LayerCard>
@@ -156,7 +176,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
             const unitPrice = Number(item?.prices?.[line.size]) || 0
             const total = safeLineTotal(() => calculateDigitalLineTotal({ item, size: line.size ?? 'A3', qty: line.qty }))
             return (
-              <div className="rounded-lg bg-slate-50 p-4" key={index}>
+              <LineRow key={index} onRemove={() => removeLine('digital', index)} removeLabel={`Remove digital line ${index + 1}`}>
                 <div className="grid gap-3 md:grid-cols-3">
                   <Field label="Finishing">
                     <Select onChange={(event) => updateLine('digital', index, 'itemId', event.target.value)} value={line.itemId}>
@@ -174,7 +194,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
                   </Field>
                 </div>
                 <p className="mt-3 text-sm font-semibold text-slate-700">{formatIdr(unitPrice)} × {numberText(line.qty)} = {formatIdr(total)}</p>
-              </div>
+              </LineRow>
             )
           })}
         </LayerCard>
@@ -185,7 +205,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
             const result = safeLineTotal(() => calculateManualLineTotal({ item, ...line })) || { total: 0 }
             const total = result.total ?? 0
             return (
-              <div className="rounded-lg bg-slate-50 p-4" key={index}>
+              <LineRow key={index} onRemove={() => removeLine('manual', index)} removeLabel={`Remove manual line ${index + 1}`}>
                 <div className="grid gap-3 md:grid-cols-5">
                   <Field label="Finishing">
                     <Select onChange={(event) => updateLine('manual', index, 'itemId', event.target.value)} value={line.itemId}>
@@ -205,7 +225,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
                   ))}
                 </div>
                 <p className="mt-3 text-sm font-semibold text-slate-700">Line total = {formatIdr(total)}</p>
-              </div>
+              </LineRow>
             )
           })}
         </LayerCard>
@@ -216,7 +236,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
             const rate = Number(item?.dailyRate) || 0
             const total = safeLineTotal(() => calculateManpowerLineTotal({ days: line.days, rate }))
             return (
-              <div className="rounded-lg bg-slate-50 p-4" key={index}>
+              <LineRow key={index} onRemove={() => removeLine('manpower', index)} removeLabel={`Remove manpower line ${index + 1}`}>
                 <div className="grid gap-3 md:grid-cols-2">
                   <Field label="Manpower">
                     <Select onChange={(event) => updateLine('manpower', index, 'itemId', event.target.value)} value={line.itemId}>
@@ -228,7 +248,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
                   </Field>
                 </div>
                 <p className="mt-3 text-sm font-semibold text-slate-700">{formatIdr(rate)} × {numberText(line.days)} = {formatIdr(total)}</p>
-              </div>
+              </LineRow>
             )
           })}
         </LayerCard>
@@ -247,7 +267,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
               widthCm: line.widthCm,
             }))
             return (
-              <div className="rounded-lg bg-slate-50 p-4" key={index}>
+              <LineRow key={index} onRemove={() => removeLine('additional', index)} removeLabel={`Remove additional line ${index + 1}`}>
                 <div className={`grid gap-3 ${metalize ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
                   <Field label="Cost type">
                     <Select onChange={(event) => updateLine('additional', index, 'itemId', event.target.value)} value={line.itemId}>
@@ -287,7 +307,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
                       : `${formatIdr(amount)} × ${line.quantity || 0} = ${formatIdr(total)}`}
                   </p>
                 </div>
-              </div>
+              </LineRow>
             )
           })}
         </LayerCard>
