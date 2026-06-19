@@ -36,7 +36,7 @@ export function calculateDigitalLineTotal({ item, size, qty }) {
   return getUnitPrice(item, size) * requirePositiveNumber(qty, 'Qty')
 }
 
-export function calculateManualLineTotal({ item, p, l, qty, jmlAlat = 1, manualQuotedAmount }) {
+export function calculateManualLineTotal({ item, p, l, qty, jmlAlat = 1 }) {
   const length = requirePositiveNumber(p, 'P')
   const width = requirePositiveNumber(l, 'L')
   const quantity = requirePositiveNumber(qty, 'Qty')
@@ -47,24 +47,11 @@ export function calculateManualLineTotal({ item, p, l, qty, jmlAlat = 1, manualQ
   const laborCost = length * width * laborRate * quantity
   const formulaTotal = toolingCost + laborCost
 
-  if (item?.minimumType === 'byRequest') {
-    if (!Number.isFinite(Number(manualQuotedAmount)) || Number(manualQuotedAmount) <= 0) {
-      throw new Error('Manual quoted amount is required')
-    }
-
-    return {
-      toolingCost,
-      laborCost,
-      formulaTotal,
-      total: Number(manualQuotedAmount),
-    }
-  }
-
   return {
     toolingCost,
     laborCost,
     formulaTotal,
-    total: Math.max(optionalNumber(item?.minimumCharge, 0), formulaTotal),
+    total: item?.minimumType === 'byRequest' ? formulaTotal : Math.max(optionalNumber(item?.minimumCharge, 0), formulaTotal),
   }
 }
 

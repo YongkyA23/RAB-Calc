@@ -39,7 +39,6 @@ function readableInputs(line) {
   if (inputs.jmlAlat) rows.push(`Tool count: ${inputs.jmlAlat}`)
   if (inputs.days) rows.push(`Days: ${inputs.days}`)
   if (inputs.amount) rows.push(`Amount: ${formatIdr(inputs.amount)}`)
-  if (inputs.manualQuotedAmount) rows.push(`Quoted amount: ${formatIdr(inputs.manualQuotedAmount)}`)
   if (inputs.notes) rows.push(`Notes: ${inputs.notes}`)
 
   return rows

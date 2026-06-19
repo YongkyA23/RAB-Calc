@@ -77,7 +77,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
     const defaults = {
       print: { itemId: firstItem('print')?.id ?? '', size: 'A3', qty: 1 },
       digital: { itemId: firstItem('digital')?.id ?? '', size: 'A3', qty: 1 },
-      manual: { itemId: firstItem('manual')?.id ?? '', p: 1, l: 1, qty: 1, jmlAlat: 1, manualQuotedAmount: '' },
+      manual: { itemId: firstItem('manual')?.id ?? '', p: 1, l: 1, qty: 1, jmlAlat: 1 },
       manpower: { itemId: firstItem('manpower')?.id ?? '', days: 1 },
       additional: { itemId: firstAdditionalItem?.id ?? '', amount: firstAdditionalItem?.rate ?? 1, quantity: 1, lengthCm: 1, widthCm: 1, notes: '' },
     }
@@ -217,7 +217,6 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
                     ['l', 'Width (cm)'],
                     ['qty', 'Quantity'],
                     ['jmlAlat', 'Tool count'],
-                    ['manualQuotedAmount', 'Quoted amount'],
                   ].map(([field, label]) => (
                     <Field key={field} label={label}>
                       <Input onChange={(event) => updateLine('manual', index, field, event.target.value)} value={line[field] ?? ''} />

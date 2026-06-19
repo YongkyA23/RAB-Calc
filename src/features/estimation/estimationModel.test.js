@@ -56,17 +56,4 @@ describe('estimation model', () => {
     expect(quote.lineItems).toHaveLength(5)
     expect(quote.createdBy).toEqual({ uid: 'u1', name: 'Admin' })
   })
-
-  it('requires manual quoted amount for by-request manual finishing', () => {
-    const draft = {
-      header: { jobNo: 'JOB-001', sku: 'SKU-1', client: 'PT Client', project: 'Mockup' },
-      print: [],
-      digital: [],
-      manual: [{ itemId: 'manual-request', p: 10, l: 10, qty: 2, jmlAlat: 0 }],
-      manpower: [],
-      additional: [],
-    }
-
-    expect(validateQuoteDraft(draft, items)).toContain('Manual quoted amount is required for UV Matte')
-  })
 })

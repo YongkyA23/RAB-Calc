@@ -52,14 +52,13 @@ describe('calculation engine', () => {
     ).toEqual({ toolingCost: 250000, laborCost: 5000, formulaTotal: 255000, total: 300000 })
   })
 
-  it('uses manual quoted amount for by-request manual finishing', () => {
+  it('uses formula total for by-request manual finishing', () => {
     expect(
       calculateManualLineTotal({
         p: 10,
         l: 10,
         qty: 2,
         jmlAlat: 0,
-        manualQuotedAmount: 750000,
         item: {
           toolingRate: null,
           laborRate: 0.75,
@@ -67,24 +66,7 @@ describe('calculation engine', () => {
           minimumCharge: null,
         },
       }),
-    ).toEqual({ toolingCost: 0, laborCost: 150, formulaTotal: 150, total: 750000 })
-  })
-
-  it('rejects by-request manual finishing without quoted amount', () => {
-    expect(() =>
-      calculateManualLineTotal({
-        p: 10,
-        l: 10,
-        qty: 2,
-        jmlAlat: 0,
-        item: {
-          toolingRate: null,
-          laborRate: 0.75,
-          minimumType: 'byRequest',
-          minimumCharge: null,
-        },
-      }),
-    ).toThrow('Manual quoted amount is required')
+    ).toEqual({ toolingCost: 0, laborCost: 150, formulaTotal: 150, total: 150 })
   })
 
   it('calculates no-tooling manual finishing with zero tooling cost', () => {

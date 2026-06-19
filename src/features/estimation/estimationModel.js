@@ -64,15 +64,10 @@ export function validateQuoteDraft(draft, priceItems) {
   }
 
   for (const line of draft.manual ?? []) {
-    const item = findItem(priceItems, line.itemId)
     validatePositive(errors, line.p, 'Manual length must be greater than 0')
     validatePositive(errors, line.l, 'Manual width must be greater than 0')
     validatePositive(errors, line.qty, 'Manual quantity must be greater than 0')
     validateNonNegative(errors, line.jmlAlat ?? 0, 'Manual tool count cannot be negative')
-
-    if (item?.minimumType === 'byRequest' && (!Number(line.manualQuotedAmount) || Number(line.manualQuotedAmount) <= 0)) {
-      errors.push(`Manual quoted amount is required for ${item.name}`)
-    }
   }
 
   for (const line of draft.manpower ?? []) {
