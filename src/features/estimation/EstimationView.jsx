@@ -1,3 +1,4 @@
+import { Boxes, CalendarClock, FileText, Layers, PackagePlus, Plus, Printer, Sparkles, Trash2, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Field, Input, Select } from '../../components/ui/Form'
 import { Button } from '../../components/ui/Button'
@@ -11,23 +12,34 @@ import {
 import { formatIdr } from '../../lib/format'
 import { createEmptyQuoteDraft, validateQuoteDraft, buildQuoteFromDraft } from './estimationModel'
 
-function LayerCard({ children, onAdd, title, addLabel }) {
+function LayerCard({ children, icon: Icon, onAdd, title, addLabel }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="rounded-4xl border border-white/80 bg-white p-6 shadow-xl shadow-slate-300/40">
       <div className="flex items-center justify-between gap-4">
-        <h3 className="text-lg font-bold text-slate-950">{title}</h3>
-        <Button onClick={onAdd}>{addLabel}</Button>
+        <div className="flex items-center gap-3">
+          {Icon ? (
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-50 text-blue-600">
+              <Icon size={20} />
+            </span>
+          ) : null}
+          <h3 className="text-lg font-black tracking-tight text-slate-950">{title}</h3>
+        </div>
+        <Button onClick={onAdd}>
+          <Plus size={17} />
+          {addLabel}
+        </Button>
       </div>
-      <div className="mt-4 space-y-4">{children}</div>
+      <div className="mt-5 space-y-4">{children}</div>
     </section>
   )
 }
 
 function LineRow({ children, onRemove, removeLabel }) {
   return (
-    <div className="rounded-lg bg-slate-50 p-4">
+    <div className="rounded-3xl border border-slate-100 bg-slate-50/80 p-4 shadow-inner shadow-white">
       <div className="mb-3 flex justify-end">
         <Button aria-label={removeLabel} onClick={onRemove} variant="danger">
+          <Trash2 size={16} />
           Remove
         </Button>
       </div>
@@ -121,10 +133,18 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
+    <div className="grid gap-6 xl:grid-cols-[1.45fr_0.55fr]">
       <div className="space-y-6">
-        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-slate-950">Price Estimation</h2>
+        <section className="rounded-4xl border border-white/80 bg-white p-6 shadow-xl shadow-slate-300/40">
+          <div className="flex items-center gap-3">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/25">
+              <FileText size={20} />
+            </span>
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-600">Job sheet</p>
+              <h2 className="text-2xl font-black tracking-tight text-slate-950">Price Estimation</h2>
+            </div>
+          </div>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <Field label="No Job">
               <Input onChange={(event) => updateHeader('jobNo', event.target.value)} value={draft.header.jobNo} />
@@ -141,7 +161,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
           </div>
         </section>
 
-        <LayerCard addLabel="Add print line" onAdd={() => addLine('print')} title="Print">
+        <LayerCard addLabel="Add print line" icon={Printer} onAdd={() => addLine('print')} title="Print">
           {draft.print.map((line, index) => {
             const item = findItem(line.itemId)
             const unitPrice = Number(item?.prices?.[line.size]) || 0
@@ -170,7 +190,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
           })}
         </LayerCard>
 
-        <LayerCard addLabel="Add digital line" onAdd={() => addLine('digital')} title="Digital Finishing">
+        <LayerCard addLabel="Add digital line" icon={Sparkles} onAdd={() => addLine('digital')} title="Digital Finishing">
           {draft.digital.map((line, index) => {
             const item = findItem(line.itemId)
             const unitPrice = Number(item?.prices?.[line.size]) || 0
@@ -199,7 +219,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
           })}
         </LayerCard>
 
-        <LayerCard addLabel="Add manual line" onAdd={() => addLine('manual')} title="Manual Finishing">
+        <LayerCard addLabel="Add manual line" icon={Layers} onAdd={() => addLine('manual')} title="Manual Finishing">
           {draft.manual.map((line, index) => {
             const item = findItem(line.itemId)
             const result = safeLineTotal(() => calculateManualLineTotal({ item, ...line })) || { total: 0 }
@@ -229,7 +249,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
           })}
         </LayerCard>
 
-        <LayerCard addLabel="Add manpower line" onAdd={() => addLine('manpower')} title="Manpower">
+        <LayerCard addLabel="Add manpower line" icon={Users} onAdd={() => addLine('manpower')} title="Manpower">
           {draft.manpower.map((line, index) => {
             const item = findItem(line.itemId)
             const rate = Number(item?.dailyRate) || 0
@@ -252,7 +272,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
           })}
         </LayerCard>
 
-        <LayerCard addLabel="Add additional line" onAdd={() => addLine('additional')} title="Additional Costs">
+        <LayerCard addLabel="Add additional line" icon={PackagePlus} onAdd={() => addLine('additional')} title="Additional Costs">
           {draft.additional.map((line, index) => {
             const item = findItem(line.itemId)
             const metalize = isMetalizeItem(item)
@@ -312,9 +332,14 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
         </LayerCard>
       </div>
 
-      <aside className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm xl:sticky xl:top-6 xl:self-start">
-        <h3 className="text-lg font-bold text-slate-950">Grand Total</h3>
-        <p className="text-3xl font-bold text-blue-700">{formatIdr(previewQuote.grandTotal)}</p>
+      <aside className="space-y-5 rounded-4xl border border-white/80 bg-white p-6 shadow-xl shadow-slate-300/40 xl:sticky xl:top-32 xl:self-start">
+        <div className="flex items-center gap-3">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-50 text-blue-600">
+            <Boxes size={20} />
+          </span>
+          <h3 className="text-lg font-black tracking-tight text-slate-950">Grand Total</h3>
+        </div>
+        <p className="text-4xl font-black tracking-tight text-blue-700">{formatIdr(previewQuote.grandTotal)}</p>
         <dl className="space-y-2 text-sm text-slate-600">
           {Object.entries(previewQuote.totals).map(([key, value]) => (
             <div className="flex justify-between" key={key}>
@@ -322,8 +347,8 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
               <dd>{formatIdr(value)}</dd>
             </div>
           ))}
-          <div className="flex justify-between font-semibold text-slate-900">
-            <dt>Turnaround</dt>
+          <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2 font-bold text-slate-900">
+            <dt className="inline-flex items-center gap-2"><CalendarClock size={16} />Turnaround</dt>
             <dd>{previewQuote.turnaroundDays} days</dd>
           </div>
         </dl>

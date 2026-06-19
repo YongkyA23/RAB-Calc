@@ -1,3 +1,4 @@
+import { Bell, Calculator, Database, LogOut, Search, Sparkles, UserCircle, Users } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { Button } from '../../components/ui/Button'
 import { getVisibleNavigation } from '../auth/authRules'
@@ -14,10 +15,10 @@ const viewDescriptions = {
   userManagement: 'Manage app-level user roles and access status.',
 }
 
-const navGlyphs = {
-  priceEstimation: 'PE',
-  masterData: 'PL',
-  userManagement: 'UM',
+const navIcons = {
+  priceEstimation: Calculator,
+  masterData: Database,
+  userManagement: Users,
 }
 
 const routeByView = {
@@ -38,82 +39,112 @@ export function AppShell({ onSignOut, profile, children }) {
   const navigationItems = getVisibleNavigation(profile)
 
   return (
-    <main className="min-h-screen bg-slate-100 text-slate-900">
-      <div className="flex min-h-screen">
-        <aside className="hidden w-72 shrink-0 border-r border-slate-800 bg-slate-950 text-white lg:flex lg:flex-col">
-          <div className="border-b border-slate-800 px-6 py-6">
+    <main className="min-h-screen bg-[#eef2f7] text-slate-900">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.045)_1px,transparent_1px)] bg-[size:28px_28px] opacity-40" />
+      <div className="relative flex min-h-screen p-3 lg:p-5">
+        <aside className="hidden w-72 shrink-0 overflow-hidden rounded-4xl border border-white/70 bg-white/88 text-slate-900 shadow-2xl shadow-slate-300/60 backdrop-blur-xl lg:flex lg:flex-col">
+          <div className="px-5 py-5">
             <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-500 text-sm font-black tracking-wider">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-600 text-sm font-black tracking-wider text-white shadow-xl shadow-blue-600/25">
                 RAB
               </div>
               <div>
-                <p className="text-sm font-bold">RAB Calculator</p>
-                <p className="text-xs text-slate-400">Print & finishing</p>
+                <p className="text-base font-black tracking-tight">RAB Calculator</p>
+                <p className="text-xs font-medium text-slate-500">Print & finishing studio</p>
               </div>
             </div>
           </div>
 
-          <nav className="flex-1 space-y-1 px-3 py-5" aria-label="Primary">
-            {navigationItems.map((item) => (
-              <NavLink
-                className={({ isActive }) => `flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
-                  isActive || activeView === item.key
-                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-950/30'
-                    : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-                }`}
-                end={item.key === 'priceEstimation'}
-                key={item.key}
-                to={routeByView[item.key]}
-              >
-                <span className="grid h-8 w-8 place-items-center rounded-lg bg-white/10 text-[11px] font-black tracking-wider">
-                  {navGlyphs[item.key]}
-                </span>
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className="border-t border-slate-800 p-4">
-            <p className="truncate text-sm font-semibold">{profile?.name || profile?.email || 'User'}</p>
-            <p className="text-xs text-slate-400">{profile?.role}</p>
-          </div>
-        </aside>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
-            <div className="flex flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-600">Admin workspace</p>
-                <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950">
-                  {viewTitles[activeView] ?? 'Dashboard'}
-                </h1>
-                <p className="mt-1 text-sm text-slate-500">{viewDescriptions[activeView]}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="hidden rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-right text-xs text-slate-600 sm:block">
-                  <p className="font-semibold text-slate-900">{profile?.name || profile?.email || 'User'}</p>
-                  <p>{profile?.role}</p>
-                </div>
-                <Button onClick={onSignOut}>Sign out</Button>
-              </div>
-            </div>
-            <nav className="flex gap-2 overflow-x-auto border-t border-slate-100 px-4 py-3 lg:hidden" aria-label="Mobile primary">
-              {navigationItems.map((item) => (
+          <nav className="flex-1 space-y-1 px-4 py-3" aria-label="Primary">
+            <p className="mb-2 px-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Menu</p>
+            {navigationItems.map((item) => {
+              const Icon = navIcons[item.key] ?? Sparkles
+              return (
                 <NavLink
-                  className={({ isActive }) => `whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold ${
-                    isActive || activeView === item.key ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'
+                  className={({ isActive }) => `group flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-bold transition ${
+                    isActive || activeView === item.key
+                      ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/25'
+                      : 'text-slate-500 hover:bg-slate-100 hover:text-slate-950'
                   }`}
                   end={item.key === 'priceEstimation'}
                   key={item.key}
                   to={routeByView[item.key]}
                 >
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/15 ring-1 ring-white/10 group-hover:bg-white/30">
+                    <Icon size={18} strokeWidth={2.4} />
+                  </span>
                   {item.label}
                 </NavLink>
-              ))}
+              )
+            })}
+          </nav>
+
+          <div className="m-4 rounded-3xl border border-slate-100 bg-slate-50 p-4">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white text-blue-600 shadow-sm">
+                <UserCircle size={22} />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black">{profile?.name || profile?.email || 'User'}</p>
+                <p className="text-xs font-semibold text-slate-500">{profile?.role}</p>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col lg:pl-5">
+          <header className="sticky top-3 z-20 rounded-[1.75rem] border border-white/70 bg-white/90 shadow-xl shadow-slate-300/40 backdrop-blur-xl lg:top-5">
+            <div className="flex flex-col gap-4 px-4 py-4 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.28em] text-blue-600">Admin workspace</p>
+                <h1 className="mt-1 text-3xl font-black tracking-tight text-slate-950">
+                  {viewTitles[activeView] ?? 'Dashboard'}
+                </h1>
+                <p className="mt-1 text-sm font-medium text-slate-500">{viewDescriptions[activeView]}</p>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <label className="relative hidden min-w-72 lg:block">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input
+                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 pl-11 pr-4 text-sm font-medium outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    placeholder="Search estimates, clients..."
+                    type="search"
+                  />
+                </label>
+                <button className="hidden h-12 w-12 place-items-center rounded-2xl border border-slate-100 bg-slate-50 text-slate-500 transition hover:bg-white hover:text-slate-900 sm:grid" type="button">
+                  <Bell size={18} />
+                </button>
+                <div className="hidden rounded-2xl border border-slate-100 bg-slate-50 px-4 py-2 text-right text-xs text-slate-600 sm:block">
+                  <p className="font-black text-slate-900">{profile?.name || profile?.email || 'User'}</p>
+                  <p>{profile?.role}</p>
+                </div>
+                <Button onClick={onSignOut}>
+                  <LogOut size={17} />
+                  Sign out
+                </Button>
+              </div>
+            </div>
+            <nav className="flex gap-2 overflow-x-auto border-t border-slate-100 px-4 py-3 lg:hidden" aria-label="Mobile primary">
+              {navigationItems.map((item) => {
+                const Icon = navIcons[item.key] ?? Sparkles
+                return (
+                  <NavLink
+                    className={({ isActive }) => `inline-flex items-center gap-2 whitespace-nowrap rounded-2xl px-3 py-2 text-sm font-bold ${
+                      isActive || activeView === item.key ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'
+                    }`}
+                    end={item.key === 'priceEstimation'}
+                    key={item.key}
+                    to={routeByView[item.key]}
+                  >
+                    <Icon size={16} />
+                    {item.label}
+                  </NavLink>
+                )
+              })}
             </nav>
           </header>
 
-          <section className="flex-1 p-4 sm:p-6 lg:p-8">{children}</section>
+          <section className="flex-1 p-1 pt-5 sm:p-5 lg:p-7">{children}</section>
         </div>
       </div>
     </main>
