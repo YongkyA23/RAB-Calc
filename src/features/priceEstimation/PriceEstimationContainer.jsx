@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { COLLECTIONS } from '../../firebase/collections'
 import { db } from '../../firebase/app'
 import { doc, deleteDoc } from 'firebase/firestore'
@@ -20,15 +21,19 @@ function downloadCsv(csv) {
 }
 
 export function PriceEstimationContainer({ profile }) {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { estimateId } = useParams()
   const [estimates, setEstimates] = useState([])
   const [error, setError] = useState('')
   const [formKey, setFormKey] = useState(0)
   const [initialDraft, setInitialDraft] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [mode, setMode] = useState('list')
   const [priceItems, setPriceItems] = useState([])
   const [selectedEstimate, setSelectedEstimate] = useState(null)
   const [success, setSuccess] = useState('')
+  const routeMode = location.pathname.endsWith('/new') || location.pathname.endsWith('/edit') ? 'form' : estimateId ? 'detail' : 'list'
+  const routeEstimate = useMemo(() => estimates.find((estimate) => estimate.id === estimateId) ?? null, [estimateId, estimates])
 
   async function loadData() {
     const [nextEstimates, nextPriceItems] = await Promise.all([listEstimates(), listActivePriceItems()])
@@ -60,13 +65,13 @@ export function PriceEstimationContainer({ profile }) {
     }
   }, [])
 
-  function openForm(draft, estimate = null) {
+  function openForm(draft, estimate = null, path = '/estimates/new') {
     setInitialDraft(draft)
     setSelectedEstimate(estimate)
     setFormKey((current) => current + 1)
-    setMode('form')
     setError('')
     setSuccess('')
+    navigate(path)
   }
 
   function handleCreateNew() {
@@ -74,7 +79,7 @@ export function PriceEstimationContainer({ profile }) {
   }
 
   function handleEditDraft(estimate) {
-    openForm(buildDraftFromEstimate(estimate), estimate)
+    openForm(buildDraftFromEstimate(estimate), estimate, `/estimates/${estimate.id}/edit`)
   }
 
   function handleDuplicateEstimate(estimate) {
@@ -83,9 +88,9 @@ export function PriceEstimationContainer({ profile }) {
 
   function handleViewEstimate(estimate) {
     setSelectedEstimate(estimate)
-    setMode('detail')
     setError('')
     setSuccess('')
+    navigate(`/estimates/${estimate.id}`)
   }
 
   async function runSave(action, message) {
@@ -96,7 +101,7 @@ export function PriceEstimationContainer({ profile }) {
     try {
       await action()
       await loadData()
-      setMode('list')
+      navigate('/estimates')
       setSuccess(message)
     } catch (saveError) {
       setError(saveError.message)
@@ -110,16 +115,18 @@ export function PriceEstimationContainer({ profile }) {
   }
 
   async function handleSaveDraft(draft) {
-    const payload = buildDraftEstimateFromDraft(draft, creator(), selectedEstimate?.id)
+    const estimate = selectedEstimate ?? routeEstimate
+    const payload = buildDraftEstimateFromDraft(draft, creator(), estimate?.id)
     await runSave(() => saveEstimate(payload), 'Draft saved')
   }
 
   async function handleCreateEstimate(estimate, draft) {
+    const currentEstimate = selectedEstimate ?? routeEstimate
     await runSave(
       () =>
         saveEstimate({
           ...estimate,
-          id: selectedEstimate?.id ?? estimate.id,
+          id: currentEstimate?.id ?? estimate.id,
           createdBy: creator(),
           draft,
           status: 'created',
@@ -136,7 +143,7 @@ export function PriceEstimationContainer({ profile }) {
     try {
       await deleteDoc(doc(db, COLLECTIONS.quotes, estimate.id))
       await loadData()
-      setMode('list')
+      navigate('/estimates')
       setSelectedEstimate(null)
       setSuccess('Estimate deleted')
     } catch (deleteError) {
@@ -146,11 +153,14 @@ export function PriceEstimationContainer({ profile }) {
     }
   }
 
+  const currentEstimate = selectedEstimate ?? routeEstimate
+  const formDraft = initialDraft ?? (currentEstimate ? buildDraftFromEstimate(currentEstimate) : createEmptyQuoteDraft())
+
   return (
     <div className="space-y-4">
       {error ? <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
       {success ? <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{success}</div> : null}
-      {mode === 'list' ? (
+      {routeMode === 'list' ? (
         <PriceEstimationListView
           estimates={estimates}
           loading={loading}
@@ -162,22 +172,22 @@ export function PriceEstimationContainer({ profile }) {
           onViewEstimate={handleViewEstimate}
         />
       ) : null}
-      {mode === 'detail' ? (
+      {routeMode === 'detail' ? (
         <PriceEstimationDetailView
-          estimate={selectedEstimate}
+          estimate={currentEstimate}
           loading={loading}
-          onBack={() => setMode('list')}
+          onBack={() => navigate('/estimates')}
           onDelete={handleDeleteDraft}
           onDuplicate={handleDuplicateEstimate}
           onEdit={handleEditDraft}
         />
       ) : null}
-      {mode === 'form' ? (
+      {routeMode === 'form' ? (
         <EstimationView
-          key={formKey}
-          initialDraft={initialDraft}
+          key={`${formKey}-${location.pathname}-${currentEstimate?.id ?? 'new'}`}
+          initialDraft={formDraft}
           loading={loading}
-          onCancel={() => setMode('list')}
+          onCancel={() => navigate('/estimates')}
           onCreateEstimate={handleCreateEstimate}
           onSaveDraft={handleSaveDraft}
           priceItems={priceItems}

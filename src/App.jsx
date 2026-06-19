@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
 import {
   ensureInitialAllowlistEmails,
@@ -11,7 +12,7 @@ import {
 } from './firebase/firestoreHelpers'
 import { BlockedAccessPanel, BootstrapAdminPanel, LoadingPanel } from './features/auth/AccessStatePanels'
 import { AuthPanel } from './features/auth/AuthPanel'
-import { getAccessState } from './features/auth/authRules'
+import { getAccessState, getVisibleNavigation } from './features/auth/authRules'
 import { signInWithGoogle, signOutUser, subscribeToAuthState } from './features/auth/authService'
 import { MasterDataContainer } from './features/masterData/MasterDataContainer'
 import { PriceEstimationContainer } from './features/priceEstimation/PriceEstimationContainer'
@@ -19,7 +20,6 @@ import { AppShell } from './features/shell/AppShell'
 import { UserManagementContainer } from './features/users/UserManagementContainer'
 
 function App() {
-  const [activeView, setActiveView] = useState('priceEstimation')
   const [authError, setAuthError] = useState('')
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState(null)
@@ -159,11 +159,21 @@ function App() {
     return <BlockedAccessPanel onSignOut={handleSignOut} reason={accessState} />
   }
 
+  const visibleViews = getVisibleNavigation(profile).map((item) => item.key)
+  const canAccess = (view) => visibleViews.includes(view)
+
   return (
-    <AppShell activeView={activeView} onNavigate={setActiveView} onSignOut={handleSignOut} profile={profile}>
-      {activeView === 'priceEstimation' ? <PriceEstimationContainer profile={profile} /> : null}
-      {activeView === 'masterData' ? <MasterDataContainer profile={profile} /> : null}
-      {activeView === 'userManagement' ? <UserManagementContainer currentUser={user} /> : null}
+    <AppShell onSignOut={handleSignOut} profile={profile}>
+      <Routes>
+        <Route element={<Navigate replace to="/estimates" />} path="/" />
+        <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates" />
+        <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/new" />
+        <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/:estimateId" />
+        <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/:estimateId/edit" />
+        <Route element={canAccess('masterData') ? <MasterDataContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/master-data" />
+        <Route element={canAccess('userManagement') ? <UserManagementContainer currentUser={user} /> : <Navigate replace to="/estimates" />} path="/users" />
+        <Route element={<Navigate replace to="/estimates" />} path="*" />
+      </Routes>
     </AppShell>
   )
 }

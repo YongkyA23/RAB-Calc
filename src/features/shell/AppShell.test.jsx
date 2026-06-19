@@ -1,43 +1,47 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { AppShell } from './AppShell'
 
-describe('AppShell', () => {
-  it('renders admin navigation and signs out', () => {
-    const onSignOut = vi.fn()
-    render(
-      <AppShell activeView="priceEstimation" onNavigate={vi.fn()} onSignOut={onSignOut} profile={{ name: 'Admin', role: 'Admin' }} />,
-    )
+function renderShell({ profile = { name: 'Admin', role: 'Admin' }, path = '/estimates' } = {}) {
+  const onSignOut = vi.fn()
+  render(
+    <MemoryRouter initialEntries={[path]}>
+      <AppShell onSignOut={onSignOut} profile={profile}>
+        <div>Page content</div>
+      </AppShell>
+    </MemoryRouter>,
+  )
+  return { onSignOut }
+}
 
-    expect(screen.getByRole('button', { name: 'Price Estimation' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Price List / Master Data' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Create Estimation' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Job Log' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'User Management' })).toBeInTheDocument()
+describe('AppShell', () => {
+  it('renders admin navigation as links and signs out', () => {
+    const { onSignOut } = renderShell()
+
+    expect(screen.getAllByRole('link', { name: /Price Estimation/ })[0]).toHaveAttribute('href', '/estimates')
+    expect(screen.getAllByRole('link', { name: /Price List \/ Master Data/ })[0]).toHaveAttribute('href', '/master-data')
+    expect(screen.queryByRole('link', { name: /Create Estimation/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Job Log/ })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /User Management/ })[0]).toHaveAttribute('href', '/users')
 
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(onSignOut).toHaveBeenCalledOnce()
   })
 
   it('hides admin navigation for estimators', () => {
-    render(
-      <AppShell activeView="priceEstimation" onNavigate={vi.fn()} onSignOut={vi.fn()} profile={{ name: 'Estimator', role: 'Estimator' }} />,
-    )
+    renderShell({ profile: { name: 'Estimator', role: 'Estimator' } })
 
-    expect(screen.getByRole('button', { name: 'Price Estimation' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Create Estimation' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Price List / Master Data' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Job Log' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'User Management' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /Price Estimation/ })[0]).toHaveAttribute('href', '/estimates')
+    expect(screen.queryByRole('link', { name: /Create Estimation/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Price List \/ Master Data/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Job Log/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /User Management/ })).not.toBeInTheDocument()
   })
 
-  it('navigates to selected view', () => {
-    const onNavigate = vi.fn()
-    render(
-      <AppShell activeView="priceEstimation" onNavigate={onNavigate} onSignOut={vi.fn()} profile={{ name: 'Admin', role: 'Admin' }} />,
-    )
+  it('uses route path for active page heading', () => {
+    renderShell({ path: '/master-data' })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Price Estimation' }))
-    expect(onNavigate).toHaveBeenCalledWith('priceEstimation')
+    expect(screen.getByRole('heading', { name: 'Price List / Master Data' })).toBeInTheDocument()
   })
 })

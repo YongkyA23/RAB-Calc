@@ -1,3 +1,4 @@
+import { NavLink, useLocation } from 'react-router-dom'
 import { Button } from '../../components/ui/Button'
 import { getVisibleNavigation } from '../auth/authRules'
 
@@ -19,7 +20,21 @@ const navGlyphs = {
   userManagement: 'UM',
 }
 
-export function AppShell({ activeView, onNavigate, onSignOut, profile, children }) {
+const routeByView = {
+  priceEstimation: '/estimates',
+  masterData: '/master-data',
+  userManagement: '/users',
+}
+
+function viewFromPath(pathname) {
+  if (pathname.startsWith('/master-data')) return 'masterData'
+  if (pathname.startsWith('/users')) return 'userManagement'
+  return 'priceEstimation'
+}
+
+export function AppShell({ onSignOut, profile, children }) {
+  const location = useLocation()
+  const activeView = viewFromPath(location.pathname)
   const navigationItems = getVisibleNavigation(profile)
 
   return (
@@ -40,21 +55,21 @@ export function AppShell({ activeView, onNavigate, onSignOut, profile, children 
 
           <nav className="flex-1 space-y-1 px-3 py-5" aria-label="Primary">
             {navigationItems.map((item) => (
-              <button
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
-                  activeView === item.key
+              <NavLink
+                className={({ isActive }) => `flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                  isActive || activeView === item.key
                     ? 'bg-blue-500 text-white shadow-lg shadow-blue-950/30'
                     : 'text-slate-300 hover:bg-slate-900 hover:text-white'
                 }`}
+                end={item.key === 'priceEstimation'}
                 key={item.key}
-                onClick={() => onNavigate(item.key)}
-                type="button"
+                to={routeByView[item.key]}
               >
                 <span className="grid h-8 w-8 place-items-center rounded-lg bg-white/10 text-[11px] font-black tracking-wider">
                   {navGlyphs[item.key]}
                 </span>
                 {item.label}
-              </button>
+              </NavLink>
             ))}
           </nav>
 
@@ -84,16 +99,16 @@ export function AppShell({ activeView, onNavigate, onSignOut, profile, children 
             </div>
             <nav className="flex gap-2 overflow-x-auto border-t border-slate-100 px-4 py-3 lg:hidden" aria-label="Mobile primary">
               {navigationItems.map((item) => (
-                <button
-                  className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold ${
-                    activeView === item.key ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'
+                <NavLink
+                  className={({ isActive }) => `whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold ${
+                    isActive || activeView === item.key ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'
                   }`}
+                  end={item.key === 'priceEstimation'}
                   key={item.key}
-                  onClick={() => onNavigate(item.key)}
-                  type="button"
+                  to={routeByView[item.key]}
                 >
                   {item.label}
-                </button>
+                </NavLink>
               ))}
             </nav>
           </header>

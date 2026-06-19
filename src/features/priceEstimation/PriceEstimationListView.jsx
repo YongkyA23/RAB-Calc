@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from '../../components/ui/Button'
 import { buildPriceEstimationCsv } from '../../lib/csv'
 import { formatIdr } from '../../lib/format'
@@ -68,7 +69,7 @@ export function PriceEstimationListView({ estimates, loading, onCreateNew, onDel
         </div>
         <div className="flex gap-2">
           <Button disabled={loading} onClick={exportCsv}>Export CSV</Button>
-          <Button disabled={loading} onClick={onCreateNew} variant="primary">Create New</Button>
+          <Link className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-blue-700" onClick={onCreateNew} to="/estimates/new">Create New</Link>
         </div>
       </div>
 
@@ -113,8 +114,8 @@ export function PriceEstimationListView({ estimates, loading, onCreateNew, onDel
                 <td className="px-4 py-3 text-slate-600">{formatIdr(estimate.grandTotal)}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-2">
-                    <button aria-label={`View ${estimateLabel(estimate)}`} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50" onClick={() => onViewEstimate(estimate)} type="button">View</button>
-                    <button aria-label={`Edit ${estimateLabel(estimate)}`} className="rounded-lg border border-amber-200 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50" onClick={() => onEditDraft(estimate)} type="button">Edit</button>
+                    <Link aria-label={`View ${estimateLabel(estimate)}`} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50" onClick={() => onViewEstimate(estimate)} to={`/estimates/${estimate.id}`}>View</Link>
+                    <Link aria-label={`Edit ${estimateLabel(estimate)}`} className="rounded-lg border border-amber-200 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50" onClick={() => onEditDraft(estimate)} to={`/estimates/${estimate.id}/edit`}>Edit</Link>
                     <button aria-label={`Duplicate ${estimateLabel(estimate)}`} className="rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-50" onClick={() => onDuplicateEstimate(estimate)} type="button">Duplicate</button>
                     <button aria-label={`Delete ${estimateLabel(estimate)}`} className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50" onClick={() => setDraftToDelete(estimate)} type="button">Delete</button>
                   </div>
