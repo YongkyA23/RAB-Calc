@@ -94,7 +94,7 @@ export function MasterDataView({
   }
 
   const editingExistingItem = Boolean(draft.id);
-  const saveLabel = editingExistingItem ? "Save item" : "Add item";
+  const saveLabel = editingExistingItem ? "Simpan item" : "Tambah item";
   const usesSizePrices =
     selectedLayer === "print" || selectedLayer === "digital";
   const usesManualRates = selectedLayer === "manual";
@@ -111,13 +111,13 @@ export function MasterDataView({
             </span>
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-600">
-                Catalog control
+                Kontrol katalog
               </p>
               <h2 className="text-2xl font-black tracking-tight text-slate-950">
-                Price List / Master Data
+                Daftar Harga / Master Data
               </h2>
               <p className="mt-1 text-sm font-medium text-slate-500">
-                Manage catalog rows used by estimation dropdowns.
+                Kelola baris katalog yang dipakai dropdown estimasi.
               </p>
             </div>
           </div>
@@ -150,8 +150,8 @@ export function MasterDataView({
                 <th className="px-5 py-3 font-black">Item</th>
                 <th className="px-5 py-3 font-black">A3</th>
                 <th className="px-5 py-3 font-black">B2</th>
-                <th className="px-5 py-3 font-black">Time</th>
-                <th className="px-5 py-3 font-black">Actions</th>
+                <th className="px-5 py-3 font-black">Waktu</th>
+                <th className="px-5 py-3 font-black">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -170,7 +170,7 @@ export function MasterDataView({
                       {item.prices?.B2 ?? "-"}
                     </td>
                     <td className="px-5 py-4 text-slate-600">
-                      {item.turnaroundDays ?? 0} days
+                      {item.turnaroundDays ?? 0} hari
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex flex-wrap gap-2">
@@ -184,13 +184,13 @@ export function MasterDataView({
                           Edit
                         </button>
                         <button
-                          aria-label={`Deactivate ${item.name}`}
+                          aria-label={`Nonaktifkan ${item.name}`}
                           className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-700 transition hover:border-rose-300 hover:bg-rose-50"
                           onClick={() => onDeactivateItem(item)}
                           type="button"
                         >
                           <Trash2 size={14} />
-                          Deactivate
+                          Nonaktifkan
                         </button>
                       </div>
                     </td>
@@ -210,24 +210,24 @@ export function MasterDataView({
             </span>
             <div>
               <h3 className="text-lg font-black tracking-tight text-slate-950">
-                {editingExistingItem ? "Edit item" : "Add item"}
+                {editingExistingItem ? "Edit item" : "Tambah item"}
               </h3>
               <p className="mt-1 text-sm font-medium text-slate-500">
-                {selectedCategory?.name ?? selectedLayer} fields only.
+                Hanya field {selectedCategory?.name ?? selectedLayer}.
               </p>
             </div>
           </div>
           <div className="mt-5 space-y-4">
-            <Field label="Item name">
+            <Field label="Nama item">
               <TextInput
                 onChange={(event) => updateDraft("name", event.target.value)}
-                placeholder="e.g. UV Varnish Matte"
+                placeholder="mis. UV Varnish Matte"
                 value={draft.name}
               />
             </Field>
             {usesSizePrices ? (
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="A3 price">
+                <Field label="Harga A3">
                   <TextInput
                     onChange={(event) =>
                       updateDraft("prices.A3", event.target.value)
@@ -235,7 +235,7 @@ export function MasterDataView({
                     value={draft.prices?.A3 ?? ""}
                   />
                 </Field>
-                <Field label="B2 price">
+                <Field label="Harga B2">
                   <TextInput
                     onChange={(event) =>
                       updateDraft("prices.B2", event.target.value)
@@ -247,7 +247,7 @@ export function MasterDataView({
             ) : null}
             {usesManualRates ? (
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Labor rate">
+                <Field label="Tarif tenaga kerja">
                   <TextInput
                     onChange={(event) =>
                       updateDraft("laborRate", event.target.value)
@@ -255,7 +255,7 @@ export function MasterDataView({
                     value={draft.laborRate ?? ""}
                   />
                 </Field>
-                <Field label="Minimum charge">
+                <Field label="Biaya minimum">
                   <TextInput
                     onChange={(event) =>
                       updateDraft("minimumCharge", event.target.value)
@@ -266,7 +266,7 @@ export function MasterDataView({
               </div>
             ) : null}
             {usesManpowerRate ? (
-              <Field label="Daily rate">
+              <Field label="Tarif harian">
                 <TextInput
                   onChange={(event) =>
                     updateDraft("dailyRate", event.target.value)
@@ -276,26 +276,39 @@ export function MasterDataView({
               </Field>
             ) : null}
             {usesAdditionalRate ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Amount / rate">
-                  <TextInput
-                    onChange={(event) =>
-                      updateDraft("rate", event.target.value)
-                    }
-                    value={draft.rate ?? ""}
-                  />
+              <>
+                <Field label="Mode perhitungan">
+                  <select
+                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium outline-none transition hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    onChange={(event) => updateDraft("additionalMode", event.target.value)}
+                    value={draft.additionalMode ?? "manual"}
+                  >
+                    <option value="manual">Manual (Entry AE)</option>
+                    <option value="rate">Per satuan (jumlah × tarif)</option>
+                    <option value="area">Per luas (panjang × lebar × jumlah × tarif)</option>
+                  </select>
                 </Field>
-                <Field label="Unit label">
-                  <TextInput
-                    onChange={(event) =>
-                      updateDraft("unitLabel", event.target.value)
-                    }
-                    value={draft.unitLabel ?? ""}
-                  />
-                </Field>
-              </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Nominal / tarif">
+                    <TextInput
+                      onChange={(event) =>
+                        updateDraft("rate", event.target.value)
+                      }
+                      value={draft.rate ?? ""}
+                    />
+                  </Field>
+                  <Field label="Label satuan">
+                    <TextInput
+                      onChange={(event) =>
+                        updateDraft("unitLabel", event.target.value)
+                      }
+                      value={draft.unitLabel ?? ""}
+                    />
+                  </Field>
+                </div>
+              </>
             ) : null}
-            <Field label="Turnaround days">
+            <Field label="Waktu pengerjaan (hari)">
               <TextInput
                 onChange={(event) =>
                   updateDraft("turnaroundDays", event.target.value)
@@ -320,7 +333,7 @@ export function MasterDataView({
               <History size={20} />
             </span>
             <h3 className="text-lg font-black tracking-tight text-slate-950">
-              Recent audit
+              Audit terbaru
             </h3>
           </div>
           <ul className="mt-5 space-y-3 text-sm text-slate-600">

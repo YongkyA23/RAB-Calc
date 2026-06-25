@@ -54,22 +54,22 @@ describe('PriceEstimationDetailView', () => {
     expect(screen.getByText('PT Beta')).toBeInTheDocument()
     expect(screen.getByText('Label')).toBeInTheDocument()
     expect(screen.getByText('Art Carton')).toBeInTheDocument()
-    expect(screen.getByText('Size: A3')).toBeInTheDocument()
-    expect(screen.getAllByText('Quantity: 2').length).toBeGreaterThan(0)
-    expect(screen.getByText('Notes: Sample note')).toBeInTheDocument()
+    expect(screen.getByText('Ukuran: A3')).toBeInTheDocument()
+    expect(screen.getAllByText('Jumlah: 2').length).toBeGreaterThan(0)
+    expect(screen.getByText('Catatan: Sample note')).toBeInTheDocument()
     expect(screen.getByText('Rp 25.000 × 2 = Rp 50.000')).toBeInTheDocument()
-    expect(screen.getAllByText('Length: 10 cm').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Width: 20 cm').length).toBeGreaterThan(0)
-    expect(screen.getByText('Tool count: 1')).toBeInTheDocument()
+    expect(screen.getAllByText('Panjang: 10 cm').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Lebar: 20 cm').length).toBeGreaterThan(0)
+    expect(screen.getByText('Jumlah alat: 1')).toBeInTheDocument()
     expect(screen.getByText('10 × 20 × 3 × Rp 5 = Rp 3.000')).toBeInTheDocument()
     expect(screen.queryByText(/itemId:/)).not.toBeInTheDocument()
     expect(screen.queryByText(/jmlAlat:/)).not.toBeInTheDocument()
     expect(screen.queryByText(/p:/)).not.toBeInTheDocument()
     expect(screen.queryByText(/l:/)).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Back to estimates' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Edit estimate' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Duplicate estimate' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Delete estimate' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Kembali ke estimasi' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Edit estimasi' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Duplikat estimasi' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Hapus estimasi' })).toBeInTheDocument()
   })
 
   it('calls detail action handlers', () => {
@@ -88,11 +88,11 @@ describe('PriceEstimationDetailView', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Back to estimates' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Edit estimate' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Duplicate estimate' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Delete estimate' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm deletion' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Kembali ke estimasi' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Edit estimasi' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Duplikat estimasi' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus estimasi' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Konfirmasi penghapusan' }))
 
     expect(onBack).toHaveBeenCalledOnce()
     expect(onEdit).toHaveBeenCalledWith(estimate)
@@ -114,7 +114,7 @@ describe('PriceEstimationDetailView', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Generate PDF' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Buat PDF' }))
 
     expect(onGeneratePdf).toHaveBeenCalledWith(estimate)
   })

@@ -28,18 +28,23 @@ describe('auth access rules', () => {
 
   it('shows admin-only navigation only to admins', () => {
     expect(getVisibleNavigation({ role: 'Estimator' }).map((item) => item.label)).toEqual([
-      'Price Estimation',
+      'Dashboard',
+      'Estimasi Harga',
+      'Estimasi Vendor',
     ])
     expect(getVisibleNavigation({ role: 'Admin' }).map((item) => item.label)).toEqual([
-      'Price Estimation',
-      'Price List / Master Data',
-      'User Management',
+      'Dashboard',
+      'Estimasi Harga',
+      'Estimasi Vendor',
+      'Daftar Harga / Master Data',
+      'Manajemen Pengguna',
     ])
   })
 
   it('prevents estimators from accessing admin menus', () => {
     expect(canAccessMenu({ role: 'Estimator' }, 'masterData')).toBe(false)
     expect(canAccessMenu({ role: 'Estimator' }, 'priceEstimation')).toBe(true)
+    expect(canAccessMenu({ role: 'Estimator' }, 'vendorEstimates')).toBe(true)
     expect(canAccessMenu({ role: 'Admin' }, 'userManagement')).toBe(true)
   })
 })

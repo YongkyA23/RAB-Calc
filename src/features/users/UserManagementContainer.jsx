@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { COLLECTIONS } from '../../firebase/collections'
 import { listCollection, listUserInvites, saveUserInvite, updateUserProfile } from '../../firebase/firestoreHelpers'
+import { useToast } from '../../components/ui/Toast'
 import { UserManagementView } from './UserManagementView'
 
 function mergeUsersAndInvites(users, invites) {
@@ -10,9 +11,8 @@ function mergeUsersAndInvites(users, invites) {
 }
 
 export function UserManagementContainer({ currentUser }) {
-  const [error, setError] = useState('')
+  const toast = useToast()
   const [loading, setLoading] = useState(true)
-  const [success, setSuccess] = useState('')
   const [users, setUsers] = useState([])
 
   async function loadUsers() {
@@ -34,7 +34,7 @@ export function UserManagementContainer({ currentUser }) {
         ])
         if (!ignore) setUsers(mergeUsersAndInvites(nextUsers, nextInvites))
       } catch (loadError) {
-        if (!ignore) setError(loadError.message)
+        if (!ignore) toast.error(loadError.message)
       } finally {
         if (!ignore) setLoading(false)
       }
@@ -45,19 +45,17 @@ export function UserManagementContainer({ currentUser }) {
     return () => {
       ignore = true
     }
-  }, [])
+  }, [toast])
 
   async function handleUpdateUser(uid, changes) {
     setLoading(true)
-    setError('')
-    setSuccess('')
 
     try {
       await updateUserProfile(uid, changes)
       await loadUsers()
-      setSuccess('User profile updated')
+      toast.success('User profile updated')
     } catch (updateError) {
-      setError(updateError.message)
+      toast.error(updateError.message)
     } finally {
       setLoading(false)
     }
@@ -67,15 +65,13 @@ export function UserManagementContainer({ currentUser }) {
     if (!currentUser) return
 
     setLoading(true)
-    setError('')
-    setSuccess('')
 
     try {
       await saveUserInvite({ ...input, invitedBy: currentUser.email })
       await loadUsers()
-      setSuccess(`Added ${input.email} to users`)
+      toast.success(`Added ${input.email} to users`)
     } catch (error) {
-      setError(error.message)
+      toast.error(error.message)
     } finally {
       setLoading(false)
     }
@@ -83,16 +79,6 @@ export function UserManagementContainer({ currentUser }) {
 
   return (
     <div className="space-y-4">
-      {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      ) : null}
-      {success ? (
-        <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-          {success}
-        </div>
-      ) : null}
       <UserManagementView
         currentUser={currentUser}
         loading={loading}

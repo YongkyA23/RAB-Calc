@@ -17,9 +17,9 @@ describe('PriceEstimationView', () => {
     const onDeleteEstimate = vi.fn()
     renderWithRouter(<PriceEstimationListView estimates={estimates} loading={false} onCreateNew={vi.fn()} onDuplicateEstimate={vi.fn()} onEditDraft={vi.fn()} onExportCsv={vi.fn()} onDeleteEstimate={onDeleteEstimate} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete SKU-A' }))
-    expect(screen.getByText('Confirm deletion of "SKU-A"')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm deletion' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus SKU-A' }))
+    expect(screen.getByText('Konfirmasi penghapusan "SKU-A"')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Konfirmasi penghapusan' }))
 
     expect(onDeleteEstimate).toHaveBeenCalledWith(estimates[0])
   })
@@ -28,9 +28,9 @@ describe('PriceEstimationView', () => {
     const onDeleteEstimate = vi.fn()
     renderWithRouter(<PriceEstimationListView estimates={[estimates[1]]} loading={false} onCreateNew={vi.fn()} onDuplicateEstimate={vi.fn()} onEditDraft={vi.fn()} onExportCsv={vi.fn()} onDeleteEstimate={onDeleteEstimate} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete JOB-002' }))
-    expect(screen.getByText('Confirm deletion of "JOB-002"')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm deletion' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus JOB-002' }))
+    expect(screen.getByText('Konfirmasi penghapusan "JOB-002"')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Konfirmasi penghapusan' }))
 
     expect(onDeleteEstimate).toHaveBeenCalledWith(estimates[1])
   })

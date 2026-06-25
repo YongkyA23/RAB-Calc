@@ -4,7 +4,7 @@ import { formatIdr } from '../../lib/format'
 import { getStatusLabel } from './priceEstimationModel'
 
 function estimateLabel(estimate) {
-  return estimate?.jobNo || estimate?.sku || estimate?.client || 'Untitled estimate'
+  return estimate?.jobNo || estimate?.sku || estimate?.client || 'Estimasi tanpa judul'
 }
 
 function DetailField({ label, value }) {
@@ -30,17 +30,17 @@ function readableInputs(line) {
   const inputs = line.inputs ?? {}
   const rows = []
 
-  if (inputs.size) rows.push(`Size: ${inputs.size}`)
-  if (inputs.qty) rows.push(`Quantity: ${inputs.qty}`)
-  if (inputs.quantity) rows.push(`Quantity: ${inputs.quantity}`)
-  if (inputs.p) rows.push(`Length: ${inputs.p} cm`)
-  if (inputs.l) rows.push(`Width: ${inputs.l} cm`)
-  if (inputs.lengthCm) rows.push(`Length: ${inputs.lengthCm} cm`)
-  if (inputs.widthCm) rows.push(`Width: ${inputs.widthCm} cm`)
-  if (inputs.jmlAlat) rows.push(`Tool count: ${inputs.jmlAlat}`)
-  if (inputs.days) rows.push(`Days: ${inputs.days}`)
-  if (inputs.amount) rows.push(`Amount: ${formatIdr(inputs.amount)}`)
-  if (inputs.notes) rows.push(`Notes: ${inputs.notes}`)
+  if (inputs.size) rows.push(`Ukuran: ${inputs.size}`)
+  if (inputs.qty) rows.push(`Jumlah: ${inputs.qty}`)
+  if (inputs.quantity) rows.push(`Jumlah: ${inputs.quantity}`)
+  if (inputs.p) rows.push(`Panjang: ${inputs.p} cm`)
+  if (inputs.l) rows.push(`Lebar: ${inputs.l} cm`)
+  if (inputs.lengthCm) rows.push(`Panjang: ${inputs.lengthCm} cm`)
+  if (inputs.widthCm) rows.push(`Lebar: ${inputs.widthCm} cm`)
+  if (inputs.jmlAlat) rows.push(`Jumlah alat: ${inputs.jmlAlat}`)
+  if (inputs.days) rows.push(`Hari: ${inputs.days}`)
+  if (inputs.amount) rows.push(`Nominal: ${formatIdr(inputs.amount)}`)
+  if (inputs.notes) rows.push(`Catatan: ${inputs.notes}`)
 
   return rows
 }
@@ -54,7 +54,7 @@ function formulaSummary(line) {
   }
 
   if (line.layer === 'manpower') {
-    return `${formatIdr(line.priceSnapshot?.dailyRate)} × ${inputs.days || 0} day = ${total}`
+    return `${formatIdr(line.priceSnapshot?.dailyRate)} × ${inputs.days || 0} hari = ${total}`
   }
 
   if (line.layer === 'additional' && line.priceSnapshot?.additionalMode === 'area') {
@@ -70,10 +70,10 @@ function formulaSummary(line) {
   }
 
   if (line.layer === 'manual') {
-    return `Line total = ${total}`
+    return `Total baris = ${total}`
   }
 
-  return `Line total = ${total}`
+  return `Total baris = ${total}`
 }
 
 export function PriceEstimationDetailView({ estimate, loading, onBack, onDelete, onDuplicate, onEdit, onGeneratePdf }) {
@@ -82,10 +82,10 @@ export function PriceEstimationDetailView({ estimate, loading, onBack, onDelete,
   if (!estimate) {
     return (
       <section className="rounded-4xl border border-white/80 bg-white p-6 shadow-xl shadow-slate-300/40">
-        <p className="text-sm font-medium text-slate-600">No estimate selected.</p>
+        <p className="text-sm font-medium text-slate-600">Tidak ada estimasi yang dipilih.</p>
         <button className="mt-4 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm" onClick={onBack} type="button">
           <ArrowLeft size={16} />
-          Back to estimates
+          Kembali ke estimasi
         </button>
       </section>
     )
@@ -98,7 +98,7 @@ export function PriceEstimationDetailView({ estimate, loading, onBack, onDelete,
           <div>
             <button className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:underline" onClick={onBack} type="button">
               <ArrowLeft size={16} />
-              Back to estimates
+              Kembali ke estimasi
             </button>
             <div className="mt-4 flex items-center gap-3">
               <span className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-blue-600">
@@ -106,41 +106,41 @@ export function PriceEstimationDetailView({ estimate, loading, onBack, onDelete,
               </span>
               <div>
                 <h2 className="text-3xl font-black tracking-tight text-slate-950">{estimateLabel(estimate)}</h2>
-                <p className="mt-1 text-sm font-medium text-slate-500">Full estimate detail and saved line-item inputs.</p>
+                <p className="mt-1 text-sm font-medium text-slate-500">Detail lengkap estimasi dan input line item tersimpan.</p>
               </div>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             {onGeneratePdf ? (
-              <button aria-label="Generate PDF" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50" disabled={loading} onClick={() => onGeneratePdf(estimate)} type="button"><FileDown size={16} />PDF</button>
+              <button aria-label="Buat PDF" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50" disabled={loading} onClick={() => onGeneratePdf(estimate)} type="button"><FileDown size={16} />PDF</button>
             ) : null}
-            <button aria-label="Edit estimate" className="inline-flex items-center gap-2 rounded-xl border border-amber-200 px-3 py-2 text-sm font-bold text-amber-700 transition hover:bg-amber-50" disabled={loading} onClick={() => onEdit(estimate)} type="button"><Edit3 size={16} />Edit</button>
-            <button aria-label="Duplicate estimate" className="inline-flex items-center gap-2 rounded-xl border border-blue-200 px-3 py-2 text-sm font-bold text-blue-700 transition hover:bg-blue-50" disabled={loading} onClick={() => onDuplicate(estimate)} type="button"><Copy size={16} />Duplicate</button>
-            <button aria-label="Delete estimate" className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-sm font-bold text-rose-700 transition hover:bg-rose-50" disabled={loading} onClick={() => setConfirmDelete(true)} type="button"><Trash2 size={16} />Delete</button>
+            <button aria-label="Edit estimasi" className="inline-flex items-center gap-2 rounded-xl border border-amber-200 px-3 py-2 text-sm font-bold text-amber-700 transition hover:bg-amber-50" disabled={loading} onClick={() => onEdit(estimate)} type="button"><Edit3 size={16} />Edit</button>
+            <button aria-label="Duplikat estimasi" className="inline-flex items-center gap-2 rounded-xl border border-blue-200 px-3 py-2 text-sm font-bold text-blue-700 transition hover:bg-blue-50" disabled={loading} onClick={() => onDuplicate(estimate)} type="button"><Copy size={16} />Duplikat</button>
+            <button aria-label="Hapus estimasi" className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-sm font-bold text-rose-700 transition hover:bg-rose-50" disabled={loading} onClick={() => setConfirmDelete(true)} type="button"><Trash2 size={16} />Hapus</button>
           </div>
         </div>
 
         {confirmDelete ? (
           <div className="mt-4 rounded-3xl border border-rose-200 bg-rose-50 p-4">
-            <p className="text-sm font-bold text-rose-800">Confirm deletion of "{estimateLabel(estimate)}"</p>
+            <p className="text-sm font-bold text-rose-800">Konfirmasi penghapusan "{estimateLabel(estimate)}"</p>
             <div className="mt-3 flex gap-2">
-              <button aria-label="Confirm deletion" className="rounded-xl bg-rose-600 px-3 py-2 text-sm font-bold text-white hover:bg-rose-700" onClick={() => onDelete(estimate)} type="button">Delete permanently</button>
-              <button className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50" onClick={() => setConfirmDelete(false)} type="button">Cancel</button>
+              <button aria-label="Konfirmasi penghapusan" className="rounded-xl bg-rose-600 px-3 py-2 text-sm font-bold text-white hover:bg-rose-700" onClick={() => onDelete(estimate)} type="button">Hapus permanen</button>
+              <button className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50" onClick={() => setConfirmDelete(false)} type="button">Batal</button>
             </div>
           </div>
         ) : null}
       </section>
 
       <section className="rounded-4xl border border-white/80 bg-white p-6 shadow-xl shadow-slate-300/40">
-        <h3 className="text-lg font-black tracking-tight text-slate-950">Estimate summary</h3>
+        <h3 className="text-lg font-black tracking-tight text-slate-950">Ringkasan estimasi</h3>
         <dl className="mt-4 grid gap-3 md:grid-cols-3">
           <DetailField label="No Job" value={estimate.jobNo} />
           <DetailField label="SKU" value={estimate.sku} />
-          <DetailField label="Client" value={estimate.client} />
-          <DetailField label="Project" value={estimate.project} />
+          <DetailField label="Klien" value={estimate.client} />
+          <DetailField label="Proyek" value={estimate.project} />
           <DetailField label="Status" value={getStatusLabel(estimate)} />
           <DetailField label="Total" value={formatIdr(estimate.grandTotal)} />
-          <DetailField label="Turnaround" value={`${estimate.turnaroundDays ?? 0} days`} />
+          <DetailField label="Waktu pengerjaan" value={`${estimate.turnaroundDays ?? 0} hari`} />
         </dl>
       </section>
 
@@ -149,7 +149,7 @@ export function PriceEstimationDetailView({ estimate, loading, onBack, onDelete,
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100 text-slate-700">
             <Layers size={20} />
           </span>
-          <h3 className="text-lg font-black tracking-tight text-slate-950">Line items</h3>
+          <h3 className="text-lg font-black tracking-tight text-slate-950">Line item</h3>
         </div>
         <ul className="mt-5 space-y-3">
           {(estimate.lineItems ?? []).map((line) => (

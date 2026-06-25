@@ -86,13 +86,13 @@ describe("MasterDataView", () => {
     fireEvent.click(
       screen.getByRole("button", { name: "Edit Duplex 270–350 gsm" }),
     );
-    fireEvent.change(screen.getByLabelText("Item name"), {
+    fireEvent.change(screen.getByLabelText("Nama item"), {
       target: { value: "Duplex Updated" },
     });
-    fireEvent.change(screen.getByLabelText("B2 price"), {
+    fireEvent.change(screen.getByLabelText("Harga B2"), {
       target: { value: "45000" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Save item" }));
+    fireEvent.click(screen.getByRole("button", { name: "Simpan item" }));
 
     expect(onSaveItem).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -121,21 +121,21 @@ describe("MasterDataView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Manual Finishing" }));
 
-    expect(screen.queryByLabelText("A3 price")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("B2 price")).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Labor rate")).toBeInTheDocument();
-    expect(screen.getByLabelText("Minimum charge")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Harga A3")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Harga B2")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Tarif tenaga kerja")).toBeInTheDocument();
+    expect(screen.getByLabelText("Biaya minimum")).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText("Item name"), {
+    fireEvent.change(screen.getByLabelText("Nama item"), {
       target: { value: "UV Varnish Matte" },
     });
-    fireEvent.change(screen.getByLabelText("Labor rate"), {
+    fireEvent.change(screen.getByLabelText("Tarif tenaga kerja"), {
       target: { value: "0.75" },
     });
-    fireEvent.change(screen.getByLabelText("Minimum charge"), {
+    fireEvent.change(screen.getByLabelText("Biaya minimum"), {
       target: { value: "0" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Add item" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tambah item" }));
 
     expect(onSaveItem).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -162,7 +162,7 @@ describe("MasterDataView", () => {
     );
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Deactivate Duplex 270–350 gsm" }),
+      screen.getByRole("button", { name: "Nonaktifkan Duplex 270–350 gsm" }),
     );
     expect(onDeactivateItem).toHaveBeenCalledWith(priceItems[0]);
   });

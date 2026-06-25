@@ -18,7 +18,7 @@ describe('UserManagementView', () => {
   it('renders help text and users', () => {
     render(<UserManagementView {...defaultProps} />)
 
-    expect(screen.getByText('Add users here. Added users appear in this table and can sign in with Google.')).toBeInTheDocument()
+    expect(screen.getByText('Tambahkan pengguna di sini. Pengguna yang ditambahkan akan muncul di tabel ini dan bisa masuk dengan Google.')).toBeInTheDocument()
     expect(screen.getByText('admin@example.com')).toBeInTheDocument()
     expect(screen.getByText('estimator@example.com')).toBeInTheDocument()
   })
@@ -26,7 +26,7 @@ describe('UserManagementView', () => {
   it('filters users by search', () => {
     render(<UserManagementView {...defaultProps} />)
 
-    fireEvent.change(screen.getByLabelText('Search users'), { target: { value: 'estimator' } })
+    fireEvent.change(screen.getByLabelText('Cari pengguna'), { target: { value: 'estimator' } })
 
     expect(screen.queryByText('admin@example.com')).not.toBeInTheDocument()
     expect(screen.getByText('estimator@example.com')).toBeInTheDocument()
@@ -39,7 +39,7 @@ describe('UserManagementView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Edit Estimator User' }))
     fireEvent.change(screen.getAllByLabelText('Role')[1], { target: { value: 'Admin' } })
     fireEvent.change(screen.getAllByLabelText('Status')[1], { target: { value: 'active' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save user' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Simpan pengguna' }))
 
     expect(onUpdateUser).toHaveBeenCalledWith('u2', { name: 'Estimator User', role: 'Admin', status: 'active' })
   })
@@ -50,7 +50,7 @@ describe('UserManagementView', () => {
 
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'new@example.com' } })
     fireEvent.change(screen.getAllByLabelText('Role')[0], { target: { value: 'Estimator' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Add user' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tambah pengguna' }))
 
     expect(onAddUser).toHaveBeenCalledWith({ email: 'new@example.com', role: 'Estimator', status: 'active' })
   })

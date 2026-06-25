@@ -16,8 +16,10 @@ import { getAccessState, getVisibleNavigation } from './features/auth/authRules'
 import { signInWithGoogle, signOutUser, subscribeToAuthState } from './features/auth/authService'
 import { AppShell } from './features/shell/AppShell'
 
+const DashboardContainer = lazy(() => import('./features/dashboard/DashboardContainer').then((module) => ({ default: module.DashboardContainer })))
 const MasterDataContainer = lazy(() => import('./features/masterData/MasterDataContainer').then((module) => ({ default: module.MasterDataContainer })))
 const PriceEstimationContainer = lazy(() => import('./features/priceEstimation/PriceEstimationContainer').then((module) => ({ default: module.PriceEstimationContainer })))
+const VendorEstimateContainer = lazy(() => import('./features/vendorEstimates/VendorEstimateContainer').then((module) => ({ default: module.VendorEstimateContainer })))
 const UserManagementContainer = lazy(() => import('./features/users/UserManagementContainer').then((module) => ({ default: module.UserManagementContainer })))
 
 function App() {
@@ -167,11 +169,16 @@ function App() {
     <AppShell onSignOut={handleSignOut} profile={profile}>
       <Suspense fallback={null}>
         <Routes>
-          <Route element={<Navigate replace to="/estimates" />} path="/" />
+          <Route element={<Navigate replace to="/dashboard" />} path="/" />
+          <Route element={<DashboardContainer profile={profile} />} path="/dashboard" />
           <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates" />
           <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/new" />
           <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/:estimateId" />
           <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/:estimateId/edit" />
+          <Route element={canAccess('vendorEstimates') ? <VendorEstimateContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/vendor-estimates" />
+          <Route element={canAccess('vendorEstimates') ? <VendorEstimateContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/vendor-estimates/new" />
+          <Route element={canAccess('vendorEstimates') ? <VendorEstimateContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/vendor-estimates/:vendorEstimateId" />
+          <Route element={canAccess('vendorEstimates') ? <VendorEstimateContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/vendor-estimates/:vendorEstimateId/edit" />
           <Route element={canAccess('masterData') ? <MasterDataContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/master-data" />
           <Route element={canAccess('userManagement') ? <UserManagementContainer currentUser={user} /> : <Navigate replace to="/estimates" />} path="/users" />
           <Route element={<Navigate replace to="/estimates" />} path="*" />

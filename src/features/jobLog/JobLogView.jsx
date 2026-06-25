@@ -40,29 +40,29 @@ export function JobLogView({ loading, onDuplicateQuote, onExportCsv, quotes }) {
       <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-950">Job Log</h2>
-            <p className="mt-2 text-sm text-slate-600">Search, review, duplicate, and export saved quotes.</p>
+            <h2 className="text-xl font-bold text-slate-950">Log Pekerjaan</h2>
+            <p className="mt-2 text-sm text-slate-600">Cari, tinjau, duplikat, dan ekspor quote tersimpan.</p>
           </div>
-         
+
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <Field label="Search">
+          <Field label="Cari">
             <Input onChange={(event) => updateFilter('query', event.target.value)} value={filters.query} />
           </Field>
-          <Field label="From date">
+          <Field label="Dari tanggal">
             <Input onChange={(event) => updateFilter('fromDate', event.target.value)} type="date" value={filters.fromDate} />
           </Field>
-          <Field label="To date">
+          <Field label="Sampai tanggal">
             <Input onChange={(event) => updateFilter('toDate', event.target.value)} type="date" value={filters.toDate} />
           </Field>
-          <Field label="Created by">
+          <Field label="Dibuat oleh">
             <Input onChange={(event) => updateFilter('createdBy', event.target.value)} value={filters.createdBy} />
           </Field>
-          <Field label="Min total">
+          <Field label="Total minimum">
             <Input onChange={(event) => updateFilter('minTotal', event.target.value)} value={filters.minTotal} />
           </Field>
-          <Field label="Max total">
+          <Field label="Total maksimum">
             <Input onChange={(event) => updateFilter('maxTotal', event.target.value)} value={filters.maxTotal} />
           </Field>
         </div>
@@ -72,10 +72,10 @@ export function JobLogView({ loading, onDuplicateQuote, onExportCsv, quotes }) {
             <thead className="bg-slate-50 text-slate-600">
               <tr>
                 <th className="px-4 py-3 font-semibold">No Job</th>
-                <th className="px-4 py-3 font-semibold">Client</th>
-                <th className="px-4 py-3 font-semibold">Project</th>
+                <th className="px-4 py-3 font-semibold">Klien</th>
+                <th className="px-4 py-3 font-semibold">Proyek</th>
                 <th className="px-4 py-3 font-semibold">Total</th>
-                <th className="px-4 py-3 font-semibold">Actions</th>
+                <th className="px-4 py-3 font-semibold">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -90,20 +90,20 @@ export function JobLogView({ loading, onDuplicateQuote, onExportCsv, quotes }) {
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-2">
                       <button
-                        aria-label={`View ${quote.jobNo}`}
+                        aria-label={`Lihat ${quote.jobNo}`}
                         className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                         onClick={() => setSelectedQuote(quote)}
                         type="button"
                       >
-                        View
+                        Lihat
                       </button>
                       <button
-                        aria-label={`Duplicate ${quote.jobNo}`}
+                        aria-label={`Duplikat ${quote.jobNo}`}
                         className="rounded-xl border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-50"
                         onClick={() => onDuplicateQuote(buildDraftFromQuote(quote))}
                         type="button"
                       >
-                        Duplicate
+                        Duplikat
                       </button>
                     </div>
                   </td>
@@ -115,13 +115,13 @@ export function JobLogView({ loading, onDuplicateQuote, onExportCsv, quotes }) {
       </section>
 
       <aside className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="text-lg font-bold text-slate-950">Quote detail</h3>
+        <h3 className="text-lg font-bold text-slate-950">Detail quote</h3>
         {selectedQuote ? (
           <div className="mt-4 space-y-4 text-sm text-slate-600">
             <div>
               <p className="font-semibold text-slate-900">{selectedQuote.jobNo}</p>
               <p>{selectedQuote.client} · {selectedQuote.project}</p>
-              <p>{formatIdr(selectedQuote.grandTotal)} · {selectedQuote.turnaroundDays} days</p>
+              <p>{formatIdr(selectedQuote.grandTotal)} · {selectedQuote.turnaroundDays} hari</p>
             </div>
             <ul className="space-y-2">
               {(selectedQuote.lineItems ?? []).map((line) => (
@@ -133,7 +133,7 @@ export function JobLogView({ loading, onDuplicateQuote, onExportCsv, quotes }) {
             </ul>
           </div>
         ) : (
-          <p className="mt-4 text-sm text-slate-600">Select a quote to inspect saved line-item snapshots.</p>
+          <p className="mt-4 text-sm text-slate-600">Pilih quote untuk melihat snapshot line item yang tersimpan.</p>
         )}
       </aside>
     </div>

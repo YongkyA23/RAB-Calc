@@ -52,7 +52,7 @@ describe("JobLogView", () => {
     expect(screen.getByText("JOB-001")).toBeInTheDocument();
     expect(screen.getByText("JOB-002")).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText("Search"), {
+    fireEvent.change(screen.getByLabelText("Cari"), {
       target: { value: "alpha" },
     });
 
@@ -70,9 +70,9 @@ describe("JobLogView", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "View JOB-001" }));
+    fireEvent.click(screen.getByRole("button", { name: "Lihat JOB-001" }));
 
-    expect(screen.getByText("Quote detail")).toBeInTheDocument();
+    expect(screen.getByText("Detail quote")).toBeInTheDocument();
     expect(screen.getByText("Duplex")).toBeInTheDocument();
   });
 
@@ -87,7 +87,7 @@ describe("JobLogView", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Duplicate JOB-001" }));
+    fireEvent.click(screen.getByRole("button", { name: "Duplikat JOB-001" }));
 
     expect(onDuplicateQuote).toHaveBeenCalledWith(
       expect.objectContaining({ sourceQuoteId: "q1" }),
@@ -105,7 +105,7 @@ describe("JobLogView", () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("Search"), {
+    fireEvent.change(screen.getByLabelText("Cari"), {
       target: { value: "beta" },
     });
 

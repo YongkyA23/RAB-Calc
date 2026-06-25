@@ -69,23 +69,40 @@ function formulaSummary(line) {
   return `Line total = ${total}`
 }
 
-function detailRow(label, value) {
-  return `<tr><th>${escapeHtml(label)}</th><td>${escapeHtml(value || '-')}</td></tr>`
+function infoCard(label, value) {
+  return `
+    <div class="info-card">
+      <p class="info-label">${escapeHtml(label)}</p>
+      <p class="info-value">${escapeHtml(value || '-')}</p>
+    </div>
+  `
+}
+
+function totalRow(label, value, accent = false) {
+  return `
+    <div class="total-row${accent ? ' total-row-grand' : ''}">
+      <span>${escapeHtml(label)}</span>
+      <span class="total-amount">${escapeHtml(value)}</span>
+    </div>
+  `
 }
 
 function lineItemRow(line, index) {
-  const inputs = readableInputs(line).map((input) => `<li>${escapeHtml(input)}</li>`).join('') || '<li>-</li>'
+  const inputs = readableInputs(line).map((input) => `<span class="chip">${escapeHtml(input)}</span>`).join('') || ''
 
   return `
     <section class="line-item">
       <div class="line-header">
-        <div>
-          <p class="line-title">${index + 1}. ${escapeHtml(line.priceSnapshot?.name ?? line.layer)}</p>
-          <p class="muted">${escapeHtml(line.layer)}</p>
+        <div class="line-heading">
+          <span class="line-index">${index + 1}</span>
+          <div>
+            <p class="line-title">${escapeHtml(line.priceSnapshot?.name ?? line.layer)}</p>
+            <p class="line-layer">${escapeHtml(line.layer)}</p>
+          </div>
         </div>
-        <strong>${escapeHtml(formatIdr(line.computedTotal))}</strong>
+        <strong class="line-total">${escapeHtml(formatIdr(line.computedTotal))}</strong>
       </div>
-      <ul>${inputs}</ul>
+      ${inputs ? `<div class="chips">${inputs}</div>` : ''}
       <p class="formula">${escapeHtml(formulaSummary(line))}</p>
     </section>
   `
@@ -102,57 +119,95 @@ export function buildInternalEstimatePdfHtml(estimate) {
   <title>${escapeHtml(estimateLabel(estimate))} - Internal Estimate Detail</title>
   <style>
     * { box-sizing: border-box; }
-    body { color: #0f172a; font-family: Arial, sans-serif; margin: 32px; }
+    :root { --brand: #2563eb; --ink: #0f172a; --muted: #64748b; --line: #e2e8f0; --soft: #f8fafc; }
+    html, body { margin: 0; padding: 0; }
+    body { color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { margin: 0 auto; max-width: 760px; padding: 40px; }
     h1, h2, h3, p { margin: 0; }
-    h1 { font-size: 26px; }
-    h2 { font-size: 16px; margin: 28px 0 12px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #e2e8f0; padding: 9px 10px; text-align: left; vertical-align: top; }
-    th { background: #f8fafc; color: #475569; width: 180px; }
-    .muted { color: #64748b; font-size: 12px; margin-top: 4px; }
-    .total { font-size: 22px; font-weight: 800; margin-top: 8px; }
-    .line-item { border: 1px solid #e2e8f0; border-radius: 14px; margin-bottom: 12px; padding: 14px; page-break-inside: avoid; }
+
+    .hero { background: linear-gradient(120deg, #1e40af 0%, #2563eb 100%); border-radius: 20px; color: #fff; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding: 28px 32px; }
+    .hero-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.8; }
+    .hero-title { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin-top: 6px; }
+    .hero-sub { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+    .hero-total-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; text-align: right; }
+    .hero-total { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; text-align: right; white-space: nowrap; }
+
+    .section-title { color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin: 32px 0 14px; }
+
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .info-card { background: var(--soft); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+    .info-label { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .info-value { font-size: 15px; font-weight: 700; margin-top: 4px; }
+
+    .totals { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .total-row { display: flex; justify-content: space-between; padding: 11px 16px; }
+    .total-row:nth-child(even) { background: var(--soft); }
+    .total-row span:first-child { color: var(--muted); font-weight: 600; }
+    .total-amount { font-weight: 700; }
+    .total-row-grand { background: var(--brand) !important; color: #fff; font-size: 15px; }
+    .total-row-grand span:first-child { color: rgba(255,255,255,0.85); font-weight: 700; }
+    .total-row-grand .total-amount { font-weight: 800; }
+
+    .line-item { border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; padding: 16px; page-break-inside: avoid; }
     .line-header { align-items: flex-start; display: flex; gap: 16px; justify-content: space-between; }
-    .line-title { font-weight: 800; }
-    .formula { background: #f8fafc; border-radius: 10px; font-weight: 700; margin-top: 10px; padding: 10px; }
-    ul { margin: 10px 0 0; padding-left: 20px; }
-    @media print { body { margin: 18mm; } button { display: none; } }
+    .line-heading { align-items: center; display: flex; gap: 12px; }
+    .line-index { align-items: center; background: #eff6ff; border-radius: 9px; color: var(--brand); display: inline-flex; font-size: 13px; font-weight: 800; height: 28px; justify-content: center; width: 28px; }
+    .line-title { font-size: 15px; font-weight: 700; }
+    .line-layer { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+    .line-total { font-size: 15px; font-weight: 800; white-space: nowrap; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .chip { background: var(--soft); border: 1px solid var(--line); border-radius: 999px; color: #334155; font-size: 11px; font-weight: 600; padding: 3px 10px; }
+    .formula { background: #eff6ff; border-radius: 9px; color: #1e3a8a; font-size: 12px; font-weight: 700; margin-top: 12px; padding: 9px 12px; }
+
+    .empty { color: var(--muted); }
+    footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; margin-top: 36px; padding-top: 14px; text-align: center; }
+
+    @media print {
+      .page { max-width: none; padding: 0; }
+      @page { margin: 16mm; }
+      button { display: none; }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <p class="muted">Internal Estimate Detail</p>
-    <h1>${escapeHtml(estimateLabel(estimate))}</h1>
-    <p class="total">${escapeHtml(formatIdr(estimate?.grandTotal))}</p>
-  </header>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <p class="hero-eyebrow">Internal Estimate</p>
+        <h1 class="hero-title">${escapeHtml(estimateLabel(estimate))}</h1>
+        <p class="hero-sub">${escapeHtml(estimate?.project || 'Price estimation detail')}</p>
+      </div>
+      <div>
+        <p class="hero-total-label">Grand Total</p>
+        <p class="hero-total">${escapeHtml(formatIdr(estimate?.grandTotal))}</p>
+      </div>
+    </header>
 
-  <h2>Summary</h2>
-  <table>
-    <tbody>
-      ${detailRow('No Job', estimate?.jobNo)}
-      ${detailRow('SKU', estimate?.sku)}
-      ${detailRow('Client', estimate?.client)}
-      ${detailRow('Project', estimate?.project)}
-      ${detailRow('Status', estimate?.status)}
-      ${detailRow('Created By', estimate?.createdByName ?? estimate?.createdBy?.name)}
-      ${detailRow('Turnaround', `${estimate?.turnaroundDays ?? 0} days`)}
-    </tbody>
-  </table>
+    <p class="section-title">Summary</p>
+    <div class="info-grid">
+      ${infoCard('No Job', estimate?.jobNo)}
+      ${infoCard('SKU', estimate?.sku)}
+      ${infoCard('Client', estimate?.client)}
+      ${infoCard('Project', estimate?.project)}
+      ${infoCard('Turnaround', `${estimate?.turnaroundDays ?? 0} days`)}
+      ${infoCard('Line Items', String(lineItems.length))}
+    </div>
 
-  <h2>Layer Totals</h2>
-  <table>
-    <tbody>
-      ${detailRow('Print', formatIdr(totals.print))}
-      ${detailRow('Digital', formatIdr(totals.digital))}
-      ${detailRow('Manual', formatIdr(totals.manual))}
-      ${detailRow('Manpower', formatIdr(totals.manpower))}
-      ${detailRow('Additional', formatIdr(totals.additional))}
-      ${detailRow('Grand Total', formatIdr(estimate?.grandTotal))}
-    </tbody>
-  </table>
+    <p class="section-title">Layer Totals</p>
+    <div class="totals">
+      ${totalRow('Print', formatIdr(totals.print))}
+      ${totalRow('Digital', formatIdr(totals.digital))}
+      ${totalRow('Manual', formatIdr(totals.manual))}
+      ${totalRow('Manpower', formatIdr(totals.manpower))}
+      ${totalRow('Additional', formatIdr(totals.additional))}
+      ${totalRow('Grand Total', formatIdr(estimate?.grandTotal), true)}
+    </div>
 
-  <h2>Line Items</h2>
-  ${lineItems.length ? lineItems.map(lineItemRow).join('') : '<p class="muted">No line items.</p>'}
+    <p class="section-title">Line Items</p>
+    ${lineItems.length ? lineItems.map(lineItemRow).join('') : '<p class="empty">No line items.</p>'}
+
+    <footer>Generated by RAB Calculator</footer>
+  </div>
 </body>
 </html>`
 }

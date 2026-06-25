@@ -37,6 +37,8 @@ export function buildPriceItemPayload(draft) {
         : parseNumberInput(draft.minimumCharge),
     dailyRate: draft.dailyRate === null || draft.dailyRate === '' ? null : parseNumberInput(draft.dailyRate),
     turnaroundDays: parseNumberInput(draft.turnaroundDays),
+    additionalMode: draft.additionalMode || null,
+    unitLabel: draft.unitLabel || null,
     rate: draft.rate === null || draft.rate === '' ? null : Number(draft.rate),
     active: draft.active !== false,
   }

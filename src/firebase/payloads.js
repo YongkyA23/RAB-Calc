@@ -79,3 +79,36 @@ export function buildEstimatePayload({
 export function buildQuotePayload(input) {
   return buildEstimatePayload({ ...input, status: input.status === 'draft' ? 'draft' : 'created' })
 }
+
+export function buildVendorEstimatePayload({
+  id,
+  projectTitle = '',
+  projectInfo = '',
+  vendorName = '',
+  price = 0,
+  currency = 'IDR',
+  attachmentUrl = '',
+  attachmentName = '',
+  attachmentType = '',
+  createdBy,
+  createdAt,
+}) {
+  const now = new Date().toISOString()
+  const numericPrice = Number(price)
+
+  return {
+    id,
+    projectTitle,
+    projectInfo,
+    vendorName,
+    price: Number.isFinite(numericPrice) ? numericPrice : 0,
+    currency,
+    attachmentUrl,
+    attachmentName,
+    attachmentType,
+    createdBy: createdBy?.uid ?? '',
+    createdByName: createdBy?.name ?? '',
+    createdAt: createdAt ?? now,
+    updatedAt: now,
+  }
+}

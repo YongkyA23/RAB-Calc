@@ -41,3 +41,19 @@ export function buildPriceEstimationCsv(estimates) {
 export function buildJobLogCsv(quotes) {
   return buildPriceEstimationCsv(quotes)
 }
+
+export function buildVendorEstimateCsv(estimates) {
+  return buildCsv({
+    rows: estimates,
+    columns: [
+      { header: 'Project', value: (estimate) => estimate.projectTitle },
+      { header: 'Vendor', value: (estimate) => estimate.vendorName },
+      { header: 'Project Info', value: (estimate) => estimate.projectInfo },
+      { header: 'Price', value: (estimate) => estimate.price ?? 0 },
+      { header: 'Attachment', value: (estimate) => estimate.attachmentName },
+      { header: 'Attachment Link', value: (estimate) => estimate.attachmentUrl },
+      { header: 'Created By', value: (estimate) => estimate.createdByName },
+      { header: 'Updated', value: (estimate) => estimate.updatedAt },
+    ],
+  })
+}

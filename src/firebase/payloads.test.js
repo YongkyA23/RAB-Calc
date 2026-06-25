@@ -3,6 +3,7 @@ import {
   buildPriceAuditEntry,
   buildQuotePayload,
   buildUserProfilePayload,
+  buildVendorEstimatePayload,
   diffChangedFields,
 } from './payloads'
 
@@ -91,6 +92,39 @@ describe('firebase payload builders', () => {
       draft: null,
       updatedAt: expect.any(String),
       status: 'created',
+    })
+  })
+
+  it('builds vendor estimate payload and keeps createdAt when provided', () => {
+    const createdAt = '2026-06-22T00:00:00.000Z'
+
+    expect(
+      buildVendorEstimatePayload({
+        id: 've-1',
+        projectTitle: 'Project A',
+        projectInfo: 'Info A',
+        vendorName: 'Vendor A',
+        price: '5000',
+        attachmentUrl: 'https://res.cloudinary.com/demo/raw/upload/a.pdf',
+        attachmentName: 'a.pdf',
+        attachmentType: 'pdf',
+        createdBy: { uid: 'u1', name: 'Admin' },
+        createdAt,
+      }),
+    ).toMatchObject({
+      id: 've-1',
+      projectTitle: 'Project A',
+      projectInfo: 'Info A',
+      vendorName: 'Vendor A',
+      price: 5000,
+      currency: 'IDR',
+      attachmentUrl: 'https://res.cloudinary.com/demo/raw/upload/a.pdf',
+      attachmentName: 'a.pdf',
+      attachmentType: 'pdf',
+      createdBy: 'u1',
+      createdByName: 'Admin',
+      createdAt,
+      updatedAt: expect.any(String),
     })
   })
 })

@@ -2,6 +2,8 @@ import {
   Bell,
   Calculator,
   Database,
+  FileText,
+  LayoutDashboard,
   LogOut,
   Search,
   Sparkles,
@@ -13,34 +15,46 @@ import { Button } from "../../components/ui/Button";
 import { getVisibleNavigation } from "../auth/authRules";
 
 const viewTitles = {
-  priceEstimation: "Price Estimation",
-  masterData: "Price List / Master Data",
-  userManagement: "User Management",
+  dashboard: "Dashboard",
+  priceEstimation: "Estimasi Harga",
+  vendorEstimates: "Estimasi Vendor",
+  masterData: "Daftar Harga / Master Data",
+  userManagement: "Manajemen Pengguna",
 };
 
 const viewDescriptions = {
+  dashboard: "Ringkasan estimasi harga dan quote vendor dalam satu tampilan.",
   priceEstimation:
-    "Manage draft and created price estimates from one workspace.",
-  masterData: "Maintain catalog rates, defaults, and audit history.",
-  userManagement: "Manage app-level user roles and access status.",
+    "Kelola estimasi harga draf dan yang sudah dibuat dari satu workspace.",
+  vendorEstimates:
+    "Simpan quote vendor beserta info proyek, harga, dan lampiran file.",
+  masterData: "Kelola tarif katalog, default, dan riwayat audit.",
+  userManagement: "Kelola role pengguna dan status akses aplikasi.",
 };
 
 const navIcons = {
+  dashboard: LayoutDashboard,
   priceEstimation: Calculator,
+  vendorEstimates: FileText,
   masterData: Database,
   userManagement: Users,
 };
 
 const routeByView = {
+  dashboard: "/dashboard",
   priceEstimation: "/estimates",
+  vendorEstimates: "/vendor-estimates",
   masterData: "/master-data",
   userManagement: "/users",
 };
 
 function viewFromPath(pathname) {
+  if (pathname.startsWith("/dashboard")) return "dashboard";
+  if (pathname.startsWith("/vendor-estimates")) return "vendorEstimates";
   if (pathname.startsWith("/master-data")) return "masterData";
   if (pathname.startsWith("/users")) return "userManagement";
-  return "priceEstimation";
+  if (pathname.startsWith("/estimates")) return "priceEstimation";
+  return "dashboard";
 }
 
 export function AppShell({ onSignOut, profile, children }) {
@@ -99,7 +113,7 @@ export function AppShell({ onSignOut, profile, children }) {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col lg:pl-5">
-          <header className="sticky top-3 z-20 rounded-[1.75rem] border border-white/70 bg-white/90 shadow-xl shadow-slate-300/40 backdrop-blur-xl lg:top-5">
+          <header className="rounded-[1.75rem] border border-white/70 bg-white/90 shadow-xl shadow-slate-300/40 backdrop-blur-xl">
             <div className="flex flex-col gap-4 px-4 py-4 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.28em] text-blue-600">

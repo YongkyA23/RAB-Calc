@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ToastProvider } from '../../components/ui/Toast'
 import { PriceEstimationContainer } from './PriceEstimationContainer'
 
 vi.mock('../../firebase/firestoreHelpers', () => ({
@@ -44,11 +45,13 @@ const estimate = {
 
 function renderRoute(path) {
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route element={<PriceEstimationContainer profile={{ uid: 'u1', name: 'Admin', email: 'admin@example.com' }} />} path="/estimates/:estimateId/edit" />
-      </Routes>
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route element={<PriceEstimationContainer profile={{ uid: 'u1', name: 'Admin', email: 'admin@example.com' }} />} path="/estimates/:estimateId/edit" />
+        </Routes>
+      </MemoryRouter>
+    </ToastProvider>,
   )
 }
 
@@ -63,8 +66,8 @@ describe('PriceEstimationContainer routing', () => {
 
     await waitFor(() => expect(screen.getByLabelText('No Job')).toHaveValue('JOB-123'))
     expect(screen.getByLabelText('SKU')).toHaveValue('SKU-123')
-    expect(screen.getByLabelText('Client')).toHaveValue('PT Client')
-    expect(screen.getByLabelText('Project')).toHaveValue('Box')
+    expect(screen.getByLabelText('Klien')).toHaveValue('PT Client')
+    expect(screen.getByLabelText('Proyek')).toHaveValue('Box')
     expect(screen.getByLabelText('Material')).toHaveValue('print-duplex')
   })
 })

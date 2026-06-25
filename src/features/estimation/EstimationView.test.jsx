@@ -16,17 +16,17 @@ describe('EstimationView', () => {
     render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
 
     expect(screen.getByLabelText('No Job')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Add print line' })).toBeInTheDocument()
-    expect(screen.getByText('Grand Total')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tambah baris print' })).toBeInTheDocument()
+    expect(screen.getByText('Total Keseluruhan')).toBeInTheDocument()
   })
 
   it('adds a print line and recalculates total', () => {
     render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add print line' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tambah baris print' }))
     fireEvent.change(screen.getByLabelText('Material'), { target: { value: 'print-duplex' } })
-    fireEvent.change(screen.getByLabelText('Size'), { target: { value: 'B2' } })
-    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '110' } })
+    fireEvent.change(screen.getByLabelText('Ukuran'), { target: { value: 'B2' } })
+    fireEvent.change(screen.getByLabelText('Jumlah'), { target: { value: '110' } })
 
     expect(screen.getAllByText('Rp 4.400.000')).toHaveLength(2)
     expect(screen.getByText('Rp 40.000 × 110 = Rp 4.400.000')).toBeInTheDocument()
@@ -35,29 +35,29 @@ describe('EstimationView', () => {
   it('defaults paper purchase amount to 5000', () => {
     render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add additional line' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tambah baris tambahan' }))
 
-    expect(screen.getByLabelText('Amount')).toHaveValue('5000')
+    expect(screen.getByLabelText('Nominal')).toHaveValue('5000')
     expect(screen.getByText('Rp 5.000 × 1 = Rp 5.000')).toBeInTheDocument()
   })
 
   it('shows metalize length width fields and calculates area price', () => {
     render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add additional line' }))
-    fireEvent.change(screen.getByLabelText('Cost type'), { target: { value: 'additional-metalize' } })
-    fireEvent.change(screen.getByLabelText('Length (cm)'), { target: { value: '10' } })
-    fireEvent.change(screen.getByLabelText('Width (cm)'), { target: { value: '20' } })
-    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Tambah baris tambahan' }))
+    fireEvent.change(screen.getByLabelText('Jenis biaya'), { target: { value: 'additional-metalize' } })
+    fireEvent.change(screen.getByLabelText('Panjang (cm)'), { target: { value: '10' } })
+    fireEvent.change(screen.getByLabelText('Lebar (cm)'), { target: { value: '20' } })
+    fireEvent.change(screen.getByLabelText('Jumlah'), { target: { value: '2' } })
 
-    expect(screen.getByLabelText('Notes')).toBeInTheDocument()
+    expect(screen.getByLabelText('Catatan')).toBeInTheDocument()
     expect(screen.getByText('10 × 20 × 2 × Rp 5 = Rp 2.000')).toBeInTheDocument()
   })
 
   it('blocks create when required fields are missing', () => {
     render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create Estimate' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Buat Estimasi' }))
 
     expect(screen.getByText('No Job is required')).toBeInTheDocument()
   })
@@ -68,12 +68,12 @@ describe('EstimationView', () => {
 
     fireEvent.change(screen.getByLabelText('No Job'), { target: { value: 'JOB-001' } })
     fireEvent.change(screen.getByLabelText('SKU'), { target: { value: 'SKU-1' } })
-    fireEvent.change(screen.getByLabelText('Client'), { target: { value: 'PT Client' } })
-    fireEvent.change(screen.getByLabelText('Project'), { target: { value: 'Mockup' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Add print line' }))
+    fireEvent.change(screen.getByLabelText('Klien'), { target: { value: 'PT Client' } })
+    fireEvent.change(screen.getByLabelText('Proyek'), { target: { value: 'Mockup' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Tambah baris print' }))
     fireEvent.change(screen.getByLabelText('Material'), { target: { value: 'print-duplex' } })
-    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '2' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Create Estimate' }))
+    fireEvent.change(screen.getByLabelText('Jumlah'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Buat Estimasi' }))
 
     expect(onCreateEstimate).toHaveBeenCalledOnce()
     const estimate = onCreateEstimate.mock.calls[0][0]

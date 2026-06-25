@@ -4,4 +4,5 @@ export const COLLECTIONS = {
   priceItems: 'priceItems',
   priceAuditEntries: 'priceAuditEntries',
   quotes: 'quotes',
+  vendorEstimates: 'vendorEstimates',
 }

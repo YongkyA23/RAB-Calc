@@ -15,7 +15,7 @@ import {
 import { DEFAULT_CATEGORIES, DEFAULT_PRICE_ITEMS } from '../data/seedData'
 import { db } from './app'
 import { COLLECTIONS } from './collections'
-import { buildEstimatePayload, buildPriceAuditEntry, buildQuotePayload, buildUserProfilePayload } from './payloads'
+import { buildEstimatePayload, buildPriceAuditEntry, buildQuotePayload, buildUserProfilePayload, buildVendorEstimatePayload } from './payloads'
 
 export async function listCollection(collectionName) {
   const snapshot = await getDocs(collection(db, collectionName))
@@ -152,6 +152,26 @@ export async function listEstimates() {
 
 export async function listQuotes() {
   return listEstimates()
+}
+
+export async function listVendorEstimates() {
+  const snapshot = await getDocs(query(collection(db, COLLECTIONS.vendorEstimates), orderBy('updatedAt', 'desc')))
+  return snapshot.docs.map((document) => ({ id: document.id, ...document.data() }))
+}
+
+export async function getVendorEstimate(vendorEstimateId) {
+  const snapshot = await getDoc(doc(db, COLLECTIONS.vendorEstimates, vendorEstimateId))
+  return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null
+}
+
+export async function saveVendorEstimate(input) {
+  const payload = buildVendorEstimatePayload(input)
+  await setDoc(doc(db, COLLECTIONS.vendorEstimates, payload.id), payload)
+  return payload
+}
+
+export async function deleteVendorEstimate(vendorEstimateId) {
+  await deleteDoc(doc(db, COLLECTIONS.vendorEstimates, vendorEstimateId))
 }
 
 // Email allowlist management

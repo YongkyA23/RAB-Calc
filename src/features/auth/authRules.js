@@ -1,7 +1,9 @@
 export const NAVIGATION_ITEMS = [
-  { key: 'priceEstimation', label: 'Price Estimation', adminOnly: false },
-  { key: 'masterData', label: 'Price List / Master Data', adminOnly: true },
-  { key: 'userManagement', label: 'User Management', adminOnly: true },
+  { key: 'dashboard', label: 'Dashboard', adminOnly: false },
+  { key: 'priceEstimation', label: 'Estimasi Harga', adminOnly: false },
+  { key: 'vendorEstimates', label: 'Estimasi Vendor', adminOnly: false },
+  { key: 'masterData', label: 'Daftar Harga / Master Data', adminOnly: true },
+  { key: 'userManagement', label: 'Manajemen Pengguna', adminOnly: true },
 ]
 
 export function getAccessState({ user, profile, profileCount }) {

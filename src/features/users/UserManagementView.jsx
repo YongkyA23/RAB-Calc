@@ -68,35 +68,35 @@ export function UserManagementView({ loading, onAddUser, onUpdateUser, users }) 
               <Users size={22} />
             </span>
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-600">Access control</p>
-              <h2 className="text-2xl font-black tracking-tight text-slate-950">User profiles</h2>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-600">Kontrol akses</p>
+              <h2 className="text-2xl font-black tracking-tight text-slate-950">Profil pengguna</h2>
             </div>
           </div>
           <p className="mt-4 rounded-3xl border border-blue-100 bg-blue-50/70 p-4 text-sm font-medium leading-6 text-blue-900">
-            Add users here. Added users appear in this table and can sign in with Google.
+            Tambahkan pengguna di sini. Pengguna yang ditambahkan akan muncul di tabel ini dan bisa masuk dengan Google.
           </p>
         </div>
 
         <div className="grid gap-4 border-b border-slate-100 bg-slate-50/70 p-5 md:grid-cols-3">
-          <Field label="Search users">
+          <Field label="Cari pengguna">
             <div className="relative">
               <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
               <Input className="pl-11" onChange={(event) => updateFilter('query', event.target.value)} value={filters.query} />
             </div>
           </Field>
-          <Field label="Role filter">
+          <Field label="Filter role">
             <Select onChange={(event) => updateFilter('role', event.target.value)} value={filters.role}>
-              <option value="all">All roles</option>
+              <option value="all">Semua role</option>
               <option value="Admin">Admin</option>
               <option value="Estimator">Estimator</option>
             </Select>
           </Field>
-          <Field label="Status filter">
+          <Field label="Filter status">
             <Select onChange={(event) => updateFilter('status', event.target.value)} value={filters.status}>
-              <option value="all">All statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="pending">Pending</option>
+              <option value="all">Semua status</option>
+              <option value="active">Aktif</option>
+              <option value="inactive">Nonaktif</option>
+              <option value="pending">Tertunda</option>
             </Select>
           </Field>
         </div>
@@ -105,11 +105,11 @@ export function UserManagementView({ loading, onAddUser, onUpdateUser, users }) 
           <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
             <thead className="bg-slate-50/80 text-slate-600">
               <tr>
-                <th className="px-5 py-3 font-black">Name</th>
+                <th className="px-5 py-3 font-black">Nama</th>
                 <th className="px-5 py-3 font-black">Email</th>
                 <th className="px-5 py-3 font-black">Role</th>
                 <th className="px-5 py-3 font-black">Status</th>
-                <th className="px-5 py-3 font-black">Actions</th>
+                <th className="px-5 py-3 font-black">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -125,7 +125,7 @@ export function UserManagementView({ loading, onAddUser, onUpdateUser, users }) 
                   </td>
                   <td className="px-5 py-4">
                     {user.pending ? (
-                      <span className="text-xs font-bold text-slate-500">Waiting for sign-in</span>
+                      <span className="text-xs font-bold text-slate-500">Menunggu sign-in</span>
                     ) : (
                       <button
                         aria-label={`Edit ${user.name}`}
@@ -152,8 +152,8 @@ export function UserManagementView({ loading, onAddUser, onUpdateUser, users }) 
               <MailPlus size={20} />
             </span>
             <div>
-              <h3 className="text-lg font-black tracking-tight text-slate-950">Add user</h3>
-              <p className="mt-1 text-sm font-medium text-slate-500">Added users can sign in with Google.</p>
+              <h3 className="text-lg font-black tracking-tight text-slate-950">Tambah pengguna</h3>
+              <p className="mt-1 text-sm font-medium text-slate-500">Pengguna yang ditambahkan bisa masuk dengan Google.</p>
             </div>
           </div>
 
@@ -161,7 +161,7 @@ export function UserManagementView({ loading, onAddUser, onUpdateUser, users }) 
             <Field label="Email">
               <Input
                 onChange={(event) => updateNewUser('email', event.target.value)}
-                placeholder="name@example.com"
+                placeholder="nama@example.com"
                 type="email"
                 value={newUser.email}
               />
@@ -174,8 +174,8 @@ export function UserManagementView({ loading, onAddUser, onUpdateUser, users }) 
             </Field>
             <Field label="Status">
               <Select onChange={(event) => updateNewUser('status', event.target.value)} value={newUser.status}>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="active">Aktif</option>
+                <option value="inactive">Nonaktif</option>
               </Select>
             </Field>
             <button
@@ -185,7 +185,7 @@ export function UserManagementView({ loading, onAddUser, onUpdateUser, users }) 
               type="button"
             >
               <MailPlus size={17} />
-              Add user
+              Tambah pengguna
             </button>
           </div>
         </div>
@@ -194,11 +194,11 @@ export function UserManagementView({ loading, onAddUser, onUpdateUser, users }) 
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100 text-slate-700">
             <UserCog size={20} />
           </span>
-          <h3 className="text-lg font-black tracking-tight text-slate-950">Edit profile</h3>
+          <h3 className="text-lg font-black tracking-tight text-slate-950">Edit profil</h3>
         </div>
         {draft ? (
           <div className="mt-5 space-y-4">
-            <Field label="Name">
+            <Field label="Nama">
               <Input onChange={(event) => updateDraft('name', event.target.value)} value={draft.name} />
             </Field>
             <Field label="Role">
@@ -209,8 +209,8 @@ export function UserManagementView({ loading, onAddUser, onUpdateUser, users }) 
             </Field>
             <Field label="Status">
               <Select onChange={(event) => updateDraft('status', event.target.value)} value={draft.status}>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="active">Aktif</option>
+                <option value="inactive">Nonaktif</option>
               </Select>
             </Field>
             <button
@@ -220,11 +220,11 @@ export function UserManagementView({ loading, onAddUser, onUpdateUser, users }) 
               type="button"
             >
               <Save size={17} />
-              Save user
+              Simpan pengguna
             </button>
           </div>
         ) : (
-          <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm font-medium text-slate-600"><Shield className="mr-2 inline text-slate-400" size={16} />Choose a user to edit role or active status.</p>
+          <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm font-medium text-slate-600"><Shield className="mr-2 inline text-slate-400" size={16} />Pilih pengguna untuk mengedit role atau status aktif.</p>
         )}
       </aside>
     </div>

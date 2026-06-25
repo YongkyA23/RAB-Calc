@@ -19,11 +19,12 @@ describe('AppShell', () => {
   it('renders admin navigation as links and signs out', () => {
     const { onSignOut } = renderShell()
 
-    expect(screen.getAllByRole('link', { name: /Price Estimation/ })[0]).toHaveAttribute('href', '/estimates')
-    expect(screen.getAllByRole('link', { name: /Price List \/ Master Data/ })[0]).toHaveAttribute('href', '/master-data')
+    expect(screen.getAllByRole('link', { name: /Estimasi Harga/ })[0]).toHaveAttribute('href', '/estimates')
+    expect(screen.getAllByRole('link', { name: /Estimasi Vendor/ })[0]).toHaveAttribute('href', '/vendor-estimates')
+    expect(screen.getAllByRole('link', { name: /Daftar Harga \/ Master Data/ })[0]).toHaveAttribute('href', '/master-data')
     expect(screen.queryByRole('link', { name: /Create Estimation/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Job Log/ })).not.toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: /User Management/ })[0]).toHaveAttribute('href', '/users')
+    expect(screen.getAllByRole('link', { name: /Manajemen Pengguna/ })[0]).toHaveAttribute('href', '/users')
 
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(onSignOut).toHaveBeenCalledOnce()
@@ -32,16 +33,23 @@ describe('AppShell', () => {
   it('hides admin navigation for estimators', () => {
     renderShell({ profile: { name: 'Estimator', role: 'Estimator' } })
 
-    expect(screen.getAllByRole('link', { name: /Price Estimation/ })[0]).toHaveAttribute('href', '/estimates')
+    expect(screen.getAllByRole('link', { name: /Estimasi Harga/ })[0]).toHaveAttribute('href', '/estimates')
+    expect(screen.getAllByRole('link', { name: /Estimasi Vendor/ })[0]).toHaveAttribute('href', '/vendor-estimates')
     expect(screen.queryByRole('link', { name: /Create Estimation/ })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /Price List \/ Master Data/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Daftar Harga \/ Master Data/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Job Log/ })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /User Management/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Manajemen Pengguna/ })).not.toBeInTheDocument()
   })
 
   it('uses route path for active page heading', () => {
     renderShell({ path: '/master-data' })
 
-    expect(screen.getByRole('heading', { name: 'Price List / Master Data' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Daftar Harga / Master Data' })).toBeInTheDocument()
+  })
+
+  it('shows vendor estimate heading on vendor route', () => {
+    renderShell({ path: '/vendor-estimates' })
+
+    expect(screen.getByRole('heading', { name: 'Estimasi Vendor' })).toBeInTheDocument()
   })
 })

@@ -8,18 +8,18 @@ import {
   seedDefaultCatalog,
 } from '../../firebase/firestoreHelpers'
 import { DEFAULT_CATEGORIES } from '../../data/seedData'
+import { useToast } from '../../components/ui/Toast'
 import { MasterDataView } from './MasterDataView'
 
 export function MasterDataContainer({ profile }) {
+  const toast = useToast()
   const [auditEntries, setAuditEntries] = useState([])
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES)
-  const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [priceItems, setPriceItems] = useState([])
 
   async function loadMasterData() {
     setLoading(true)
-    setError('')
 
     try {
       const [nextCategories, nextPriceItems, nextAuditEntries] = await Promise.all([
@@ -31,7 +31,7 @@ export function MasterDataContainer({ profile }) {
       setPriceItems(nextPriceItems)
       setAuditEntries(nextAuditEntries)
     } catch (loadError) {
-      setError(loadError.message)
+      toast.error(loadError.message)
     } finally {
       setLoading(false)
     }
@@ -55,7 +55,7 @@ export function MasterDataContainer({ profile }) {
         }
       } catch (loadError) {
         if (!ignore) {
-          setError(loadError.message)
+          toast.error(loadError.message)
         }
       } finally {
         if (!ignore) {
@@ -69,28 +69,22 @@ export function MasterDataContainer({ profile }) {
     return () => {
       ignore = true
     }
-  }, [])
+  }, [toast])
 
   async function runAction(action) {
     setLoading(true)
-    setError('')
 
     try {
       await action()
       await loadMasterData()
     } catch (actionError) {
-      setError(actionError.message)
+      toast.error(actionError.message)
       setLoading(false)
     }
   }
 
   return (
     <div className="space-y-4">
-      {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      ) : null}
       <MasterDataView
         auditEntries={auditEntries}
         categories={categories}

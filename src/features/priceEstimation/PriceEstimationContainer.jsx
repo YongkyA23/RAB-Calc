@@ -5,6 +5,7 @@ import { db } from '../../firebase/app'
 import { doc, deleteDoc } from 'firebase/firestore'
 import { listActivePriceItems, listEstimates, saveEstimate } from '../../firebase/firestoreHelpers'
 import { printInternalEstimatePdf } from '../../lib/estimatePdf'
+import { useToast } from '../../components/ui/Toast'
 import { createEmptyQuoteDraft, buildDraftEstimateFromDraft } from '../estimation/estimationModel'
 import { EstimationView } from '../estimation/EstimationView'
 import { PriceEstimationDetailView } from './PriceEstimationDetailView'
@@ -24,15 +25,14 @@ function downloadCsv(csv) {
 export function PriceEstimationContainer({ profile }) {
   const location = useLocation()
   const navigate = useNavigate()
+  const toast = useToast()
   const { estimateId } = useParams()
   const [estimates, setEstimates] = useState([])
-  const [error, setError] = useState('')
   const [formKey, setFormKey] = useState(0)
   const [initialDraft, setInitialDraft] = useState(null)
   const [loading, setLoading] = useState(true)
   const [priceItems, setPriceItems] = useState([])
   const [selectedEstimate, setSelectedEstimate] = useState(null)
-  const [success, setSuccess] = useState('')
   const routeMode = location.pathname.endsWith('/new') || location.pathname.endsWith('/edit') ? 'form' : estimateId ? 'detail' : 'list'
   const routeEstimate = useMemo(() => estimates.find((estimate) => estimate.id === estimateId) ?? null, [estimateId, estimates])
 
@@ -53,7 +53,7 @@ export function PriceEstimationContainer({ profile }) {
           setPriceItems(nextPriceItems)
         }
       } catch (loadError) {
-        if (!ignore) setError(loadError.message)
+        if (!ignore) toast.error(loadError.message)
       } finally {
         if (!ignore) setLoading(false)
       }
@@ -64,14 +64,12 @@ export function PriceEstimationContainer({ profile }) {
     return () => {
       ignore = true
     }
-  }, [])
+  }, [toast])
 
   function openForm(draft, estimate = null, path = '/estimates/new') {
     setInitialDraft(draft)
     setSelectedEstimate(estimate)
     setFormKey((current) => current + 1)
-    setError('')
-    setSuccess('')
     navigate(path)
   }
 
@@ -89,23 +87,19 @@ export function PriceEstimationContainer({ profile }) {
 
   function handleViewEstimate(estimate) {
     setSelectedEstimate(estimate)
-    setError('')
-    setSuccess('')
     navigate(`/estimates/${estimate.id}`)
   }
 
   async function runSave(action, message) {
     setLoading(true)
-    setError('')
-    setSuccess('')
 
     try {
       await action()
       await loadData()
       navigate('/estimates')
-      setSuccess(message)
+      toast.success(message)
     } catch (saveError) {
-      setError(saveError.message)
+      toast.error(saveError.message)
     } finally {
       setLoading(false)
     }
@@ -138,17 +132,30 @@ export function PriceEstimationContainer({ profile }) {
 
   async function handleDeleteDraft(estimate) {
     setLoading(true)
-    setError('')
-    setSuccess('')
 
     try {
       await deleteDoc(doc(db, COLLECTIONS.quotes, estimate.id))
       await loadData()
       navigate('/estimates')
       setSelectedEstimate(null)
-      setSuccess('Estimate deleted')
+      toast.success('Estimate deleted')
     } catch (deleteError) {
-      setError(deleteError.message)
+      toast.error(deleteError.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleBulkDelete(items) {
+    if (!items?.length) return
+    setLoading(true)
+
+    try {
+      await Promise.all(items.map((estimate) => deleteDoc(doc(db, COLLECTIONS.quotes, estimate.id))))
+      await loadData()
+      toast.success(`${items.length} estimate${items.length > 1 ? 's' : ''} deleted`)
+    } catch (deleteError) {
+      toast.error(deleteError.message)
     } finally {
       setLoading(false)
     }
@@ -159,12 +166,11 @@ export function PriceEstimationContainer({ profile }) {
 
   return (
     <div className="space-y-4">
-      {error ? <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
-      {success ? <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{success}</div> : null}
       {routeMode === 'list' ? (
         <PriceEstimationListView
           estimates={estimates}
           loading={loading}
+          onBulkDelete={handleBulkDelete}
           onCreateNew={handleCreateNew}
           onDeleteEstimate={handleDeleteDraft}
           onDuplicateEstimate={handleDuplicateEstimate}

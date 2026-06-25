@@ -30,7 +30,7 @@ describe('PriceEstimationListView', () => {
   it('renders price estimation table statuses and create button full width', () => {
     renderView()
 
-    expect(screen.getByRole('link', { name: 'Create New' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Buat Baru' })).toBeInTheDocument()
     expect(screen.getAllByText('Draft').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Created').length).toBeGreaterThan(0)
     expect(screen.queryByText('Estimate detail')).not.toBeInTheDocument()
@@ -39,8 +39,8 @@ describe('PriceEstimationListView', () => {
   it('renders create, view, and edit actions as route links', () => {
     renderView()
 
-    expect(screen.getByRole('link', { name: 'Create New' })).toHaveAttribute('href', '/estimates/new')
-    expect(screen.getByRole('link', { name: 'View JOB-002' })).toHaveAttribute('href', '/estimates/e2')
+    expect(screen.getByRole('link', { name: 'Buat Baru' })).toHaveAttribute('href', '/estimates/new')
+    expect(screen.getByRole('link', { name: 'Lihat JOB-002' })).toHaveAttribute('href', '/estimates/e2')
     expect(screen.getByRole('link', { name: 'Edit JOB-002' })).toHaveAttribute('href', '/estimates/e2/edit')
   })
 
@@ -48,7 +48,7 @@ describe('PriceEstimationListView', () => {
     const onCreateNew = vi.fn()
     renderView({ onCreateNew })
 
-    fireEvent.click(screen.getByRole('link', { name: 'Create New' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Buat Baru' }))
 
     expect(onCreateNew).toHaveBeenCalledOnce()
   })
@@ -57,7 +57,7 @@ describe('PriceEstimationListView', () => {
     const onViewEstimate = vi.fn()
     renderView({ onViewEstimate })
 
-    fireEvent.click(screen.getByRole('link', { name: 'View JOB-002' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Lihat JOB-002' }))
 
     expect(onViewEstimate).toHaveBeenCalledWith(estimates[1])
   })
@@ -71,12 +71,12 @@ describe('PriceEstimationListView', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Edit JOB-002' }))
     expect(onEditDraft).toHaveBeenCalledWith(estimates[1])
 
-    fireEvent.click(screen.getByRole('button', { name: 'Duplicate JOB-002' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Duplikat JOB-002' }))
     expect(onDuplicateEstimate).toHaveBeenCalledWith(estimates[1])
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete JOB-002' }))
-    expect(screen.getByText('Confirm deletion of "JOB-002"')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm deletion' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus JOB-002' }))
+    expect(screen.getByText('Konfirmasi penghapusan "JOB-002"')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Konfirmasi penghapusan' }))
     expect(onDeleteEstimate).toHaveBeenCalledWith(estimates[1])
   })
 })

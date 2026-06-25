@@ -83,5 +83,14 @@ service cloud.firestore {
       // In production, restrict to owner or admin only
       allow update, delete: if signedIn();
     }
+
+    match /vendorEstimates/{vendorEstimateId} {
+      // All active users can read and create vendor estimates
+      allow read, create: if hasActiveProfile();
+
+      // Authenticated users can update/delete any vendor estimate in staging
+      // In production, restrict to owner or admin only
+      allow update, delete: if signedIn();
+    }
   }
 }
