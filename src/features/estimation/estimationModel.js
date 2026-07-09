@@ -131,8 +131,13 @@ export function buildQuoteFromDraft(draft, priceItems, createdBy) {
     return buildLine({ layer: 'manpower', input: line, item, computedTotal })
   })
 
-  const additionalLines = (draft.additional ?? []).map((line) => {
+  const additionalLines = []
+  let additionalRunningTotal = 0
+
+  for (const line of draft.additional ?? []) {
     const item = findItem(priceItems, line.itemId)
+    const linePercent = Number(line.percent) || 0
+    const base = linePercent ? sumLayerTotals([...printLines, ...digitalLines, ...manualLines, ...manpowerLines].map((l) => l.computedTotal)) + additionalRunningTotal : 0
     const computedTotal = calculateAdditionalLineTotal({
       mode: item.additionalMode,
       amount: line.amount,
@@ -140,9 +145,12 @@ export function buildQuoteFromDraft(draft, priceItems, createdBy) {
       rate: item.rate,
       lengthCm: line.lengthCm,
       widthCm: line.widthCm,
+      percent: linePercent,
+      baseTotal: base,
     })
-    return buildLine({ layer: 'additional', input: line, item, computedTotal })
-  })
+    additionalLines.push(buildLine({ layer: 'additional', input: line, item, computedTotal }))
+    additionalRunningTotal += computedTotal
+  }
 
   const totals = {
     print: sumLayerTotals(printLines.map((line) => line.computedTotal)),

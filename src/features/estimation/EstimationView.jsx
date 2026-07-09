@@ -107,6 +107,12 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
     }
   }, [draft, priceItems])
 
+  // ponytail: base total excludes additional to avoid circular percent calc
+  const baseTotal = useMemo(() => {
+    const { print, digital, manual, manpower } = previewQuote.totals
+    return print + digital + manual + manpower
+  }, [previewQuote.totals])
+
   const sectionJumps = [
     { count: draft.print.length, icon: Printer, id: 'print-items', label: 'Print' },
     { count: draft.digital.length, icon: Sparkles, id: 'digital-finishing', label: 'Digital' },
@@ -130,7 +136,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
       digital: { itemId: firstItem('digital')?.id ?? '', size: 'A3', qty: 1 },
       manual: { itemId: firstItem('manual')?.id ?? '', p: 1, l: 1, qty: 1, jmlAlat: 1 },
       manpower: { itemId: firstItem('manpower')?.id ?? '', days: 1 },
-      additional: { itemId: firstAdditionalItem?.id ?? '', amount: firstAdditionalItem?.rate ?? 1, quantity: 1, lengthCm: 1, widthCm: 1, notes: '' },
+      additional: { itemId: firstAdditionalItem?.id ?? '', amount: firstAdditionalItem?.rate ?? '', quantity: 1, percent: '', lengthCm: 1, widthCm: 1, notes: '' },
     }
 
     setDraft((current) => ({ ...current, [layer]: [...current[layer], defaults[layer]] }))
@@ -317,7 +323,8 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
           {draft.additional.map((line, index) => {
             const item = findItem(line.itemId)
             const isArea = item?.additionalMode === 'area'
-            const amount = line.amount || item?.rate || 5000
+            const amount = line.amount || item?.rate || ''
+            const usePercent = !!line.percent
             const total = safeLineTotal(() => calculateAdditionalLineTotal({
               mode: item?.additionalMode,
               amount,
@@ -325,6 +332,8 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
               rate: item?.rate,
               lengthCm: line.lengthCm,
               widthCm: line.widthCm,
+              percent: Number(line.percent) || 0,
+              baseTotal: baseTotal,
             }))
             return (
               <LineRow key={index} onRemove={() => removeLine('additional', index)} removeLabel={`Hapus baris tambahan ${index + 1}`}>
@@ -348,9 +357,17 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
                     </>
                   ) : (
                     <>
-                      <Field label="Nominal">
-                        <Input onChange={(event) => updateLine('additional', index, 'amount', event.target.value)} value={amount} />
-                      </Field>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <Field label={usePercent ? 'Persentase (%)' : 'Nominal'}>
+                            <Input onChange={(event) => updateLine('additional', index, usePercent ? 'percent' : 'amount', event.target.value)} value={usePercent ? line.percent ?? '' : amount} />
+                          </Field>
+                        </div>
+                        <button className="mt-6 inline-flex items-center gap-1 rounded-xl border border-slate-200 px-2.5 py-2 text-xs font-bold text-slate-500 transition hover:bg-slate-100" onClick={() => {
+                          updateLine('additional', index, 'percent', usePercent ? '' : '10')
+                          if (!usePercent) updateLine('additional', index, 'amount', '')
+                        }} type="button">{usePercent ? 'Rp' : '%'}</button>
+                      </div>
                       <Field label="Jumlah">
                         <Input onChange={(event) => updateLine('additional', index, 'quantity', event.target.value)} value={line.quantity} />
                       </Field>
@@ -364,7 +381,11 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
                   <p className="text-sm font-semibold text-slate-700">
                     {isArea
                       ? `${line.lengthCm || 0} × ${line.widthCm || 0} × ${line.quantity || 0} × Rp ${item?.rate || 0} = ${formatIdr(total)}`
-                      : `${formatIdr(amount)} × ${line.quantity || 0} = ${formatIdr(total)}`}
+                      : usePercent
+                        ? `${line.percent || 0}% × ${formatIdr(baseTotal)} = ${formatIdr(total)}`
+                        : total
+                          ? `${formatIdr(amount)} × ${line.quantity || 0} = ${formatIdr(total)}`
+                          : 'Isi nominal untuk melihat total'}
                   </p>
                 </div>
               </LineRow>

@@ -59,9 +59,13 @@ export function calculateManpowerLineTotal({ days, rate }) {
   return requirePositiveNumber(days, 'Days') * requirePositiveNumber(rate, 'Rate')
 }
 
-export function calculateAdditionalLineTotal({ mode, amount, quantity, rate, lengthCm, widthCm }) {
+export function calculateAdditionalLineTotal({ mode, amount, quantity, rate, lengthCm, widthCm, percent, baseTotal }) {
+  if (percent) {
+    return optionalNumber(baseTotal, 0) * requirePositiveNumber(percent, 'Percent') / 100
+  }
+
   if (mode === 'manual') {
-    return requirePositiveNumber(amount, 'Amount')
+    return requirePositiveNumber(amount, 'Amount') * optionalNumber(quantity, 1)
   }
 
   if (mode === 'rate') {

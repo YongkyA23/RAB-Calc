@@ -92,7 +92,13 @@ describe('calculation engine', () => {
 
   it('calculates additional manual amount and rate based totals', () => {
     expect(calculateAdditionalLineTotal({ mode: 'manual', amount: 125000 })).toBe(125000)
+    expect(calculateAdditionalLineTotal({ mode: 'manual', amount: 125000, quantity: 3 })).toBe(375000)
     expect(calculateAdditionalLineTotal({ mode: 'rate', quantity: 200, rate: 5000 })).toBe(1000000)
+  })
+
+  it('calculates additional percentage-based totals', () => {
+    expect(calculateAdditionalLineTotal({ percent: 10, baseTotal: 500000 })).toBe(50000)
+    expect(calculateAdditionalLineTotal({ percent: 25, baseTotal: 1000000 })).toBe(250000)
   })
 
   it('calculates additional area-rate totals', () => {

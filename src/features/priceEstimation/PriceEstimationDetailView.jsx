@@ -65,6 +65,10 @@ function formulaSummary(line) {
     return `${formatIdr(line.priceSnapshot?.rate)} × ${inputs.quantity || 0} = ${total}`
   }
 
+  if (line.layer === 'additional' && inputs.percent) {
+    return `${inputs.percent}% dari total = ${total}`
+  }
+
   if (line.layer === 'additional' && inputs.amount) {
     return `${formatIdr(inputs.amount)} = ${total}`
   }
