@@ -170,14 +170,20 @@ export function buildCreatedEstimateFromDraft(draft, priceItems, createdBy) {
   return buildQuoteFromDraft(draft, priceItems, createdBy)
 }
 
-export function buildDraftEstimateFromDraft(draft, createdBy, existingId = null) {
+export function buildDraftEstimateFromDraft(draft, createdBy, existingId = null, priceItems = []) {
+  let computed
+  try {
+    computed = buildQuoteFromDraft(draft, priceItems, createdBy)
+  } catch {
+    computed = { lineItems: [], totals: { print: 0, digital: 0, manual: 0, manpower: 0, additional: 0 }, grandTotal: 0, turnaroundDays: 0 }
+  }
   return {
     id: existingId ?? `estimate-${Date.now()}`,
     header: { ...draft.header },
-    lineItems: [],
-    totals: { print: 0, digital: 0, manual: 0, manpower: 0, additional: 0 },
-    grandTotal: 0,
-    turnaroundDays: 0,
+    lineItems: computed.lineItems,
+    totals: computed.totals,
+    grandTotal: computed.grandTotal,
+    turnaroundDays: computed.turnaroundDays,
     createdBy,
     draft: { ...draft },
     sourceQuoteId: draft.sourceQuoteId ?? null,

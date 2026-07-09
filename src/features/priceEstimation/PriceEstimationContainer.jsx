@@ -111,7 +111,7 @@ export function PriceEstimationContainer({ profile }) {
 
   async function handleSaveDraft(draft) {
     const estimate = selectedEstimate ?? routeEstimate
-    const payload = buildDraftEstimateFromDraft(draft, creator(), estimate?.id)
+    const payload = buildDraftEstimateFromDraft(draft, creator(), estimate?.id, priceItems)
     await runSave(() => saveEstimate(payload), 'Draft saved')
   }
 
