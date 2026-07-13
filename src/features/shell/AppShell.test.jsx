@@ -20,6 +20,7 @@ describe('AppShell', () => {
     const { onSignOut } = renderShell()
 
     expect(screen.getAllByRole('link', { name: /Estimasi Harga/ })[0]).toHaveAttribute('href', '/estimates')
+    expect(screen.getAllByRole('link', { name: /Hitung Kertas/ })[0]).toHaveAttribute('href', '/hitung-kertas')
     expect(screen.getAllByRole('link', { name: /Estimasi Vendor/ })[0]).toHaveAttribute('href', '/vendor-estimates')
     expect(screen.getAllByRole('link', { name: /Daftar Harga \/ Master Data/ })[0]).toHaveAttribute('href', '/master-data')
     expect(screen.queryByRole('link', { name: /Create Estimation/ })).not.toBeInTheDocument()
@@ -34,6 +35,7 @@ describe('AppShell', () => {
     renderShell({ profile: { name: 'Estimator', role: 'Estimator' } })
 
     expect(screen.getAllByRole('link', { name: /Estimasi Harga/ })[0]).toHaveAttribute('href', '/estimates')
+    expect(screen.getAllByRole('link', { name: /Hitung Kertas/ })[0]).toHaveAttribute('href', '/hitung-kertas')
     expect(screen.getAllByRole('link', { name: /Estimasi Vendor/ })[0]).toHaveAttribute('href', '/vendor-estimates')
     expect(screen.queryByRole('link', { name: /Create Estimation/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Daftar Harga \/ Master Data/ })).not.toBeInTheDocument()
@@ -51,5 +53,11 @@ describe('AppShell', () => {
     renderShell({ path: '/vendor-estimates' })
 
     expect(screen.getByRole('heading', { name: 'Estimasi Vendor' })).toBeInTheDocument()
+  })
+
+  it('shows the paper calculator heading on the internal calculator route', () => {
+    renderShell({ path: '/hitung-kertas' })
+
+    expect(screen.getByRole('heading', { name: 'Hitung Kertas' })).toBeInTheDocument()
   })
 })

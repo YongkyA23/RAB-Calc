@@ -18,6 +18,7 @@ import { AppShell } from './features/shell/AppShell'
 
 const DashboardContainer = lazy(() => import('./features/dashboard/DashboardContainer').then((module) => ({ default: module.DashboardContainer })))
 const MasterDataContainer = lazy(() => import('./features/masterData/MasterDataContainer').then((module) => ({ default: module.MasterDataContainer })))
+const PaperCalculatorContainer = lazy(() => import('./features/paperCalculator/PaperCalculatorContainer').then((module) => ({ default: module.PaperCalculatorContainer })))
 const PriceEstimationContainer = lazy(() => import('./features/priceEstimation/PriceEstimationContainer').then((module) => ({ default: module.PriceEstimationContainer })))
 const VendorEstimateContainer = lazy(() => import('./features/vendorEstimates/VendorEstimateContainer').then((module) => ({ default: module.VendorEstimateContainer })))
 const UserManagementContainer = lazy(() => import('./features/users/UserManagementContainer').then((module) => ({ default: module.UserManagementContainer })))
@@ -175,6 +176,7 @@ function App() {
           <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/new" />
           <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/:estimateId" />
           <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/:estimateId/edit" />
+          <Route element={<PaperCalculatorContainer profile={profile} />} path="/hitung-kertas" />
           <Route element={canAccess('vendorEstimates') ? <VendorEstimateContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/vendor-estimates" />
           <Route element={canAccess('vendorEstimates') ? <VendorEstimateContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/vendor-estimates/new" />
           <Route element={canAccess('vendorEstimates') ? <VendorEstimateContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/vendor-estimates/:vendorEstimateId" />

@@ -5,4 +5,7 @@ export const COLLECTIONS = {
   priceAuditEntries: 'priceAuditEntries',
   quotes: 'quotes',
   vendorEstimates: 'vendorEstimates',
+  paperCalculatorDrafts: 'paperCalculatorDrafts',
+  paperCalculations: 'paperCalculations',
+  paperCustomSizes: 'paperCustomSizes',
 }

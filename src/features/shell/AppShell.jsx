@@ -1,13 +1,11 @@
 import {
-  Bell,
   Calculator,
   Database,
   FileText,
   LayoutDashboard,
   LogOut,
-  Search,
+  Ruler,
   Sparkles,
-  UserCircle,
   Users,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
@@ -17,6 +15,7 @@ import { getVisibleNavigation } from "../auth/authRules";
 const viewTitles = {
   dashboard: "Dashboard",
   priceEstimation: "Estimasi Harga",
+  paperCalculator: "Hitung Kertas",
   vendorEstimates: "Estimasi Vendor",
   masterData: "Daftar Harga / Master Data",
   userManagement: "Manajemen Pengguna",
@@ -26,6 +25,8 @@ const viewDescriptions = {
   dashboard: "Ringkasan estimasi harga dan quote vendor dalam satu tampilan.",
   priceEstimation:
     "Kelola estimasi harga draf dan yang sudah dibuat dari satu workspace.",
+  paperCalculator:
+    "Hitung layout, kebutuhan buku, potong plano, dan waktu produksi.",
   vendorEstimates:
     "Simpan quote vendor beserta info proyek, harga, dan lampiran file.",
   masterData: "Kelola tarif katalog, default, dan riwayat audit.",
@@ -35,6 +36,7 @@ const viewDescriptions = {
 const navIcons = {
   dashboard: LayoutDashboard,
   priceEstimation: Calculator,
+  paperCalculator: Ruler,
   vendorEstimates: FileText,
   masterData: Database,
   userManagement: Users,
@@ -43,6 +45,7 @@ const navIcons = {
 const routeByView = {
   dashboard: "/dashboard",
   priceEstimation: "/estimates",
+  paperCalculator: "/hitung-kertas",
   vendorEstimates: "/vendor-estimates",
   masterData: "/master-data",
   userManagement: "/users",
@@ -50,6 +53,7 @@ const routeByView = {
 
 function viewFromPath(pathname) {
   if (pathname.startsWith("/dashboard")) return "dashboard";
+  if (pathname.startsWith("/hitung-kertas")) return "paperCalculator";
   if (pathname.startsWith("/vendor-estimates")) return "vendorEstimates";
   if (pathname.startsWith("/master-data")) return "masterData";
   if (pathname.startsWith("/users")) return "userManagement";

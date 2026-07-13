@@ -92,5 +92,47 @@ service cloud.firestore {
       // In production, restrict to owner or admin only
       allow update, delete: if signedIn();
     }
+
+    match /paperCalculatorDrafts/{uid} {
+      allow read, delete: if hasActiveProfile() && request.auth.uid == uid;
+      allow create, update: if hasActiveProfile()
+        && request.auth.uid == uid
+        && request.resource.data.userId == uid
+        && request.resource.data.schemaVersion == 1;
+    }
+
+    match /paperCalculations/{calculationId} {
+      allow read: if hasActiveProfile();
+      allow create: if hasActiveProfile()
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.module in ['layout', 'book', 'plano', 'time'];
+      allow update: if false;
+      allow delete: if hasActiveProfile()
+        && (resource.data.createdBy == request.auth.uid || isAdmin());
+    }
+
+    match /paperCustomSizes/{sizeId} {
+      allow read: if hasActiveProfile();
+      allow create: if hasActiveProfile()
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.type in ['paper', 'book', 'plano']
+        && request.resource.data.width is number
+        && request.resource.data.width > 0
+        && request.resource.data.height is number
+        && request.resource.data.height > 0;
+      allow update: if hasActiveProfile()
+        && (resource.data.createdBy == request.auth.uid || isAdmin())
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.type in ['paper', 'book', 'plano']
+        && request.resource.data.width is number
+        && request.resource.data.width > 0
+        && request.resource.data.height is number
+        && request.resource.data.height > 0;
+      allow delete: if hasActiveProfile()
+        && (resource.data.createdBy == request.auth.uid || isAdmin());
+    }
   }
 }

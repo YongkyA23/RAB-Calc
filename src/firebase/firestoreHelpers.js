@@ -15,7 +15,16 @@ import {
 import { DEFAULT_CATEGORIES, DEFAULT_PRICE_ITEMS } from '../data/seedData'
 import { db } from './app'
 import { COLLECTIONS } from './collections'
-import { buildEstimatePayload, buildPriceAuditEntry, buildQuotePayload, buildUserProfilePayload, buildVendorEstimatePayload } from './payloads'
+import {
+  buildEstimatePayload,
+  buildPaperCalculationPayload,
+  buildPaperCalculatorDraftPayload,
+  buildPaperCustomSizePayload,
+  buildPriceAuditEntry,
+  buildQuotePayload,
+  buildUserProfilePayload,
+  buildVendorEstimatePayload,
+} from './payloads'
 
 export async function listCollection(collectionName) {
   const snapshot = await getDocs(collection(db, collectionName))
@@ -172,6 +181,47 @@ export async function saveVendorEstimate(input) {
 
 export async function deleteVendorEstimate(vendorEstimateId) {
   await deleteDoc(doc(db, COLLECTIONS.vendorEstimates, vendorEstimateId))
+}
+
+export async function getPaperCalculatorDraft(userId) {
+  const snapshot = await getDoc(doc(db, COLLECTIONS.paperCalculatorDrafts, userId))
+  return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null
+}
+
+export async function savePaperCalculatorDraft(userId, workspace) {
+  const payload = buildPaperCalculatorDraftPayload({ userId, ...workspace })
+  await setDoc(doc(db, COLLECTIONS.paperCalculatorDrafts, userId), payload)
+  return payload
+}
+
+export async function listPaperCalculations() {
+  const snapshot = await getDocs(query(collection(db, COLLECTIONS.paperCalculations), orderBy('createdAt', 'desc')))
+  return snapshot.docs.map((document) => ({ id: document.id, ...document.data() }))
+}
+
+export async function savePaperCalculation(input) {
+  const payload = buildPaperCalculationPayload(input)
+  await setDoc(doc(db, COLLECTIONS.paperCalculations, payload.id), payload)
+  return payload
+}
+
+export async function deletePaperCalculation(calculationId) {
+  await deleteDoc(doc(db, COLLECTIONS.paperCalculations, calculationId))
+}
+
+export async function listPaperCustomSizes() {
+  const snapshot = await getDocs(query(collection(db, COLLECTIONS.paperCustomSizes), orderBy('createdAt', 'asc')))
+  return snapshot.docs.map((document) => ({ id: document.id, ...document.data() }))
+}
+
+export async function savePaperCustomSize(input) {
+  const payload = buildPaperCustomSizePayload(input)
+  await setDoc(doc(db, COLLECTIONS.paperCustomSizes, payload.id), payload)
+  return payload
+}
+
+export async function deletePaperCustomSize(sizeId) {
+  await deleteDoc(doc(db, COLLECTIONS.paperCustomSizes, sizeId))
 }
 
 // Email allowlist management

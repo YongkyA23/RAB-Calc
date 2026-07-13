@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildPriceAuditEntry,
+  buildPaperCalculationPayload,
+  buildPaperCalculatorDraftPayload,
+  buildPaperCustomSizePayload,
   buildQuotePayload,
   buildUserProfilePayload,
   buildVendorEstimatePayload,
@@ -126,5 +129,26 @@ describe('firebase payload builders', () => {
       createdAt,
       updatedAt: expect.any(String),
     })
+  })
+
+  it('builds serializable calculator drafts and calculation snapshots', () => {
+    const draft = buildPaperCalculatorDraftPayload({
+      userId: 'u1', activeTab: 'layout', drafts: { layout: { width: '29,7', ignored: undefined } }, updatedAt: '2026-07-13T00:00:00.000Z',
+    })
+    expect(draft).toEqual({ schemaVersion: 1, userId: 'u1', activeTab: 'layout', drafts: { layout: { width: '29,7' } }, updatedAt: '2026-07-13T00:00:00.000Z' })
+
+    const calculation = buildPaperCalculationPayload({
+      id: 'calc-1', title: 'Layout A3+', module: 'layout', inputs: { qty: '1000' },
+      result: { status: 'ready', finishedAt: new Date('2026-07-13T08:00:00.000Z'), invalid: Number.NaN },
+      createdBy: { uid: 'u1', name: 'Estimator' }, createdAt: '2026-07-13T00:00:00.000Z',
+    })
+    expect(calculation).toMatchObject({ schemaVersion: 1, id: 'calc-1', module: 'layout', createdBy: 'u1', createdByName: 'Estimator' })
+    expect(calculation.result).toEqual({ status: 'ready', finishedAt: '2026-07-13T08:00:00.000Z', invalid: null })
+  })
+
+  it('builds normalized custom size payloads', () => {
+    expect(buildPaperCustomSizePayload({
+      id: 'size-1', type: 'plano', label: ' Supplier A ', width: '65', height: '100', createdBy: { uid: 'u1', email: 'u1@example.com' }, createdAt: '2026-07-13T00:00:00.000Z',
+    })).toMatchObject({ id: 'size-1', type: 'plano', label: 'Supplier A', width: 65, height: 100, createdBy: 'u1', createdByName: 'u1@example.com' })
   })
 })

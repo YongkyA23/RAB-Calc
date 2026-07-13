@@ -112,3 +112,58 @@ export function buildVendorEstimatePayload({
     updatedAt: now,
   }
 }
+
+function sanitizeFirestoreValue(value) {
+  if (value instanceof Date) return value.toISOString()
+  if (Array.isArray(value)) return value.map(sanitizeFirestoreValue)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, entry]) => entry !== undefined && typeof entry !== 'function')
+        .map(([key, entry]) => [key, sanitizeFirestoreValue(entry)]),
+    )
+  }
+  if (typeof value === 'number' && !Number.isFinite(value)) return null
+  return value
+}
+
+export function buildPaperCalculatorDraftPayload({ userId, activeTab, drafts, updatedAt }) {
+  return {
+    schemaVersion: 1,
+    userId,
+    activeTab,
+    drafts: sanitizeFirestoreValue(drafts ?? {}),
+    updatedAt: updatedAt ?? new Date().toISOString(),
+  }
+}
+
+export function buildPaperCalculationPayload({ id, title, module, inputs, result, createdBy, createdAt }) {
+  const now = createdAt ?? new Date().toISOString()
+  return {
+    schemaVersion: 1,
+    id,
+    title: String(title ?? '').trim(),
+    module,
+    inputs: sanitizeFirestoreValue(inputs ?? {}),
+    result: sanitizeFirestoreValue(result ?? {}),
+    createdBy: createdBy?.uid ?? '',
+    createdByName: createdBy?.name || createdBy?.email || 'User',
+    createdAt: now,
+  }
+}
+
+export function buildPaperCustomSizePayload({ id, type, label, width, height, createdBy, createdAt }) {
+  const now = createdAt ?? new Date().toISOString()
+  return {
+    schemaVersion: 1,
+    id,
+    type,
+    label: String(label ?? '').trim(),
+    width: Number(width),
+    height: Number(height),
+    createdBy: createdBy?.uid ?? '',
+    createdByName: createdBy?.name || createdBy?.email || 'User',
+    createdAt: now,
+    updatedAt: now,
+  }
+}

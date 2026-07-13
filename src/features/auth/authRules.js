@@ -1,6 +1,7 @@
 export const NAVIGATION_ITEMS = [
   { key: 'dashboard', label: 'Dashboard', adminOnly: false },
   { key: 'priceEstimation', label: 'Estimasi Harga', adminOnly: false },
+  { key: 'paperCalculator', label: 'Hitung Kertas', adminOnly: false },
   { key: 'vendorEstimates', label: 'Estimasi Vendor', adminOnly: false },
   { key: 'masterData', label: 'Daftar Harga / Master Data', adminOnly: true },
   { key: 'userManagement', label: 'Manajemen Pengguna', adminOnly: true },

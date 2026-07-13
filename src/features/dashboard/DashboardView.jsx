@@ -1,4 +1,4 @@
-import { ArrowRight, Boxes, Calculator, FileText, Layers, Plus, Wallet } from 'lucide-react'
+import { ArrowRight, Boxes, Calculator, FileText, Layers, Plus, Ruler, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { TableSkeletonRows } from '../../components/ui/Table'
 import { formatIdr } from '../../lib/format'
@@ -108,6 +108,7 @@ export function DashboardView({ activity, loading, profile, stats }) {
           <div className="mt-4 space-y-3">
             <QuickAction icon={Plus} label="Estimasi baru" sub="Buat estimasi harga" to="/estimates/new" />
             <QuickAction icon={Plus} label="Estimasi vendor baru" sub="Simpan quote vendor" to="/vendor-estimates/new" />
+            <QuickAction icon={Ruler} label="Hitung Kertas" sub="Buka kalkulator produksi" to="/hitung-kertas" />
             <QuickAction icon={Calculator} label="Lihat semua estimasi" sub="Buka papan estimasi" to="/estimates" />
             <QuickAction icon={FileText} label="Lihat estimasi vendor" sub="Buka papan vendor" to="/vendor-estimates" />
           </div>

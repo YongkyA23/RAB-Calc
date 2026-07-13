@@ -30,11 +30,13 @@ describe('auth access rules', () => {
     expect(getVisibleNavigation({ role: 'Estimator' }).map((item) => item.label)).toEqual([
       'Dashboard',
       'Estimasi Harga',
+      'Hitung Kertas',
       'Estimasi Vendor',
     ])
     expect(getVisibleNavigation({ role: 'Admin' }).map((item) => item.label)).toEqual([
       'Dashboard',
       'Estimasi Harga',
+      'Hitung Kertas',
       'Estimasi Vendor',
       'Daftar Harga / Master Data',
       'Manajemen Pengguna',
@@ -44,6 +46,7 @@ describe('auth access rules', () => {
   it('prevents estimators from accessing admin menus', () => {
     expect(canAccessMenu({ role: 'Estimator' }, 'masterData')).toBe(false)
     expect(canAccessMenu({ role: 'Estimator' }, 'priceEstimation')).toBe(true)
+    expect(canAccessMenu({ role: 'Estimator' }, 'paperCalculator')).toBe(true)
     expect(canAccessMenu({ role: 'Estimator' }, 'vendorEstimates')).toBe(true)
     expect(canAccessMenu({ role: 'Admin' }, 'userManagement')).toBe(true)
   })
