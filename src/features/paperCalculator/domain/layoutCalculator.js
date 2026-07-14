@@ -15,6 +15,42 @@ function gridFor(paperWidth, paperHeight, itemWidth, itemHeight, gap, orientatio
   return { orientation, columns, rows, pcsPerSheet, itemWidth, itemHeight, placements, placementCount: pcsPerSheet }
 }
 
+export function buildSheetPreview(requiredQty, pcsPerSheet) {
+  if (!(pcsPerSheet > 0)) return null
+  if (requiredQty === null) {
+    return {
+      mode: 'capacity',
+      totalSheets: 1,
+      fullSheets: null,
+      partialSheets: 0,
+      partialItems: null,
+      lastSheetItems: pcsPerSheet,
+    }
+  }
+
+  const fullSheets = Math.floor(requiredQty / pcsPerSheet)
+  const partialItems = requiredQty % pcsPerSheet
+  return {
+    mode: 'production',
+    totalSheets: Math.ceil(requiredQty / pcsPerSheet),
+    fullSheets,
+    partialSheets: partialItems > 0 ? 1 : 0,
+    partialItems,
+    lastSheetItems: partialItems > 0 ? partialItems : pcsPerSheet,
+  }
+}
+
+export function getSheetItemCount(sheetPreview, pcsPerSheet, sheetNumber) {
+  if (!sheetPreview || !(pcsPerSheet > 0)) return 0
+  if (sheetPreview.mode === 'capacity') return pcsPerSheet
+
+  const normalizedSheet = Math.min(
+    Math.max(Math.trunc(Number(sheetNumber)) || 1, 1),
+    sheetPreview.totalSheets,
+  )
+  return normalizedSheet === sheetPreview.totalSheets ? sheetPreview.lastSheetItems : pcsPerSheet
+}
+
 export function calculateLayout(input) {
   const paperWidth = parseCalculatorDecimal(input.paperWidth)
   const paperHeight = parseCalculatorDecimal(input.paperHeight)
@@ -48,6 +84,7 @@ export function calculateLayout(input) {
   const usedArea = selected.pcsPerSheet * designWidth * designHeight
   const wastedArea = Math.max(paperArea - usedArea, 0)
   const requiredSheets = requiredQty === null || selected.pcsPerSheet === 0 ? null : Math.ceil(requiredQty / selected.pcsPerSheet)
+  const sheetPreview = buildSheetPreview(requiredQty, selected.pcsPerSheet)
   const wasteSheets = requiredSheets === null ? null : calculateWaste(requiredSheets, wastePercent)
   const totalOrderSheets = requiredSheets === null ? null : requiredSheets + wasteSheets
   const pricePerSheet = pricePerRim === null ? null : pricePerRim / sheetsPerRim
@@ -55,7 +92,7 @@ export function calculateLayout(input) {
   const data = {
     paperWidth, paperHeight, designWidth, designHeight, gap, requiredQty, normal, rotated, ...selected,
     paperArea, usedArea, wastedArea, wastedPercent: paperArea ? (wastedArea / paperArea) * 100 : 0,
-    requiredSheets, cleanSheets: requiredSheets, wasteSheets, totalOrderSheets, pricePerSheet, estimatedPaperCost,
+    requiredSheets, cleanSheets: requiredSheets, sheetPreview, wasteSheets, totalOrderSheets, pricePerSheet, estimatedPaperCost,
   }
   return selected.pcsPerSheet === 0 ? noFitResult(data, ['Ukuran desain tidak muat pada kertas.']) : readyResult(data)
 }

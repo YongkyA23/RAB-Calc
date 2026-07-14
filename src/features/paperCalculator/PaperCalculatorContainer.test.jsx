@@ -35,7 +35,7 @@ describe('PaperCalculatorContainer', () => {
     const width = await screen.findByRole('textbox', { name: 'Lebar desain (cm)' })
     fireEvent.change(width, { target: { value: '9' } })
     fireEvent.change(screen.getByRole('textbox', { name: 'Tinggi desain (cm)' }), { target: { value: '5,5' } })
-    expect(await screen.findByText('25')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('Pcs / lembar').parentElement).toHaveTextContent('25'))
     await waitFor(() => expect(firestoreMocks.savePaperCalculatorDraft).toHaveBeenCalled(), { timeout: 1800 })
   })
 
