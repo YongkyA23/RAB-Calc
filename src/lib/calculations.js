@@ -46,12 +46,16 @@ export function calculateManualLineTotal({ item, p, l, qty, jmlAlat = 1 }) {
   const toolingCost = length * width * toolingRate * toolCount
   const laborCost = length * width * laborRate * quantity
   const formulaTotal = toolingCost + laborCost
+  const laborCharge = item?.minimumType === 'byRequest'
+    ? laborCost
+    : Math.max(optionalNumber(item?.minimumCharge, 0), laborCost)
 
   return {
     toolingCost,
     laborCost,
+    laborCharge,
     formulaTotal,
-    total: item?.minimumType === 'byRequest' ? formulaTotal : Math.max(optionalNumber(item?.minimumCharge, 0), formulaTotal),
+    total: toolingCost + laborCharge,
   }
 }
 
@@ -60,12 +64,14 @@ export function calculateManpowerLineTotal({ days, rate }) {
 }
 
 export function calculateAdditionalLineTotal({ mode, amount, quantity, rate, lengthCm, widthCm, percent, baseTotal }) {
-  if (percent) {
-    return optionalNumber(baseTotal, 0) * requirePositiveNumber(percent, 'Percent') / 100
+  const percentage = percent || (mode === 'percent' ? rate : 0)
+
+  if (percentage) {
+    return optionalNumber(baseTotal, 0) * requirePositiveNumber(percentage, 'Percent') / 100
   }
 
   if (mode === 'manual') {
-    return requirePositiveNumber(amount, 'Amount') * optionalNumber(quantity, 1)
+    return requirePositiveNumber(amount, 'Amount')
   }
 
   if (mode === 'rate') {
@@ -75,7 +81,6 @@ export function calculateAdditionalLineTotal({ mode, amount, quantity, rate, len
   if (mode === 'area') {
     return requirePositiveNumber(lengthCm, 'Length')
       * requirePositiveNumber(widthCm, 'Width')
-      * requirePositiveNumber(quantity, 'Quantity')
       * requirePositiveNumber(rate, 'Rate')
   }
 

@@ -76,13 +76,19 @@ export function validateQuoteDraft(draft, priceItems) {
 
   for (const line of draft.additional ?? []) {
     const item = findItem(priceItems, line.itemId)
-    validatePositive(errors, line.quantity, 'Additional quantity must be greater than 0')
+    const mode = item?.additionalMode
 
-    if (item?.additionalMode === 'area') {
+    if (mode === 'area') {
       validatePositive(errors, line.lengthCm, 'Additional length must be greater than 0')
       validatePositive(errors, line.widthCm, 'Additional width must be greater than 0')
+      validatePositive(errors, item?.rate, 'Additional area rate must be greater than 0')
+    } else if (mode === 'rate') {
+      validatePositive(errors, line.quantity, 'Additional quantity must be greater than 0')
+      validatePositive(errors, item?.rate, 'Additional rate must be greater than 0')
+    } else if (mode === 'percent') {
+      validatePositive(errors, line.percent || item?.rate, 'Additional percent must be greater than 0')
     } else {
-      validatePositive(errors, line.amount ?? item?.rate, 'Additional amount must be greater than 0')
+      validatePositive(errors, line.amount, 'Additional amount must be greater than 0')
     }
   }
 
@@ -132,12 +138,12 @@ export function buildQuoteFromDraft(draft, priceItems, createdBy) {
   })
 
   const additionalLines = []
-  let additionalRunningTotal = 0
+  const percentageBase = sumLayerTotals(
+    [...printLines, ...digitalLines, ...manualLines].map((line) => line.computedTotal),
+  )
 
   for (const line of draft.additional ?? []) {
     const item = findItem(priceItems, line.itemId)
-    const linePercent = Number(line.percent) || 0
-    const base = linePercent ? sumLayerTotals([...printLines, ...digitalLines, ...manualLines, ...manpowerLines].map((l) => l.computedTotal)) + additionalRunningTotal : 0
     const computedTotal = calculateAdditionalLineTotal({
       mode: item.additionalMode,
       amount: line.amount,
@@ -145,11 +151,10 @@ export function buildQuoteFromDraft(draft, priceItems, createdBy) {
       rate: item.rate,
       lengthCm: line.lengthCm,
       widthCm: line.widthCm,
-      percent: linePercent,
-      baseTotal: base,
+      percent: Number(line.percent) || 0,
+      baseTotal: percentageBase,
     })
     additionalLines.push(buildLine({ layer: 'additional', input: line, item, computedTotal }))
-    additionalRunningTotal += computedTotal
   }
 
   const totals = {

@@ -93,6 +93,12 @@ service cloud.firestore {
       allow update, delete: if signedIn();
     }
 
+    match /actualCosts/{estimateId} {
+      allow read, create: if hasActiveProfile();
+      allow update: if hasActiveProfile() && resource.data.status == 'draft';
+      allow delete: if false;
+    }
+
     match /paperCalculatorDrafts/{uid} {
       allow read, delete: if hasActiveProfile() && request.auth.uid == uid;
       allow create, update: if hasActiveProfile()

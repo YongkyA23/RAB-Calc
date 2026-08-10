@@ -1,5 +1,23 @@
 import { parseNumberInput } from '../../lib/format'
 
+const FIELD_SCHEMAS = {
+  print: ['name', 'prices', 'turnaroundDays', 'a3Only'],
+  digital: ['name', 'prices', 'turnaroundDays', 'a3Only'],
+  manual: ['name', 'toolingRate', 'laborRate', 'minimumType', 'minimumCharge', 'turnaroundDays'],
+  manpower: ['name', 'dailyRate', 'turnaroundDays'],
+  additional: ['name', 'additionalMode', 'rate', 'unitLabel', 'turnaroundDays'],
+}
+
+export function getCategoryFieldSchema(category) {
+  return category?.fieldSchema?.length
+    ? category.fieldSchema
+    : FIELD_SCHEMAS[category?.layer] ?? ['name', 'turnaroundDays']
+}
+
+export function createPriceItemId(layer) {
+  return `${layer}-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`
+}
+
 export function getEmptyPriceItemDraft(layer) {
   return {
     id: '',
@@ -22,12 +40,14 @@ export function getEmptyPriceItemDraft(layer) {
 }
 
 export function buildPriceItemPayload(draft) {
+  const a3Only = Boolean(draft.a3Only)
+
   return {
     ...draft,
     name: draft.name.trim(),
     prices: {
       A3: parseNumberInput(draft.prices?.A3),
-      B2: parseNumberInput(draft.prices?.B2),
+      B2: a3Only ? null : parseNumberInput(draft.prices?.B2),
     },
     toolingRate: draft.toolingRate === null || draft.toolingRate === '' ? null : Number(draft.toolingRate),
     laborRate: draft.laborRate === null || draft.laborRate === '' ? null : Number(draft.laborRate),
@@ -40,8 +60,40 @@ export function buildPriceItemPayload(draft) {
     additionalMode: draft.additionalMode || null,
     unitLabel: draft.unitLabel || null,
     rate: draft.rate === null || draft.rate === '' ? null : Number(draft.rate),
+    a3Only,
     active: draft.active !== false,
   }
+}
+
+export function validatePriceItemDraft(draft, fieldSchema) {
+  const errors = []
+  const hasField = (field) => fieldSchema.includes(field)
+  const positive = (value) => Number.isFinite(Number(value)) && Number(value) > 0
+
+  if (!draft.name?.trim()) errors.push('Nama item wajib diisi')
+  if (!draft.categoryId) errors.push('Kategori item belum dipilih')
+
+  if (hasField('prices') && !positive(draft.prices?.A3)) {
+    errors.push('Harga A3 harus lebih dari 0')
+  }
+
+  if (hasField('prices') && !draft.a3Only && !positive(draft.prices?.B2)) {
+    errors.push('Harga B2 harus lebih dari 0, atau pilih hanya A3')
+  }
+
+  if (hasField('laborRate') && !positive(draft.laborRate)) {
+    errors.push('Tarif tenaga kerja harus lebih dari 0')
+  }
+
+  if (hasField('dailyRate') && !positive(draft.dailyRate)) {
+    errors.push('Tarif harian harus lebih dari 0')
+  }
+
+  if (hasField('rate') && draft.additionalMode !== 'manual' && !positive(draft.rate)) {
+    errors.push('Tarif harus lebih dari 0')
+  }
+
+  return errors
 }
 
 export function filterPriceItemsByLayer(items, layer) {

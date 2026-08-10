@@ -1,11 +1,12 @@
-import { ArrowDown, ArrowUp, ArrowUpDown, Copy, Download, Edit3, Eye, FileText, Plus, Search, Trash2, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Copy, Download, Edit3, Eye, FileText, FolderOpen, Plus, Search, Trash2, X } from 'lucide-react'
+import { Fragment, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Field, Input, Select } from '../../components/ui/Form'
 import { TableSkeletonRows } from '../../components/ui/Table'
 import { buildPriceEstimationCsv } from '../../lib/csv'
 import { formatIdr } from '../../lib/format'
-import { filterEstimates, getEmptyEstimateFilters, getStatusLabel, normalizeEstimateStatus } from './priceEstimationModel'
+import { filterEstimates, getEmptyEstimateFilters, getStatusLabel, groupEstimatesByJobNo, normalizeEstimateStatus } from './priceEstimationModel'
+import { summarizeActualCosts } from '../actualCosts/actualCostModel'
 
 function statusBadge(estimate) {
   const status = normalizeEstimateStatus(estimate)
@@ -15,6 +16,15 @@ function statusBadge(estimate) {
 
 function estimateLabel(estimate) {
   return estimate.jobNo || estimate.sku || estimate.client || 'Estimasi tanpa judul'
+}
+
+function VarianceBadge({ value }) {
+  const variance = Number(value) || 0
+  return <span className={`rounded-full px-3 py-1 text-xs font-black ${variance > 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>{variance > 0 ? '+' : ''}{formatIdr(variance)}</span>
+}
+
+function rabLabel(estimate) {
+  return estimate.sku || estimate.project || estimate.id || 'RAB tanpa judul'
 }
 
 function sortValue(estimate, key) {
@@ -47,7 +57,7 @@ function SortHeader({ children, onSort, sort, sortKey }) {
   )
 }
 
-export function PriceEstimationListView({ estimates, loading, onBulkDelete, onCreateNew, onDeleteEstimate, onDuplicateEstimate, onEditDraft, onExportCsv, onViewEstimate }) {
+export function PriceEstimationListView({ actualCosts = [], estimates, loading, onAddEstimateToJob, onBulkDelete, onCreateNew, onDeleteEstimate, onDuplicateEstimate, onEditDraft, onExportCsv, onViewEstimate }) {
   const [filters, setFilters] = useState(getEmptyEstimateFilters())
   const [draftToDelete, setDraftToDelete] = useState(null)
   const [sort, setSort] = useState({ key: '', dir: 'asc' })
@@ -65,6 +75,12 @@ export function PriceEstimationListView({ estimates, loading, onBulkDelete, onCr
       return 0
     })
   }, [estimates, filters, sort])
+
+  const groupedEstimates = useMemo(
+    () => groupEstimatesByJobNo(visibleEstimates).map((group) => ({ ...group, actualSummary: summarizeActualCosts(group, actualCosts) })),
+    [actualCosts, visibleEstimates],
+  )
+  const actualCostByEstimate = useMemo(() => new Map(actualCosts.map((item) => [item.estimateId, item])), [actualCosts])
 
   const selectedEstimates = useMemo(() => visibleEstimates.filter((estimate) => selectedIds.has(estimate.id)), [visibleEstimates, selectedIds])
   const allVisibleSelected = visibleEstimates.length > 0 && visibleEstimates.every((estimate) => selectedIds.has(estimate.id))
@@ -115,7 +131,7 @@ export function PriceEstimationListView({ estimates, loading, onBulkDelete, onCr
         <div>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-600">Papan estimasi</p>
           <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">Estimasi Harga</h2>
-          <p className="mt-1 text-sm font-medium text-slate-500">Kelola estimasi harga draf dan yang sudah dibuat.</p>
+          <p className="mt-1 text-sm font-medium text-slate-500">Setiap No Job dapat menampung beberapa RAB.</p>
         </div>
         <div className="flex gap-2">
           <Link className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700" onClick={onCreateNew} to="/estimates/new">
@@ -170,11 +186,11 @@ export function PriceEstimationListView({ estimates, loading, onBulkDelete, onCr
               <th className="w-10 px-4 py-3">
                 <input aria-label="Pilih semua" checked={allVisibleSelected} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200" onChange={toggleSelectAll} type="checkbox" />
               </th>
-              <SortHeader onSort={handleSort} sort={sort} sortKey="estimate">Estimasi</SortHeader>
+              <SortHeader onSort={handleSort} sort={sort} sortKey="estimate">RAB</SortHeader>
               <SortHeader onSort={handleSort} sort={sort} sortKey="client">Klien</SortHeader>
               <SortHeader onSort={handleSort} sort={sort} sortKey="project">Proyek</SortHeader>
               <SortHeader onSort={handleSort} sort={sort} sortKey="status">Status</SortHeader>
-              <SortHeader onSort={handleSort} sort={sort} sortKey="total">Total</SortHeader>
+              <SortHeader onSort={handleSort} sort={sort} sortKey="total">Rencana / Aktual</SortHeader>
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Aksi</th>
             </tr>
           </thead>
@@ -202,22 +218,68 @@ export function PriceEstimationListView({ estimates, loading, onBulkDelete, onCr
                   </div>
                 </td>
               </tr>
-            ) : visibleEstimates.map((estimate) => (
+            ) : groupedEstimates.map((group) => (
+              <Fragment key={group.key}>
+                <tr className="border-y border-blue-100 bg-blue-50/70">
+                  <td className="px-4 py-3" colSpan={7}>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-600/20">
+                        <FolderOpen size={18} />
+                      </span>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">No Job</p>
+                        <h3 className="font-black text-slate-950">{group.jobNo}</h3>
+                      </div>
+                      <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-blue-700 ring-1 ring-blue-100">
+                        {group.estimates.length} RAB
+                      </span>
+                      <span className="text-xs font-bold text-slate-500">Rencana {formatIdr(group.actualSummary.plannedTotal)}</span>
+                      {group.actualSummary.reportCount ? <span className="text-xs font-bold text-blue-700">Aktual tercatat {formatIdr(group.actualSummary.actualTotal)}</span> : null}
+                      <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-600 ring-1 ring-slate-200">{group.actualSummary.finalizedCount}/{group.actualSummary.totalCount} final</span>
+                      {group.actualSummary.totalCount > 0 && group.actualSummary.finalizedCount === group.actualSummary.totalCount ? <VarianceBadge value={group.actualSummary.variance} /> : null}
+                      {group.key !== '__without-job' ? (
+                        <button
+                          className="ml-auto inline-flex items-center gap-1.5 rounded-xl bg-slate-950 px-3 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
+                          onClick={() => onAddEstimateToJob(group)}
+                          type="button"
+                        >
+                          <Plus size={14} /> Tambah RAB
+                        </button>
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+                {group.estimates.map((estimate, index) => {
+                  const actualCost = actualCostByEstimate.get(estimate.id)
+                  const plannedTotal = Number(actualCost?.baselineTotal ?? estimate.grandTotal) || 0
+                  const actualVariance = actualCost ? Number(actualCost.actualTotal) - plannedTotal : 0
+                  return (
               <tr className="transition hover:bg-blue-50/30" key={estimate.id}>
                 <td className="px-4 py-3">
                   <input aria-label={`Select ${estimateLabel(estimate)}`} checked={selectedIds.has(estimate.id)} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200" onChange={() => toggleSelect(estimate.id)} type="checkbox" />
                 </td>
-                <td className="px-4 py-3 font-semibold text-slate-900">{estimateLabel(estimate)}</td>
+                <td className="px-4 py-3">
+                  <p className="font-bold text-slate-900">{rabLabel(estimate)}</p>
+                  <p className="mt-0.5 text-xs font-medium text-slate-400">RAB {index + 1}</p>
+                </td>
                 <td className="px-4 py-3 text-slate-600">{estimate.client || '-'}</td>
                 <td className="px-4 py-3 text-slate-600">{estimate.project || '-'}</td>
-                <td className="px-4 py-3">{statusBadge(estimate)}</td>
-                <td className="px-4 py-3 text-slate-600">{formatIdr(estimate.grandTotal)}</td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-col items-start gap-1.5">
+                    {statusBadge(estimate)}
+                    {!actualCost ? <span className="text-xs font-bold text-slate-400">Belum aktual</span> : actualCost.status === 'finalized' ? <span className={`text-xs font-black ${actualVariance > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>Aktual final</span> : <span className="text-xs font-black text-amber-600">Aktual draft</span>}
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-slate-600">
+                  <p className="font-bold">{formatIdr(plannedTotal)}</p>
+                  {actualCost ? <p className="mt-1 text-xs font-bold text-blue-700">Aktual {formatIdr(actualCost.actualTotal)}</p> : null}
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-2">
-                    <Link aria-label={`Lihat ${estimateLabel(estimate)}`} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50" onClick={() => onViewEstimate(estimate)} to={`/estimates/${estimate.id}`}><Eye size={14} />Lihat</Link>
-                    <Link aria-label={`Edit ${estimateLabel(estimate)}`} className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 px-3 py-1.5 text-xs font-bold text-amber-700 transition hover:border-amber-300 hover:bg-amber-50" onClick={() => onEditDraft(estimate)} to={`/estimates/${estimate.id}/edit`}><Edit3 size={14} />Edit</Link>
-                    <button aria-label={`Duplikat ${estimateLabel(estimate)}`} className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 px-3 py-1.5 text-xs font-bold text-blue-700 transition hover:border-blue-300 hover:bg-blue-50" onClick={() => onDuplicateEstimate(estimate)} type="button"><Copy size={14} />Duplikat</button>
-                    <button aria-label={`Hapus ${estimateLabel(estimate)}`} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-700 transition hover:border-rose-300 hover:bg-rose-50" onClick={() => setDraftToDelete(estimate)} type="button"><Trash2 size={14} />Hapus</button>
+                    <Link aria-label={`Lihat ${rabLabel(estimate)} pada ${group.jobNo}`} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50" onClick={() => onViewEstimate(estimate)} to={`/estimates/${estimate.id}`}><Eye size={14} />Lihat</Link>
+                    <Link aria-label={`Edit ${rabLabel(estimate)} pada ${group.jobNo}`} className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 px-3 py-1.5 text-xs font-bold text-amber-700 transition hover:border-amber-300 hover:bg-amber-50" onClick={() => onEditDraft(estimate)} to={`/estimates/${estimate.id}/edit`}><Edit3 size={14} />Edit</Link>
+                    <button aria-label={`Duplikat ${rabLabel(estimate)} pada ${group.jobNo}`} className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 px-3 py-1.5 text-xs font-bold text-blue-700 transition hover:border-blue-300 hover:bg-blue-50" onClick={() => onDuplicateEstimate(estimate)} type="button"><Copy size={14} />Duplikat</button>
+                    <button aria-label={`Hapus ${rabLabel(estimate)} pada ${group.jobNo}`} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-700 transition hover:border-rose-300 hover:bg-rose-50" onClick={() => setDraftToDelete(estimate)} type="button"><Trash2 size={14} />Hapus</button>
                   </div>
                   {draftToDelete === estimate && onDeleteEstimate ? (
                     <div className="mt-2 rounded-lg border border-red-200 bg-red-50 p-3">
@@ -230,6 +292,9 @@ export function PriceEstimationListView({ estimates, loading, onBulkDelete, onCr
                   ) : null}
                 </td>
               </tr>
+                  )
+                })}
+              </Fragment>
             ))}
           </tbody>
         </table>

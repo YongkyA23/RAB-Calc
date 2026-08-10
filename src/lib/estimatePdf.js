@@ -200,8 +200,8 @@ export function buildInternalEstimatePdfHtml(estimate) {
     <p class="section-title">Layer Totals</p>
     <div class="totals">
       ${totalRow('Print', formatIdr(totals.print))}
-      ${totalRow('Digital', formatIdr(totals.digital))}
-      ${totalRow('Manual', formatIdr(totals.manual))}
+      ${totalRow('Finishing Digital', formatIdr(totals.digital))}
+      ${totalRow('Finishing Manual', formatIdr(totals.manual))}
       ${totalRow('Manpower', formatIdr(totals.manpower))}
       ${totalRow('Additional', formatIdr(totals.additional))}
       ${totalRow('Grand Total', formatIdr(estimate?.grandTotal), true)}

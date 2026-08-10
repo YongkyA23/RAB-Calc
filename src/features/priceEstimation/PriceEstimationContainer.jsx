@@ -3,14 +3,15 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { COLLECTIONS } from '../../firebase/collections'
 import { db } from '../../firebase/app'
 import { doc, deleteDoc } from 'firebase/firestore'
-import { listActivePriceItems, listEstimates, saveEstimate } from '../../firebase/firestoreHelpers'
+import { listActivePriceItems, listActualCosts, listEstimates, saveActualCost, saveEstimate } from '../../firebase/firestoreHelpers'
 import { printInternalEstimatePdf } from '../../lib/estimatePdf'
 import { useToast } from '../../components/ui/Toast'
 import { createEmptyQuoteDraft, buildDraftEstimateFromDraft } from '../estimation/estimationModel'
 import { EstimationView } from '../estimation/EstimationView'
 import { PriceEstimationDetailView } from './PriceEstimationDetailView'
-import { buildDraftFromEstimate } from './priceEstimationModel'
+import { buildDraftFromEstimate, createDraftForJob } from './priceEstimationModel'
 import { PriceEstimationListView } from './PriceEstimationListView'
+import { ActualCostPanel } from '../actualCosts/ActualCostPanel'
 
 function downloadCsv(csv) {
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
@@ -28,6 +29,7 @@ export function PriceEstimationContainer({ profile }) {
   const toast = useToast()
   const { estimateId } = useParams()
   const [estimates, setEstimates] = useState([])
+  const [actualCosts, setActualCosts] = useState([])
   const [formKey, setFormKey] = useState(0)
   const [initialDraft, setInitialDraft] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -37,9 +39,10 @@ export function PriceEstimationContainer({ profile }) {
   const routeEstimate = useMemo(() => estimates.find((estimate) => estimate.id === estimateId) ?? null, [estimateId, estimates])
 
   async function loadData() {
-    const [nextEstimates, nextPriceItems] = await Promise.all([listEstimates(), listActivePriceItems()])
+    const [nextEstimates, nextPriceItems, nextActualCosts] = await Promise.all([listEstimates(), listActivePriceItems(), listActualCosts()])
     setEstimates(nextEstimates)
     setPriceItems(nextPriceItems)
+    setActualCosts(nextActualCosts)
   }
 
   useEffect(() => {
@@ -47,10 +50,11 @@ export function PriceEstimationContainer({ profile }) {
 
     async function loadInitialData() {
       try {
-        const [nextEstimates, nextPriceItems] = await Promise.all([listEstimates(), listActivePriceItems()])
+        const [nextEstimates, nextPriceItems, nextActualCosts] = await Promise.all([listEstimates(), listActivePriceItems(), listActualCosts()])
         if (!ignore) {
           setEstimates(nextEstimates)
           setPriceItems(nextPriceItems)
+          setActualCosts(nextActualCosts)
         }
       } catch (loadError) {
         if (!ignore) toast.error(loadError.message)
@@ -75,6 +79,10 @@ export function PriceEstimationContainer({ profile }) {
 
   function handleCreateNew() {
     openForm(createEmptyQuoteDraft())
+  }
+
+  function handleAddEstimateToJob(group) {
+    openForm(createDraftForJob(group))
   }
 
   function handleEditDraft(estimate) {
@@ -131,6 +139,11 @@ export function PriceEstimationContainer({ profile }) {
   }
 
   async function handleDeleteDraft(estimate) {
+    if (actualCosts.some((item) => item.estimateId === estimate.id)) {
+      toast.error('RAB yang sudah memiliki aktualisasi tidak dapat dihapus')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -148,6 +161,11 @@ export function PriceEstimationContainer({ profile }) {
 
   async function handleBulkDelete(items) {
     if (!items?.length) return
+    if (items.some((estimate) => actualCosts.some((item) => item.estimateId === estimate.id))) {
+      toast.error('Pilihan memuat RAB yang sudah memiliki aktualisasi dan tidak dapat dihapus')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -161,6 +179,21 @@ export function PriceEstimationContainer({ profile }) {
     }
   }
 
+  async function handleSaveActualCost(payload) {
+    setLoading(true)
+    try {
+      const saved = await saveActualCost(payload)
+      setActualCosts((current) => [...current.filter((item) => item.estimateId !== saved.estimateId), saved])
+      toast.success(payload.status === 'finalized' ? 'Actual cost finalized' : 'Actual cost draft saved')
+      return saved
+    } catch (saveError) {
+      toast.error(saveError.message)
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const currentEstimate = selectedEstimate ?? routeEstimate
   const formDraft = initialDraft ?? (currentEstimate ? buildDraftFromEstimate(currentEstimate) : createEmptyQuoteDraft())
 
@@ -169,7 +202,9 @@ export function PriceEstimationContainer({ profile }) {
       {routeMode === 'list' ? (
         <PriceEstimationListView
           estimates={estimates}
+          actualCosts={actualCosts}
           loading={loading}
+          onAddEstimateToJob={handleAddEstimateToJob}
           onBulkDelete={handleBulkDelete}
           onCreateNew={handleCreateNew}
           onDeleteEstimate={handleDeleteDraft}
@@ -180,15 +215,26 @@ export function PriceEstimationContainer({ profile }) {
         />
       ) : null}
       {routeMode === 'detail' ? (
-        <PriceEstimationDetailView
-          estimate={currentEstimate}
-          loading={loading}
-          onBack={() => navigate('/estimates')}
-          onDelete={handleDeleteDraft}
-          onDuplicate={handleDuplicateEstimate}
-          onEdit={handleEditDraft}
-          onGeneratePdf={printInternalEstimatePdf}
-        />
+        <>
+          <PriceEstimationDetailView
+            estimate={currentEstimate}
+            loading={loading}
+            onBack={() => navigate('/estimates')}
+            onDelete={handleDeleteDraft}
+            onDuplicate={handleDuplicateEstimate}
+            onEdit={handleEditDraft}
+            onGeneratePdf={printInternalEstimatePdf}
+          />
+          {currentEstimate && currentEstimate.status !== 'draft' ? (
+            <ActualCostPanel
+              actualCost={actualCosts.find((item) => item.estimateId === currentEstimate.id)}
+              editedBy={creator()}
+              estimate={currentEstimate}
+              loading={loading}
+              onSave={handleSaveActualCost}
+            />
+          ) : null}
+        </>
       ) : null}
       {routeMode === 'form' ? (
         <EstimationView

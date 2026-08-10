@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { buildDraftFromEstimate, filterEstimates, getEmptyEstimateFilters, normalizeEstimateStatus } from './priceEstimationModel'
+import {
+  buildDraftFromEstimate,
+  createDraftForJob,
+  filterEstimates,
+  getEmptyEstimateFilters,
+  groupEstimatesByJobNo,
+  normalizeEstimateStatus,
+} from './priceEstimationModel'
 
 const estimates = [
   { id: 'e1', status: 'draft', date: '2026-06-17T10:00:00.000Z', jobNo: '', sku: 'SKU-A', client: 'PT Alpha', project: 'Carton', createdByName: 'Admin', grandTotal: 0, draft: { header: { jobNo: '', sku: 'SKU-A', client: 'PT Alpha', project: 'Carton' }, print: [], digital: [], manual: [], manpower: [], additional: [] } },
@@ -29,5 +36,30 @@ describe('price estimation model', () => {
       header: { jobNo: '', sku: 'SKU-A', client: 'PT Alpha', project: 'Carton' },
       sourceQuoteId: 'e1',
     })
+  })
+
+  it('groups multiple RAB under the same normalized No Job', () => {
+    const grouped = groupEstimatesByJobNo([
+      estimates[1],
+      { ...estimates[1], id: 'e3', jobNo: ' job-002 ', grandTotal: 250000 },
+      estimates[2],
+    ])
+
+    expect(grouped).toHaveLength(2)
+    expect(grouped[0]).toMatchObject({ jobNo: 'JOB-002', grandTotal: 5250000 })
+    expect(grouped[0].estimates.map((estimate) => estimate.id)).toEqual(['e2', 'e3'])
+  })
+
+  it('creates a new RAB draft inside an existing No Job group', () => {
+    const group = groupEstimatesByJobNo([estimates[1]])[0]
+
+    expect(createDraftForJob(group)).toMatchObject({
+      header: { jobNo: 'JOB-002', client: 'PT Beta', sku: '', project: '' },
+      print: [],
+    })
+  })
+
+  it('keeps No Job when duplicating a legacy estimate', () => {
+    expect(buildDraftFromEstimate(estimates[1]).header.jobNo).toBe('JOB-002')
   })
 })

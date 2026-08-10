@@ -9,6 +9,7 @@ const priceItems = [
   { id: 'manpower-default', categoryLayer: 'manpower', name: 'Default Manpower', dailyRate: 275000, turnaroundDays: 0 },
   { id: 'additional-paper', categoryLayer: 'additional', name: 'Paper Purchase', additionalMode: 'rate', rate: 5000, unitLabel: 'sheet', turnaroundDays: 0 },
   { id: 'additional-metalize', categoryLayer: 'additional', name: 'Metalize Material', additionalMode: 'area', rate: 5, unitLabel: 'cm²', turnaroundDays: 0 },
+  { id: 'additional-rush', categoryLayer: 'additional', name: 'Rush Job', additionalMode: 'percent', rate: 10, unitLabel: '%', turnaroundDays: 0 },
 ]
 
 describe('EstimationView', () => {
@@ -32,13 +33,13 @@ describe('EstimationView', () => {
     expect(screen.getByText('Rp 40.000 × 110 = Rp 4.400.000')).toBeInTheDocument()
   })
 
-  it('defaults paper purchase amount to 5000', () => {
+  it('uses the paper purchase rate from master data', () => {
     render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Tambah baris tambahan' }))
 
-    expect(screen.getByLabelText('Nominal')).toHaveValue('5000')
-    expect(screen.getByText('Rp 5.000 × 1 = Rp 5.000')).toBeInTheDocument()
+    expect(screen.getByLabelText('Jumlah')).toHaveValue('1')
+    expect(screen.getByText('1 × Rp 5.000 = Rp 5.000')).toBeInTheDocument()
   })
 
   it('shows metalize length width fields and calculates area price', () => {
@@ -48,10 +49,22 @@ describe('EstimationView', () => {
     fireEvent.change(screen.getByLabelText('Jenis biaya'), { target: { value: 'additional-metalize' } })
     fireEvent.change(screen.getByLabelText('Panjang (cm)'), { target: { value: '10' } })
     fireEvent.change(screen.getByLabelText('Lebar (cm)'), { target: { value: '20' } })
-    fireEvent.change(screen.getByLabelText('Jumlah'), { target: { value: '2' } })
 
     expect(screen.getByLabelText('Catatan')).toBeInTheDocument()
-    expect(screen.getByText('10 × 20 × 2 × Rp 5 = Rp 2.000')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Jumlah')).not.toBeInTheDocument()
+    expect(screen.getByText('10 × 20 × Rp 5 = Rp 1.000')).toBeInTheDocument()
+  })
+
+  it('uses percentage mode and rate configured in master data', () => {
+    render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tambah baris print' }))
+    fireEvent.change(screen.getByLabelText('Jumlah'), { target: { value: '10' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Tambah baris tambahan' }))
+    fireEvent.change(screen.getByLabelText('Jenis biaya'), { target: { value: 'additional-rush' } })
+
+    expect(screen.getByLabelText('Persentase (%)')).toHaveValue('10')
+    expect(screen.getByText('10% × Rp 300.000 = Rp 30.000')).toBeInTheDocument()
   })
 
   it('blocks create when required fields are missing', () => {

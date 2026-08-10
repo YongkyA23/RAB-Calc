@@ -77,9 +77,11 @@ export function MasterDataContainer({ profile }) {
     try {
       await action()
       await loadMasterData()
+      return true
     } catch (actionError) {
       toast.error(actionError.message)
       setLoading(false)
+      return false
     }
   }
 

@@ -49,7 +49,7 @@ describe('calculation engine', () => {
           minimumCharge: 300000,
         },
       }),
-    ).toEqual({ toolingCost: 250000, laborCost: 5000, formulaTotal: 255000, total: 300000 })
+    ).toEqual({ toolingCost: 250000, laborCost: 5000, laborCharge: 300000, formulaTotal: 255000, total: 550000 })
   })
 
   it('uses formula total for by-request manual finishing', () => {
@@ -66,7 +66,7 @@ describe('calculation engine', () => {
           minimumCharge: null,
         },
       }),
-    ).toEqual({ toolingCost: 0, laborCost: 150, formulaTotal: 150, total: 150 })
+    ).toEqual({ toolingCost: 0, laborCost: 150, laborCharge: 150, formulaTotal: 150, total: 150 })
   })
 
   it('calculates no-tooling manual finishing with zero tooling cost', () => {
@@ -83,7 +83,7 @@ describe('calculation engine', () => {
           minimumCharge: 600000,
         },
       }),
-    ).toEqual({ toolingCost: 0, laborCost: 6000, formulaTotal: 6000, total: 600000 })
+    ).toEqual({ toolingCost: 0, laborCost: 6000, laborCharge: 600000, formulaTotal: 6000, total: 600000 })
   })
 
   it('calculates manpower line total', () => {
@@ -92,17 +92,18 @@ describe('calculation engine', () => {
 
   it('calculates additional manual amount and rate based totals', () => {
     expect(calculateAdditionalLineTotal({ mode: 'manual', amount: 125000 })).toBe(125000)
-    expect(calculateAdditionalLineTotal({ mode: 'manual', amount: 125000, quantity: 3 })).toBe(375000)
+    expect(calculateAdditionalLineTotal({ mode: 'manual', amount: 125000, quantity: 3 })).toBe(125000)
     expect(calculateAdditionalLineTotal({ mode: 'rate', quantity: 200, rate: 5000 })).toBe(1000000)
   })
 
   it('calculates additional percentage-based totals', () => {
     expect(calculateAdditionalLineTotal({ percent: 10, baseTotal: 500000 })).toBe(50000)
     expect(calculateAdditionalLineTotal({ percent: 25, baseTotal: 1000000 })).toBe(250000)
+    expect(calculateAdditionalLineTotal({ mode: 'percent', rate: 15, baseTotal: 200000 })).toBe(30000)
   })
 
   it('calculates additional area-rate totals', () => {
-    expect(calculateAdditionalLineTotal({ mode: 'area', lengthCm: 10, widthCm: 20, quantity: 2, rate: 5 })).toBe(2000)
+    expect(calculateAdditionalLineTotal({ mode: 'area', lengthCm: 10, widthCm: 20, quantity: 2, rate: 5 })).toBe(1000)
   })
 
   it('calculates grand total from layer totals', () => {

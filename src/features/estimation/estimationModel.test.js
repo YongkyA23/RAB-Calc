@@ -8,6 +8,7 @@ const items = [
   { id: 'manual-request', categoryLayer: 'manual', name: 'UV Matte', toolingRate: null, laborRate: 0.75, minimumType: 'byRequest', minimumCharge: null, turnaroundDays: 2 },
   { id: 'manpower-default', categoryLayer: 'manpower', name: 'Default Manpower', dailyRate: 275000, turnaroundDays: 0 },
   { id: 'additional-paper', categoryLayer: 'additional', name: 'Paper Purchase', additionalMode: 'rate', rate: 5000, unitLabel: 'sheet', turnaroundDays: 0 },
+  { id: 'additional-rush', categoryLayer: 'additional', name: 'Rush Job', additionalMode: 'percent', rate: 10, unitLabel: '%', turnaroundDays: 0 },
 ]
 
 describe('estimation model', () => {
@@ -47,13 +48,29 @@ describe('estimation model', () => {
     expect(quote.totals).toEqual({
       print: 4400000,
       digital: 120000,
-      manual: 353000,
+      manual: 600000,
       manpower: 825000,
       additional: 1000000,
     })
-    expect(quote.grandTotal).toBe(6698000)
+    expect(quote.grandTotal).toBe(6945000)
     expect(quote.turnaroundDays).toBe(3)
     expect(quote.lineItems).toHaveLength(5)
     expect(quote.createdBy).toEqual({ uid: 'u1', name: 'Admin' })
+  })
+
+  it('uses a percentage configured in master data and excludes manpower from its base', () => {
+    const draft = {
+      header: { jobNo: 'JOB-002', sku: 'SKU-2', client: 'PT Client', project: 'Rush' },
+      print: [{ itemId: 'print-duplex', size: 'A3', qty: 10 }],
+      digital: [],
+      manual: [],
+      manpower: [{ itemId: 'manpower-default', days: 1 }],
+      additional: [{ itemId: 'additional-rush' }],
+    }
+
+    const quote = buildQuoteFromDraft(draft, items, { uid: 'u1', name: 'Admin' })
+
+    expect(quote.totals.additional).toBe(30000)
+    expect(quote.grandTotal).toBe(605000)
   })
 })

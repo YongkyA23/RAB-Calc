@@ -14,6 +14,7 @@ function renderView(overrides = {}) {
       <PriceEstimationListView
         estimates={estimates}
         loading={false}
+        onAddEstimateToJob={vi.fn()}
         onCreateNew={vi.fn()}
         onDeleteEstimate={vi.fn()}
         onDuplicateEstimate={vi.fn()}
@@ -40,8 +41,8 @@ describe('PriceEstimationListView', () => {
     renderView()
 
     expect(screen.getByRole('link', { name: 'Buat Baru' })).toHaveAttribute('href', '/estimates/new')
-    expect(screen.getByRole('link', { name: 'Lihat JOB-002' })).toHaveAttribute('href', '/estimates/e2')
-    expect(screen.getByRole('link', { name: 'Edit JOB-002' })).toHaveAttribute('href', '/estimates/e2/edit')
+    expect(screen.getByRole('link', { name: 'Lihat SKU-B pada JOB-002' })).toHaveAttribute('href', '/estimates/e2')
+    expect(screen.getByRole('link', { name: 'Edit SKU-B pada JOB-002' })).toHaveAttribute('href', '/estimates/e2/edit')
   })
 
   it('calls create new handler', () => {
@@ -57,7 +58,7 @@ describe('PriceEstimationListView', () => {
     const onViewEstimate = vi.fn()
     renderView({ onViewEstimate })
 
-    fireEvent.click(screen.getByRole('link', { name: 'Lihat JOB-002' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Lihat SKU-B pada JOB-002' }))
 
     expect(onViewEstimate).toHaveBeenCalledWith(estimates[1])
   })
@@ -68,15 +69,48 @@ describe('PriceEstimationListView', () => {
     const onDeleteEstimate = vi.fn()
     renderView({ onDeleteEstimate, onDuplicateEstimate, onEditDraft })
 
-    fireEvent.click(screen.getByRole('link', { name: 'Edit JOB-002' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Edit SKU-B pada JOB-002' }))
     expect(onEditDraft).toHaveBeenCalledWith(estimates[1])
 
-    fireEvent.click(screen.getByRole('button', { name: 'Duplikat JOB-002' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Duplikat SKU-B pada JOB-002' }))
     expect(onDuplicateEstimate).toHaveBeenCalledWith(estimates[1])
 
-    fireEvent.click(screen.getByRole('button', { name: 'Hapus JOB-002' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus SKU-B pada JOB-002' }))
     expect(screen.getByText('Konfirmasi penghapusan "JOB-002"')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Konfirmasi penghapusan' }))
     expect(onDeleteEstimate).toHaveBeenCalledWith(estimates[1])
+  })
+
+  it('groups RAB by No Job and starts another RAB in that group', () => {
+    const onAddEstimateToJob = vi.fn()
+    renderView({
+      estimates: [
+        estimates[1],
+        { ...estimates[1], id: 'e3', sku: 'SKU-C', project: 'Brochure', grandTotal: 3000 },
+      ],
+      onAddEstimateToJob,
+    })
+
+    expect(screen.getByRole('heading', { name: 'JOB-002' })).toBeInTheDocument()
+    expect(screen.getByText('2 RAB')).toBeInTheDocument()
+    expect(screen.getByText('Rencana Rp 5.000')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tambah RAB' }))
+    expect(onAddEstimateToJob).toHaveBeenCalledWith(expect.objectContaining({
+      jobNo: 'JOB-002',
+      estimates: expect.arrayContaining([expect.objectContaining({ id: 'e2' }), expect.objectContaining({ id: 'e3' })]),
+    }))
+  })
+
+  it('shows actual cost progress and variance for a completed No Job group', () => {
+    renderView({
+      estimates: [estimates[1]],
+      actualCosts: [{ estimateId: 'e2', status: 'finalized', actualTotal: 2500 }],
+    })
+
+    expect(screen.getByText('Aktual tercatat Rp 2.500')).toBeInTheDocument()
+    expect(screen.getByText('1/1 final')).toBeInTheDocument()
+    expect(screen.getAllByText('+Rp 500').length).toBeGreaterThan(0)
+    expect(screen.getByText('Aktual final')).toBeInTheDocument()
   })
 })

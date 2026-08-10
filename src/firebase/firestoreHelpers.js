@@ -163,6 +163,21 @@ export async function listQuotes() {
   return listEstimates()
 }
 
+export async function listActualCosts() {
+  const snapshot = await getDocs(collection(db, COLLECTIONS.actualCosts))
+  return snapshot.docs.map((document) => ({ id: document.id, ...document.data() }))
+}
+
+export async function getActualCost(estimateId) {
+  const snapshot = await getDoc(doc(db, COLLECTIONS.actualCosts, estimateId))
+  return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null
+}
+
+export async function saveActualCost(actualCost) {
+  await setDoc(doc(db, COLLECTIONS.actualCosts, actualCost.estimateId), actualCost)
+  return actualCost
+}
+
 export async function listVendorEstimates() {
   const snapshot = await getDocs(query(collection(db, COLLECTIONS.vendorEstimates), orderBy('updatedAt', 'desc')))
   return snapshot.docs.map((document) => ({ id: document.id, ...document.data() }))
