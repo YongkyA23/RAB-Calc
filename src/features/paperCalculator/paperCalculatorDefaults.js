@@ -22,7 +22,7 @@ export const PLANO_PRESETS = [
 export function createLayoutDraft() {
   return {
     paperWidth: '48', paperHeight: '32', designWidth: '', designHeight: '', gap: '0',
-    requiredQty: '', allowRotate: true, pricePerRim: '', sheetsPerRim: '500', wastePercent: '0',
+    requiredQty: '', allowRotate: true, alignment: 'top-left', pricePerRim: '', sheetsPerRim: '500', wastePercent: '0',
   }
 }
 
@@ -62,4 +62,3 @@ export function createPaperCalculatorWorkspace() {
     drafts: { layout: createLayoutDraft(), book: createBookDraft(), plano: createPlanoDraft(), time: createTimeDraft() },
   }
 }
-

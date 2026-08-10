@@ -60,6 +60,19 @@ describe('LayoutPreview', () => {
     expect(screen.getByRole('img', { name: /Lembar 1 dari 2, 10 dari 10 slot terisi/ })).toBeInTheDocument()
   })
 
+  it('repositions a partial sheet using the selected alignment', () => {
+    const result = calculateLayout({ ...capacityTenInput, requiredQty: '123' })
+    const { container, rerender } = render(<LayoutPreview alignment="top-left" result={result} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Ke lembar terakhir' }))
+
+    expect([...container.querySelectorAll('[data-slot-state="filled"]')].map((slot) => slot.getAttribute('data-slot-index'))).toEqual(['0', '1', '2'])
+
+    rerender(<LayoutPreview alignment="bottom-right" result={result} />)
+
+    expect([...container.querySelectorAll('[data-slot-state="filled"]')].map((slot) => slot.getAttribute('data-slot-index'))).toEqual(['7', '8', '9'])
+    expect(screen.getByRole('button', { name: 'Posisikan isi: Kanan bawah' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
   it('keeps the SVG bounded when capacity exceeds the placement limit', () => {
     const result = calculateLayout({ ...capacityTenInput, paperWidth: '100', paperHeight: '100', designWidth: '1', designHeight: '1', requiredQty: '' })
     render(<LayoutPreview result={result} />)

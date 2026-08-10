@@ -1,8 +1,31 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  RectangleHorizontal,
+  RectangleVertical,
+} from 'lucide-react'
 import { getSheetItemCount } from '../domain/layoutCalculator'
+import { getAlignedPlacementIndexes } from './layoutPreviewModel'
 
 const NAVIGATION_BUTTON_CLASS = 'grid min-h-11 min-w-11 cursor-pointer place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:border-slate-100 disabled:bg-slate-100 disabled:text-slate-300'
+const ALIGNMENT_OPTIONS = [
+  { value: 'top-left', label: 'Kiri atas', dotClass: 'self-start justify-self-start' },
+  { value: 'top-center', label: 'Tengah atas', dotClass: 'self-start justify-self-center' },
+  { value: 'top-right', label: 'Kanan atas', dotClass: 'self-start justify-self-end' },
+  { value: 'middle-left', label: 'Kiri tengah', dotClass: 'self-center justify-self-start' },
+  { value: 'middle-center', label: 'Tengah', dotClass: 'self-center justify-self-center' },
+  { value: 'middle-right', label: 'Kanan tengah', dotClass: 'self-center justify-self-end' },
+  { value: 'bottom-left', label: 'Kiri bawah', dotClass: 'self-end justify-self-start' },
+  { value: 'bottom-center', label: 'Tengah bawah', dotClass: 'self-end justify-self-center' },
+  { value: 'bottom-right', label: 'Kanan bawah', dotClass: 'self-end justify-self-end' },
+]
+const ORIENTATION_OPTIONS = [
+  { value: 'portrait', label: 'Portrait', Icon: RectangleVertical },
+  { value: 'landscape', label: 'Landscape', Icon: RectangleHorizontal },
+]
 
 function clampSheet(sheet, totalSheets) {
   return Math.min(Math.max(Math.trunc(Number(sheet)) || 1, 1), totalSheets)
@@ -45,9 +68,74 @@ function SheetSummary({ pcsPerSheet, sheetPreview }) {
   )
 }
 
-export function LayoutPreview({ result }) {
+function PreviewControls({ alignment, onAlignmentChange, onPaperOrientationChange, paperOrientation }) {
+  return (
+    <section aria-label="Pengaturan preview" className="mb-3 grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 sm:grid-cols-[1fr_auto] sm:items-end">
+      <fieldset>
+        <legend className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Alignment isi</legend>
+        <div className="mt-2 grid w-fit grid-cols-3 gap-1.5">
+          {ALIGNMENT_OPTIONS.map((option) => {
+            const selected = alignment === option.value
+            return (
+              <button
+                aria-label={`Posisikan isi: ${option.label}`}
+                aria-pressed={selected}
+                className={`grid h-9 w-9 place-items-center rounded-xl border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${selected ? 'border-blue-600 bg-blue-600 shadow-md shadow-blue-600/20' : 'border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-blue-50'}`}
+                key={option.value}
+                onClick={() => onAlignmentChange?.(option.value)}
+                title={option.label}
+                type="button"
+              >
+                <span aria-hidden="true" className={`grid h-4 w-4 rounded-[0.3rem] border p-[2px] ${selected ? 'border-blue-200/70' : 'border-slate-300'}`}>
+                  <span className={`h-1.5 w-1.5 rounded-[0.15rem] ${option.dotClass} ${selected ? 'bg-white' : 'bg-slate-500'}`} />
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Orientasi kertas</legend>
+        <div className="mt-2 inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+          {ORIENTATION_OPTIONS.map(({ value, label, Icon }) => {
+            const selected = paperOrientation === value
+            return (
+              <button
+                aria-label={`Gunakan orientasi ${label}`}
+                aria-pressed={selected}
+                className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${selected ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-white hover:text-slate-800'}`}
+                key={value}
+                onClick={() => onPaperOrientationChange?.(value)}
+                type="button"
+              >
+                <Icon aria-hidden="true" size={15} />
+                {label}
+              </button>
+            )
+          })}
+        </div>
+      </fieldset>
+    </section>
+  )
+}
+
+export function LayoutPreview({ alignment = 'top-left', onAlignmentChange, onPaperOrientationChange, paperOrientation = 'landscape', result }) {
   const [navigation, setNavigation] = useState({ signature: '', sheet: 1 })
-  if (result.status !== 'ready') return <div className="grid min-h-64 place-items-center rounded-3xl border border-dashed border-slate-200 bg-slate-50 text-sm font-semibold text-slate-400">Preview tersedia setelah ukuran valid.</div>
+  if (result.status !== 'ready') {
+    return (
+      <figure className="rounded-3xl border border-slate-100 bg-slate-50/80 p-4">
+        <div className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-slate-400">Preview lembar</div>
+        <PreviewControls
+          alignment={alignment}
+          onAlignmentChange={onAlignmentChange}
+          onPaperOrientationChange={onPaperOrientationChange}
+          paperOrientation={paperOrientation}
+        />
+        <div className="grid min-h-64 place-items-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-sm font-semibold text-slate-400">Preview tersedia setelah ukuran valid.</div>
+      </figure>
+    )
+  }
 
   const {
     paperWidth, paperHeight, designWidth, designHeight, gap, orientation, placements,
@@ -58,7 +146,20 @@ export function LayoutPreview({ result }) {
   const storedSheet = navigation.signature === signature ? navigation.sheet : 1
   const activeSheet = clampSheet(storedSheet, totalSheets)
   const visibleItemCount = getSheetItemCount(sheetPreview, pcsPerSheet, activeSheet)
-  const visiblePlacements = placements.slice(0, visibleItemCount)
+  const visiblePlacementIndexes = getAlignedPlacementIndexes(visibleItemCount, columns, rows, alignment)
+  const visiblePlacements = visiblePlacementIndexes.slice(0, 500).map((index) => {
+    const storedPlacement = placements[index]
+    if (storedPlacement) return storedPlacement
+    const column = index % columns
+    const row = Math.floor(index / columns)
+    return {
+      index,
+      x: column * (result.data.itemWidth + gap),
+      y: row * (result.data.itemHeight + gap),
+      width: result.data.itemWidth,
+      height: result.data.itemHeight,
+    }
+  })
   const isProductionPreview = sheetPreview?.mode === 'production'
   const atFirstSheet = activeSheet === 1
   const atLastSheet = activeSheet === totalSheets
@@ -86,13 +187,20 @@ export function LayoutPreview({ result }) {
 
       <SheetSummary pcsPerSheet={pcsPerSheet} sheetPreview={sheetPreview} />
 
+      <PreviewControls
+        alignment={alignment}
+        onAlignmentChange={onAlignmentChange}
+        onPaperOrientationChange={onPaperOrientationChange}
+        paperOrientation={paperOrientation}
+      />
+
       <svg aria-label={svgLabel} className="max-h-96 w-full rounded-2xl bg-white shadow-inner" role="img" viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
         <rect fill="#eff6ff" height={paperHeight} stroke="#93c5fd" strokeWidth={Math.max(paperWidth, paperHeight) / 180} width={paperWidth} />
         {placements.map((item) => (
           <rect data-slot-state="available" fill="#f8fafc" height={item.height} key={`slot-${item.index}`} rx="0.35" stroke="#94a3b8" strokeDasharray="0.7 0.45" strokeWidth="0.16" width={item.width} x={item.x} y={item.y} />
         ))}
         {visiblePlacements.map((item) => (
-          <rect data-slot-state="filled" fill="#2563eb" fillOpacity="0.86" height={item.height} key={`filled-${item.index}`} rx="0.35" stroke="#ffffff" strokeWidth="0.18" width={item.width} x={item.x} y={item.y} />
+          <rect data-slot-index={item.index} data-slot-state="filled" fill="#2563eb" fillOpacity="0.86" height={item.height} key={`filled-${item.index}`} rx="0.35" stroke="#ffffff" strokeWidth="0.18" width={item.width} x={item.x} y={item.y} />
         ))}
       </svg>
 

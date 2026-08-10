@@ -6,12 +6,21 @@ import { CustomSizeControls } from '../components/CustomSizeControls'
 import { PresetButtons } from '../components/PresetButtons'
 import { ResultMetric } from '../components/ResultMetric'
 import { ValidationSummary } from '../components/ValidationSummary'
-import { formatDecimal } from '../domain/numbers'
+import { formatDecimal, parseCalculatorDecimal } from '../domain/numbers'
 import { LayoutPreview } from '../previews/LayoutPreview'
 
 export function LayoutCalculatorPanel({ draft, onChange, onDeleteSize, onSaveSize, result, sizes }) {
   const update = (field, value) => onChange({ ...draft, [field]: value })
   const data = result.data ?? {}
+  const paperWidth = parseCalculatorDecimal(draft.paperWidth)
+  const paperHeight = parseCalculatorDecimal(draft.paperHeight)
+  const paperOrientation = paperWidth > paperHeight ? 'landscape' : 'portrait'
+
+  function changePaperOrientation(orientation) {
+    if (!(paperWidth > 0) || !(paperHeight > 0) || orientation === paperOrientation || paperWidth === paperHeight) return
+    onChange({ ...draft, paperWidth: draft.paperHeight, paperHeight: draft.paperWidth })
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
       <section className="rounded-4xl border border-white/80 bg-white p-6 shadow-xl shadow-slate-300/40">
@@ -27,9 +36,14 @@ export function LayoutCalculatorPanel({ draft, onChange, onDeleteSize, onSaveSiz
       </section>
       <aside className="space-y-5 xl:sticky xl:top-6 xl:self-start">
         <section className="rounded-4xl border border-white/80 bg-white p-6 shadow-xl shadow-slate-300/40"><p className="text-xs font-black uppercase tracking-[0.2em] text-blue-600">Hasil real-time</p><h2 className="mt-1 text-xl font-black tracking-tight text-slate-950">Susunan produksi</h2><div className="mt-5"><ValidationSummary result={result} /></div><div className="mt-5 grid grid-cols-2 gap-3"><ResultMetric accent label="Pcs / lembar" value={data.pcsPerSheet} /><ResultMetric label="Lembar dibutuhkan" value={data.requiredSheets} /><ResultMetric label="Grid" value={data.columns == null ? null : `${data.columns} × ${data.rows}`} /><ResultMetric label="Orientasi" value={data.orientation} /><ResultMetric label="Waste area" value={data.wastedPercent == null ? null : `${formatDecimal(data.wastedPercent)}%`} /><ResultMetric label="Total order" suffix="lembar" value={data.totalOrderSheets} /><ResultMetric label="Harga / lembar" value={data.pricePerSheet == null ? null : formatIdr(data.pricePerSheet)} /><ResultMetric label="Estimasi biaya" value={data.estimatedPaperCost == null ? null : formatIdr(data.estimatedPaperCost)} /></div></section>
-        <LayoutPreview result={result} />
+        <LayoutPreview
+          alignment={draft.alignment ?? 'top-left'}
+          onAlignmentChange={(alignment) => update('alignment', alignment)}
+          onPaperOrientationChange={changePaperOrientation}
+          paperOrientation={paperOrientation}
+          result={result}
+        />
       </aside>
     </div>
   )
 }
-
