@@ -5,7 +5,7 @@ describe('paper calculator persistence model', () => {
   it('hydrates versioned workspace while preserving defaults', () => {
     const workspace = hydratePaperWorkspace({ schemaVersion: 1, activeTab: 'plano', drafts: { layout: { designWidth: '9' } } })
     expect(workspace.activeTab).toBe('plano')
-    expect(workspace.drafts.layout).toMatchObject({ paperWidth: '48', designWidth: '9' })
+    expect(workspace.drafts.layout).toMatchObject({ paperWidth: '48', designWidth: '9', printMargin: '0' })
     expect(workspace.drafts.time.jobs.a3.active).toBe(false)
   })
 
@@ -21,4 +21,3 @@ describe('paper calculator persistence model', () => {
     expect(canDeletePaperRecord({ createdBy: 'u1' }, { uid: 'u2', role: 'Admin' })).toBe(true)
   })
 })
-

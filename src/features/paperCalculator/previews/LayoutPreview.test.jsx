@@ -79,4 +79,12 @@ describe('LayoutPreview', () => {
 
     expect(screen.getByText('Visual dibatasi 500 dari 10000 slot untuk menjaga performa.')).toBeInTheDocument()
   })
+
+  it('shows the printable boundary when a print margin is applied', () => {
+    const result = calculateLayout({ ...capacityTenInput, printMargin: '1' })
+    const { container } = render(<LayoutPreview printMargin="1" result={result} />)
+
+    expect(screen.getByLabelText('Margin area cetak')).toHaveValue('1')
+    expect(container.querySelector('[data-print-area="true"]')).toHaveAttribute('x', '1')
+  })
 })

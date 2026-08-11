@@ -1,16 +1,16 @@
 import { calculateWaste, isBlank, parseCalculatorDecimal, parseIdrInput, parseWholeQuantity } from './numbers'
 import { emptyResult, invalidResult, noFitResult, readyResult } from './resultState'
 
-function gridFor(paperWidth, paperHeight, itemWidth, itemHeight, gap, orientation) {
-  const columns = Math.max(0, Math.floor((paperWidth + gap) / (itemWidth + gap)))
-  const rows = Math.max(0, Math.floor((paperHeight + gap) / (itemHeight + gap)))
+function gridFor(printableWidth, printableHeight, itemWidth, itemHeight, gap, orientation, offset = 0) {
+  const columns = Math.max(0, Math.floor((printableWidth + gap) / (itemWidth + gap)))
+  const rows = Math.max(0, Math.floor((printableHeight + gap) / (itemHeight + gap)))
   const pcsPerSheet = columns * rows
   const placements = []
   const maxPlacements = Math.min(pcsPerSheet, 500)
   for (let index = 0; index < maxPlacements; index += 1) {
     const column = index % columns
     const row = Math.floor(index / columns)
-    placements.push({ x: column * (itemWidth + gap), y: row * (itemHeight + gap), width: itemWidth, height: itemHeight, index })
+    placements.push({ x: offset + column * (itemWidth + gap), y: offset + row * (itemHeight + gap), width: itemWidth, height: itemHeight, index })
   }
   return { orientation, columns, rows, pcsPerSheet, itemWidth, itemHeight, placements, placementCount: pcsPerSheet }
 }
@@ -57,6 +57,7 @@ export function calculateLayout(input) {
   const designWidth = parseCalculatorDecimal(input.designWidth)
   const designHeight = parseCalculatorDecimal(input.designHeight)
   const gap = parseCalculatorDecimal(input.gap) ?? 0
+  const printMargin = parseCalculatorDecimal(input.printMargin) ?? 0
   const requiredQty = parseWholeQuantity(input.requiredQty)
   const pricePerRim = parseIdrInput(input.pricePerRim)
   const sheetsPerRim = parseWholeQuantity(input.sheetsPerRim)
@@ -70,6 +71,8 @@ export function calculateLayout(input) {
   if (!(designWidth > 0)) errors.push('Lebar desain harus lebih dari 0.')
   if (!(designHeight > 0)) errors.push('Tinggi desain harus lebih dari 0.')
   if (!(gap >= 0)) errors.push('Gap tidak boleh negatif.')
+  if (!(printMargin >= 0)) errors.push('Margin area cetak tidak boleh negatif.')
+  if (paperWidth > 0 && paperHeight > 0 && printMargin >= 0 && (printMargin * 2 >= paperWidth || printMargin * 2 >= paperHeight)) errors.push('Margin area cetak terlalu besar untuk ukuran kertas.')
   if (!Number.isNaN(requiredQty) && requiredQty !== null && requiredQty <= 0) errors.push('Jumlah dibutuhkan harus lebih dari 0.')
   if (Number.isNaN(requiredQty)) errors.push('Jumlah dibutuhkan harus berupa bilangan bulat.')
   if (!(wastePercent >= 0)) errors.push('Waste tidak boleh negatif.')
@@ -77,8 +80,10 @@ export function calculateLayout(input) {
   if (pricePerRim !== null && (!(sheetsPerRim > 0) || Number.isNaN(sheetsPerRim))) errors.push('Isi per rim harus lebih dari 0 untuk menghitung biaya.')
   if (errors.length) return invalidResult(errors)
 
-  const normal = gridFor(paperWidth, paperHeight, designWidth, designHeight, gap, 'Normal')
-  const rotated = gridFor(paperWidth, paperHeight, designHeight, designWidth, gap, 'Rotasi')
+  const printableWidth = paperWidth - printMargin * 2
+  const printableHeight = paperHeight - printMargin * 2
+  const normal = gridFor(printableWidth, printableHeight, designWidth, designHeight, gap, 'Normal', printMargin)
+  const rotated = gridFor(printableWidth, printableHeight, designHeight, designWidth, gap, 'Rotasi', printMargin)
   const selected = input.allowRotate && rotated.pcsPerSheet > normal.pcsPerSheet ? rotated : normal
   const paperArea = paperWidth * paperHeight
   const usedArea = selected.pcsPerSheet * designWidth * designHeight
@@ -90,7 +95,7 @@ export function calculateLayout(input) {
   const pricePerSheet = pricePerRim === null ? null : pricePerRim / sheetsPerRim
   const estimatedPaperCost = pricePerSheet === null || totalOrderSheets === null ? null : totalOrderSheets * pricePerSheet
   const data = {
-    paperWidth, paperHeight, designWidth, designHeight, gap, requiredQty, normal, rotated, ...selected,
+    paperWidth, paperHeight, printableWidth, printableHeight, printMargin, designWidth, designHeight, gap, requiredQty, normal, rotated, ...selected,
     paperArea, usedArea, wastedArea, wastedPercent: paperArea ? (wastedArea / paperArea) * 100 : 0,
     requiredSheets, cleanSheets: requiredSheets, sheetPreview, wasteSheets, totalOrderSheets, pricePerSheet, estimatedPaperCost,
   }

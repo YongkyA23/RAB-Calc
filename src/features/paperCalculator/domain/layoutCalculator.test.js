@@ -27,6 +27,20 @@ describe('calculateLayout', () => {
     expect(result.data).toMatchObject({ columns: 2, rows: 2, orientation: 'Normal', requiredSheets: null })
   })
 
+  it('limits placements to the adjustable print area', () => {
+    const result = calculateLayout({ ...capacityTen, allowRotate: false, printMargin: '1' })
+
+    expect(result.data).toMatchObject({ printableWidth: 18, printableHeight: 8, printMargin: 1, pcsPerSheet: 4 })
+    expect(result.data.placements[0]).toMatchObject({ x: 1, y: 1 })
+  })
+
+  it('rejects a print margin that consumes the paper', () => {
+    expect(calculateLayout({ ...capacityTen, printMargin: '5' })).toMatchObject({
+      status: 'invalid',
+      errors: ['Margin area cetak terlalu besar untuk ukuran kertas.'],
+    })
+  })
+
   it('returns no-fit without infinite quantities', () => {
     const result = calculateLayout({ ...base, designWidth: '100', designHeight: '100' })
     expect(result.status).toBe('no-fit')

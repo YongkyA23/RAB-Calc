@@ -40,7 +40,9 @@ export function LayoutCalculatorPanel({ draft, onChange, onDeleteSize, onSaveSiz
           alignment={draft.alignment ?? 'top-left'}
           onAlignmentChange={(alignment) => update('alignment', alignment)}
           onPaperOrientationChange={changePaperOrientation}
+          onPrintMarginChange={(printMargin) => update('printMargin', printMargin)}
           paperOrientation={paperOrientation}
+          printMargin={draft.printMargin ?? '0'}
           result={result}
         />
       </aside>

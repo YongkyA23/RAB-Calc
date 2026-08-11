@@ -68,9 +68,9 @@ function SheetSummary({ pcsPerSheet, sheetPreview }) {
   )
 }
 
-function PreviewControls({ alignment, onAlignmentChange, onPaperOrientationChange, paperOrientation }) {
+function PreviewControls({ alignment, onAlignmentChange, onPaperOrientationChange, onPrintMarginChange, paperOrientation, printMargin }) {
   return (
-    <section aria-label="Pengaturan preview" className="mb-3 grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 sm:grid-cols-[1fr_auto] sm:items-end">
+    <section aria-label="Pengaturan preview" className="mb-3 grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 sm:grid-cols-[auto_1fr_auto] sm:items-end">
       <fieldset>
         <legend className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Alignment isi</legend>
         <div className="mt-2 grid w-fit grid-cols-3 gap-1.5">
@@ -93,6 +93,21 @@ function PreviewControls({ alignment, onAlignmentChange, onPaperOrientationChang
             )
           })}
         </div>
+      </fieldset>
+
+      <fieldset className="sm:justify-self-center">
+        <legend className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Area cetak</legend>
+        <label className="mt-2 flex h-10 w-32 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 transition focus-within:border-blue-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100">
+          <input
+            aria-label="Margin area cetak"
+            className="min-w-0 flex-1 bg-transparent text-sm font-black tabular-nums text-slate-900 outline-none"
+            inputMode="decimal"
+            onChange={(event) => onPrintMarginChange?.(event.target.value)}
+            value={printMargin}
+          />
+          <span className="text-xs font-bold text-slate-400">cm</span>
+        </label>
+        <p className="mt-1 text-[10px] font-bold text-slate-400">Margin semua sisi</p>
       </fieldset>
 
       <fieldset>
@@ -120,7 +135,7 @@ function PreviewControls({ alignment, onAlignmentChange, onPaperOrientationChang
   )
 }
 
-export function LayoutPreview({ alignment = 'top-left', onAlignmentChange, onPaperOrientationChange, paperOrientation = 'landscape', result }) {
+export function LayoutPreview({ alignment = 'top-left', onAlignmentChange, onPaperOrientationChange, onPrintMarginChange, paperOrientation = 'landscape', printMargin = '0', result }) {
   const [navigation, setNavigation] = useState({ signature: '', sheet: 1 })
   if (result.status !== 'ready') {
     return (
@@ -130,7 +145,9 @@ export function LayoutPreview({ alignment = 'top-left', onAlignmentChange, onPap
           alignment={alignment}
           onAlignmentChange={onAlignmentChange}
           onPaperOrientationChange={onPaperOrientationChange}
+          onPrintMarginChange={onPrintMarginChange}
           paperOrientation={paperOrientation}
+          printMargin={printMargin}
         />
         <div className="grid min-h-64 place-items-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-sm font-semibold text-slate-400">Preview tersedia setelah ukuran valid.</div>
       </figure>
@@ -138,11 +155,11 @@ export function LayoutPreview({ alignment = 'top-left', onAlignmentChange, onPap
   }
 
   const {
-    paperWidth, paperHeight, designWidth, designHeight, gap, orientation, placements,
+    paperWidth, paperHeight, printableWidth = paperWidth, printableHeight = paperHeight, printMargin: appliedPrintMargin = 0, designWidth, designHeight, gap, orientation, placements,
     placementCount, columns, rows, pcsPerSheet, requiredQty, sheetPreview, wasteSheets,
   } = result.data
   const totalSheets = sheetPreview?.totalSheets ?? 1
-  const signature = [paperWidth, paperHeight, designWidth, designHeight, gap, orientation, pcsPerSheet, requiredQty, totalSheets].join(':')
+  const signature = [paperWidth, paperHeight, appliedPrintMargin, designWidth, designHeight, gap, orientation, pcsPerSheet, requiredQty, totalSheets].join(':')
   const storedSheet = navigation.signature === signature ? navigation.sheet : 1
   const activeSheet = clampSheet(storedSheet, totalSheets)
   const visibleItemCount = getSheetItemCount(sheetPreview, pcsPerSheet, activeSheet)
@@ -154,8 +171,8 @@ export function LayoutPreview({ alignment = 'top-left', onAlignmentChange, onPap
     const row = Math.floor(index / columns)
     return {
       index,
-      x: column * (result.data.itemWidth + gap),
-      y: row * (result.data.itemHeight + gap),
+      x: appliedPrintMargin + column * (result.data.itemWidth + gap),
+      y: appliedPrintMargin + row * (result.data.itemHeight + gap),
       width: result.data.itemWidth,
       height: result.data.itemHeight,
     }
@@ -191,11 +208,14 @@ export function LayoutPreview({ alignment = 'top-left', onAlignmentChange, onPap
         alignment={alignment}
         onAlignmentChange={onAlignmentChange}
         onPaperOrientationChange={onPaperOrientationChange}
+        onPrintMarginChange={onPrintMarginChange}
         paperOrientation={paperOrientation}
+        printMargin={printMargin}
       />
 
       <svg aria-label={svgLabel} className="max-h-96 w-full rounded-2xl bg-white shadow-inner" role="img" viewBox={`0 0 ${paperWidth} ${paperHeight}`}>
         <rect fill="#eff6ff" height={paperHeight} stroke="#93c5fd" strokeWidth={Math.max(paperWidth, paperHeight) / 180} width={paperWidth} />
+        {appliedPrintMargin > 0 ? <rect data-print-area="true" fill="#ffffff" height={printableHeight} stroke="#f59e0b" strokeDasharray="0.8 0.55" strokeWidth="0.18" width={printableWidth} x={appliedPrintMargin} y={appliedPrintMargin} /> : null}
         {placements.map((item) => (
           <rect data-slot-state="available" fill="#f8fafc" height={item.height} key={`slot-${item.index}`} rx="0.35" stroke="#94a3b8" strokeDasharray="0.7 0.45" strokeWidth="0.16" width={item.width} x={item.x} y={item.y} />
         ))}
