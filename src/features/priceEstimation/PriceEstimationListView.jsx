@@ -35,6 +35,8 @@ function sortValue(estimate, key) {
       return (estimate.client || '').toLowerCase()
     case 'project':
       return (estimate.project || '').toLowerCase()
+    case 'ae':
+      return (estimate.aeName || '').toLowerCase()
     case 'status':
       return normalizeEstimateStatus(estimate)
     case 'total':
@@ -189,6 +191,7 @@ export function PriceEstimationListView({ actualCosts = [], estimates, loading, 
               <SortHeader onSort={handleSort} sort={sort} sortKey="estimate">RAB</SortHeader>
               <SortHeader onSort={handleSort} sort={sort} sortKey="client">Klien</SortHeader>
               <SortHeader onSort={handleSort} sort={sort} sortKey="project">Proyek</SortHeader>
+              <SortHeader onSort={handleSort} sort={sort} sortKey="ae">Nama AE</SortHeader>
               <SortHeader onSort={handleSort} sort={sort} sortKey="status">Status</SortHeader>
               <SortHeader onSort={handleSort} sort={sort} sortKey="total">Rencana / Aktual</SortHeader>
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Aksi</th>
@@ -196,10 +199,10 @@ export function PriceEstimationListView({ actualCosts = [], estimates, loading, 
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
             {loading ? (
-              <TableSkeletonRows columns={7} />
+              <TableSkeletonRows columns={8} />
             ) : visibleEstimates.length === 0 ? (
               <tr>
-                <td className="px-4 py-16 text-center" colSpan={7}>
+                <td className="px-4 py-16 text-center" colSpan={8}>
                   <div className="flex flex-col items-center gap-3">
                     <span className="grid h-14 w-14 place-items-center rounded-2xl bg-slate-100 text-slate-400">
                       <FileText size={26} />
@@ -221,7 +224,7 @@ export function PriceEstimationListView({ actualCosts = [], estimates, loading, 
             ) : groupedEstimates.map((group) => (
               <Fragment key={group.key}>
                 <tr className="border-y border-blue-100 bg-blue-50/70">
-                  <td className="px-4 py-3" colSpan={7}>
+                  <td className="px-4 py-3" colSpan={8}>
                     <div className="flex flex-wrap items-center gap-3">
                       <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-600/20">
                         <FolderOpen size={18} />
@@ -264,6 +267,7 @@ export function PriceEstimationListView({ actualCosts = [], estimates, loading, 
                 </td>
                 <td className="px-4 py-3 text-slate-600">{estimate.client || '-'}</td>
                 <td className="px-4 py-3 text-slate-600">{estimate.project || '-'}</td>
+                <td className="px-4 py-3 text-slate-600">{estimate.aeName || '-'}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-col items-start gap-1.5">
                     {statusBadge(estimate)}

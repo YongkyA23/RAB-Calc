@@ -12,7 +12,7 @@ describe('VendorEstimateFormView', () => {
     render(
       <ToastProvider>
         <VendorEstimateFormView
-          draft={{ projectTitle: '', projectInfo: '', vendorName: '', price: '', attachmentUrl: '', attachmentName: '', attachmentType: '' }}
+          draft={{ projectTitle: '', vendorName: '', aeName: '', jobNo: '', quantity: '5', unitPrice: '2000', attachmentUrl: '', attachmentName: '', attachmentType: '' }}
           errors={[]}
           loading={false}
           onCancel={onCancel}
@@ -23,8 +23,13 @@ describe('VendorEstimateFormView', () => {
       </ToastProvider>,
     )
 
-    fireEvent.change(screen.getByLabelText('Judul proyek'), { target: { value: 'Project A' } })
+    fireEvent.change(screen.getByLabelText('Nama Job'), { target: { value: 'Project A' } })
     expect(onChange).toHaveBeenCalledWith('projectTitle', 'Project A')
+    expect(screen.getByLabelText('Nama AE')).toBeInTheDocument()
+
+    expect(screen.getByLabelText('Total harga')).toHaveValue('Rp 10.000')
+    expect(screen.queryByLabelText('Harga')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Info proyek')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Simpan Estimasi Vendor' }))
     expect(onSubmit).toHaveBeenCalled()

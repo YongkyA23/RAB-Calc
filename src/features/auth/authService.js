@@ -1,21 +1,24 @@
-import {
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithPopup,
-  signOut,
-} from 'firebase/auth'
-import { auth } from '../../firebase/app'
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "../../firebase/app";
 
 export function subscribeToAuthState(callback) {
-  return onAuthStateChanged(auth, callback)
+  return onAuthStateChanged(auth, callback);
 }
 
-export async function signInWithGoogle() {
-  const provider = new GoogleAuthProvider()
-  const result = await signInWithPopup(auth, provider)
-  return result.user
+export function portalLoginUrl() {
+  return (
+    import.meta.env.VITE_SSO_PORTAL_URL ||
+    (import.meta.env.DEV
+      ? "http://localhost:5173"
+      : "https://portal.collabproject.web.id/")
+  );
+}
+
+export async function getPortalSessionClaims(user) {
+  const token = await user.getIdTokenResult(true);
+  return token.claims;
 }
 
 export async function signOutUser() {
-  return signOut(auth)
+  return signOut(auth);
 }

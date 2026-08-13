@@ -25,7 +25,7 @@ describe('AppShell', () => {
     expect(screen.getAllByRole('link', { name: /Daftar Harga \/ Master Data/ })[0]).toHaveAttribute('href', '/master-data')
     expect(screen.queryByRole('link', { name: /Create Estimation/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Job Log/ })).not.toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: /Manajemen Pengguna/ })[0]).toHaveAttribute('href', '/users')
+    expect(screen.queryByRole('link', { name: /Manajemen Pengguna/ })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(onSignOut).toHaveBeenCalledOnce()

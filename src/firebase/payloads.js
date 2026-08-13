@@ -62,6 +62,7 @@ export function buildEstimatePayload({
     sku: header?.sku ?? '',
     client: header?.client ?? '',
     project: header?.project ?? '',
+    aeName: header?.aeName ?? '',
     date: now,
     updatedAt: now,
     createdBy: createdBy.uid,
@@ -83,9 +84,11 @@ export function buildQuotePayload(input) {
 export function buildVendorEstimatePayload({
   id,
   projectTitle = '',
-  projectInfo = '',
   vendorName = '',
-  price = 0,
+  aeName = '',
+  jobNo = '',
+  quantity = 0,
+  unitPrice = 0,
   currency = 'IDR',
   attachmentUrl = '',
   attachmentName = '',
@@ -94,14 +97,20 @@ export function buildVendorEstimatePayload({
   createdAt,
 }) {
   const now = new Date().toISOString()
-  const numericPrice = Number(price)
+  const numericQuantity = Number(quantity)
+  const numericUnitPrice = Number(unitPrice)
+  const safeQuantity = Number.isFinite(numericQuantity) ? numericQuantity : 0
+  const safeUnitPrice = Number.isFinite(numericUnitPrice) ? numericUnitPrice : 0
 
   return {
     id,
     projectTitle,
-    projectInfo,
     vendorName,
-    price: Number.isFinite(numericPrice) ? numericPrice : 0,
+    aeName,
+    jobNo,
+    quantity: safeQuantity,
+    unitPrice: safeUnitPrice,
+    price: safeQuantity * safeUnitPrice,
     currency,
     attachmentUrl,
     attachmentName,

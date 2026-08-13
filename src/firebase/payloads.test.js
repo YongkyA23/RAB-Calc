@@ -72,7 +72,7 @@ describe('firebase payload builders', () => {
     expect(
       buildQuotePayload({
         id: 'quote-1',
-        header: { jobNo: 'JOB-001', sku: 'SKU-1', client: 'PT Client', project: 'Mockup' },
+        header: { jobNo: 'JOB-001', sku: 'SKU-1', client: 'PT Client', project: 'Mockup', aeName: 'Ayu' },
         lineItems: [{ id: 'line-1', layer: 'print', computedTotal: 1000 }],
         totals: { print: 1000, digital: 0, manual: 0, manpower: 0, additional: 0 },
         grandTotal: 1000,
@@ -85,6 +85,7 @@ describe('firebase payload builders', () => {
       sku: 'SKU-1',
       client: 'PT Client',
       project: 'Mockup',
+      aeName: 'Ayu',
       lineItems: [{ id: 'line-1', layer: 'print', computedTotal: 1000 }],
       totals: { print: 1000, digital: 0, manual: 0, manpower: 0, additional: 0 },
       grandTotal: 1000,
@@ -105,9 +106,11 @@ describe('firebase payload builders', () => {
       buildVendorEstimatePayload({
         id: 've-1',
         projectTitle: 'Project A',
-        projectInfo: 'Info A',
         vendorName: 'Vendor A',
-        price: '5000',
+        aeName: 'Ayu',
+        jobNo: 'JOB-001',
+        quantity: '5',
+        unitPrice: '1000',
         attachmentUrl: 'https://res.cloudinary.com/demo/raw/upload/a.pdf',
         attachmentName: 'a.pdf',
         attachmentType: 'pdf',
@@ -117,8 +120,11 @@ describe('firebase payload builders', () => {
     ).toMatchObject({
       id: 've-1',
       projectTitle: 'Project A',
-      projectInfo: 'Info A',
       vendorName: 'Vendor A',
+      aeName: 'Ayu',
+      jobNo: 'JOB-001',
+      quantity: 5,
+      unitPrice: 1000,
       price: 5000,
       currency: 'IDR',
       attachmentUrl: 'https://res.cloudinary.com/demo/raw/upload/a.pdf',

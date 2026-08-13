@@ -9,6 +9,7 @@ const quotes = [
     sku: 'SKU-A',
     client: 'PT Alpha',
     project: 'Carton Mockup',
+    aeName: 'Ayu',
     createdByName: 'Admin',
     grandTotal: 1000000,
     lineItems: [{ layer: 'print', inputs: { itemId: 'print-duplex', size: 'A3', qty: 2 } }],
@@ -57,7 +58,7 @@ describe('job log model', () => {
 
   it('builds a new draft from a saved quote', () => {
     expect(buildDraftFromQuote(quotes[0])).toEqual({
-      header: { jobNo: '', sku: 'SKU-A', client: 'PT Alpha', project: 'Carton Mockup' },
+      header: { jobNo: '', sku: 'SKU-A', client: 'PT Alpha', project: 'Carton Mockup', aeName: 'Ayu' },
       print: [{ itemId: 'print-duplex', size: 'A3', qty: 2 }],
       digital: [],
       manual: [],

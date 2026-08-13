@@ -2,133 +2,129 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Assumed model: the NestJS portal writes ssoAccess and compatibility users.
+    // Client sessions are custom-token sessions with claims bound to that projection.
     function signedIn() {
       return request.auth != null;
     }
 
-    function userProfile(uid) {
-      return get(/databases/$(database)/documents/users/$(uid));
-    }
-
-    function hasProfile(uid) {
-      return exists(/databases/$(database)/documents/users/$(uid));
-    }
-
-    function hasActiveProfile() {
+    function hasV2RabClaim() {
       return signedIn()
-        && hasProfile(request.auth.uid)
-        && userProfile(request.auth.uid).data.status == 'active';
+        && request.auth.token.portalAccess == true
+        && request.auth.token.appId == 'rab-calc'
+        && request.auth.token.ssoVersion == 2
+        && request.auth.token.centralUid is string
+        && request.auth.token.grantVersion is number;
+    }
+
+    function accessPath() {
+      return /databases/$(database)/documents/ssoAccess/$(request.auth.uid);
+    }
+
+    function hasPortalSession() {
+      return hasV2RabClaim()
+        && exists(accessPath())
+        && get(accessPath()).data.enabled == true
+        && get(accessPath()).data.appId == 'rab-calc'
+        && get(accessPath()).data.centralUid == request.auth.token.centralUid
+        && get(accessPath()).data.grantVersion == request.auth.token.grantVersion
+        && get(accessPath()).data.role in ['admin', 'estimator'];
     }
 
     function isAdmin() {
-      return hasActiveProfile() && userProfile(request.auth.uid).data.role == 'Admin';
+      return hasPortalSession() && get(accessPath()).data.role == 'admin';
     }
 
-    function isSelf(uid) {
-      return signedIn() && request.auth.uid == uid;
+    function validOwnedCreation(ownerField) {
+      return hasPortalSession()
+        && request.resource.data[ownerField] == request.auth.uid;
     }
 
-    // STAGING BOOTSTRAP:
-    // Any signed-in user may create their own user profile once.
-    // This lets the first user click "Bootstrap me as Admin" from the app.
-    // Tighten before production.
+    match /ssoAccess/{uid} {
+      allow get: if hasV2RabClaim()
+        && request.auth.uid == uid
+        && resource.data.appId == 'rab-calc'
+        && resource.data.centralUid == request.auth.token.centralUid
+        && resource.data.grantVersion == request.auth.token.grantVersion;
+      allow list, create, update, delete: if false;
+    }
+
     match /users/{uid} {
-      allow read: if isSelf(uid) || isAdmin();
-      allow create: if isSelf(uid) && !hasProfile(uid);
-      allow update: if isSelf(uid) || isAdmin();
-      allow delete: if false;
+      allow get: if hasPortalSession() && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
     }
 
     match /emailAllowlist/{emailId} {
-      allow read: if signedIn();
-      allow create: if isAdmin()
-        || (signedIn()
-          && request.auth.token.email == 'noobsnoobs28@gmail.com'
-          && emailId == 'noobsnoobs28_gmail_com'
-          && request.resource.data.email == 'noobsnoobs28@gmail.com');
-      allow update, delete: if isAdmin();
+      allow read, write: if false;
     }
 
     match /userInvites/{inviteId} {
-      allow read: if signedIn();
-      allow create: if isAdmin()
-        || (signedIn()
-          && request.auth.token.email == 'noobsnoobs28@gmail.com'
-          && inviteId == 'noobsnoobs28_gmail_com'
-          && request.resource.data.email == 'noobsnoobs28@gmail.com');
-      allow update, delete: if isAdmin();
+      allow read, write: if false;
     }
 
-    // STAGING APP DATA:
-    // Active signed-in app users can read/write app data.
-    // This keeps staging easy while still requiring login + active profile.
     match /categories/{categoryId} {
-      allow read, write: if hasActiveProfile();
+      allow read: if hasPortalSession();
+      allow create, update, delete: if isAdmin();
     }
 
     match /priceItems/{itemId} {
-      allow read, write: if hasActiveProfile();
+      allow read: if hasPortalSession();
+      allow create, update, delete: if isAdmin();
     }
 
     match /priceAuditEntries/{entryId} {
-      allow read, create: if hasActiveProfile();
+      allow read: if hasPortalSession();
+      allow create: if isAdmin()
+        && request.resource.data.editedBy is string
+        && request.resource.data.action is string;
       allow update, delete: if false;
     }
 
     match /quotes/{quoteId} {
-      // All active users can read and create estimates
-      allow read, create: if hasActiveProfile();
-
-      // Authenticated users can delete any estimate in staging
-      // In production, restrict to owner or admin only
-      allow update, delete: if signedIn();
+      allow read: if hasPortalSession();
+      allow create: if hasPortalSession() && request.resource.data.createdBy == request.auth.uid;
+      allow update, delete: if hasPortalSession();
     }
 
     match /vendorEstimates/{vendorEstimateId} {
-      // All active users can read and create vendor estimates
-      allow read, create: if hasActiveProfile();
-
-      // Authenticated users can update/delete any vendor estimate in staging
-      // In production, restrict to owner or admin only
-      allow update, delete: if signedIn();
+      allow read: if hasPortalSession();
+      allow create: if hasPortalSession();
+      allow update, delete: if hasPortalSession();
     }
 
     match /actualCosts/{estimateId} {
-      allow read, create: if hasActiveProfile();
-      allow update: if hasActiveProfile() && resource.data.status == 'draft';
+      allow read, create: if hasPortalSession();
+      allow update: if hasPortalSession() && resource.data.status == 'draft';
       allow delete: if false;
     }
 
     match /paperCalculatorDrafts/{uid} {
-      allow read, delete: if hasActiveProfile() && request.auth.uid == uid;
-      allow create, update: if hasActiveProfile()
+      allow read, delete: if hasPortalSession() && request.auth.uid == uid;
+      allow create, update: if validOwnedCreation('userId')
         && request.auth.uid == uid
-        && request.resource.data.userId == uid
         && request.resource.data.schemaVersion == 1;
     }
 
     match /paperCalculations/{calculationId} {
-      allow read: if hasActiveProfile();
-      allow create: if hasActiveProfile()
-        && request.resource.data.createdBy == request.auth.uid
+      allow read: if hasPortalSession();
+      allow create: if validOwnedCreation('createdBy')
         && request.resource.data.schemaVersion == 1
         && request.resource.data.module in ['layout', 'book', 'plano', 'time'];
       allow update: if false;
-      allow delete: if hasActiveProfile()
+      allow delete: if hasPortalSession()
         && (resource.data.createdBy == request.auth.uid || isAdmin());
     }
 
     match /paperCustomSizes/{sizeId} {
-      allow read: if hasActiveProfile();
-      allow create: if hasActiveProfile()
-        && request.resource.data.createdBy == request.auth.uid
+      allow read: if hasPortalSession();
+      allow create: if validOwnedCreation('createdBy')
         && request.resource.data.schemaVersion == 1
         && request.resource.data.type in ['paper', 'book', 'plano']
         && request.resource.data.width is number
         && request.resource.data.width > 0
         && request.resource.data.height is number
         && request.resource.data.height > 0;
-      allow update: if hasActiveProfile()
+      allow update: if hasPortalSession()
         && (resource.data.createdBy == request.auth.uid || isAdmin())
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.schemaVersion == 1
@@ -137,8 +133,12 @@ service cloud.firestore {
         && request.resource.data.width > 0
         && request.resource.data.height is number
         && request.resource.data.height > 0;
-      allow delete: if hasActiveProfile()
+      allow delete: if hasPortalSession()
         && (resource.data.createdBy == request.auth.uid || isAdmin());
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

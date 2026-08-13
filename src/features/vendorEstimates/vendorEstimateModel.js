@@ -3,9 +3,11 @@ import { normalizeSearchText } from '../../lib/format'
 export function createEmptyVendorEstimateDraft() {
   return {
     projectTitle: '',
-    projectInfo: '',
     vendorName: '',
-    price: '',
+    aeName: '',
+    jobNo: '',
+    quantity: '',
+    unitPrice: '',
     attachmentUrl: '',
     attachmentName: '',
     attachmentType: '',
@@ -15,15 +17,23 @@ export function createEmptyVendorEstimateDraft() {
 export function validateVendorEstimateDraft(draft) {
   const errors = []
 
-  if (!draft.projectTitle?.trim()) errors.push('Project title is required')
-  if (!draft.projectInfo?.trim()) errors.push('Project info is required')
-  if (!draft.vendorName?.trim()) errors.push('Vendor name is required')
+  if (!draft.projectTitle?.trim()) errors.push('Nama Job wajib diisi')
+  if (!draft.vendorName?.trim()) errors.push('Nama vendor wajib diisi')
+  if (!draft.aeName?.trim()) errors.push('Nama AE wajib diisi')
+  if (!draft.jobNo?.trim()) errors.push('No Job wajib diisi')
 
-  const priceNumber = Number(draft.price)
-  if (!String(draft.price ?? '').trim()) {
-    errors.push('Price is required')
-  } else if (!Number.isFinite(priceNumber) || priceNumber < 0) {
-    errors.push('Price must be a valid number')
+  const quantity = Number(draft.quantity)
+  if (!String(draft.quantity ?? '').trim()) {
+    errors.push('Kuantiti wajib diisi')
+  } else if (!Number.isInteger(quantity) || quantity <= 0) {
+    errors.push('Kuantiti harus berupa bilangan bulat lebih dari 0')
+  }
+
+  const unitPrice = Number(draft.unitPrice)
+  if (!String(draft.unitPrice ?? '').trim()) {
+    errors.push('Harga satuan wajib diisi')
+  } else if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+    errors.push('Harga satuan harus lebih dari 0')
   }
 
   if (!draft.attachmentUrl?.trim()) {
@@ -41,8 +51,9 @@ export function filterVendorEstimates(estimates, filters) {
 
     return [
       estimate.projectTitle,
-      estimate.projectInfo,
+      estimate.jobNo,
       estimate.vendorName,
+      estimate.aeName,
       estimate.attachmentName,
     ]
       .some((value) => normalizeSearchText(value).includes(query))
@@ -50,12 +61,18 @@ export function filterVendorEstimates(estimates, filters) {
 }
 
 export function buildVendorEstimateInput({ draft, existing, creator, id }) {
+  const quantity = Number(draft.quantity)
+  const unitPrice = Number(draft.unitPrice)
+
   return {
     id: existing?.id ?? id,
     projectTitle: draft.projectTitle.trim(),
-    projectInfo: draft.projectInfo.trim(),
     vendorName: draft.vendorName.trim(),
-    price: Number(draft.price || 0),
+    aeName: draft.aeName?.trim() ?? '',
+    jobNo: draft.jobNo.trim(),
+    quantity,
+    unitPrice,
+    price: quantity * unitPrice,
     currency: 'IDR',
     attachmentUrl: draft.attachmentUrl?.trim() ?? '',
     attachmentName: draft.attachmentName?.trim() || '',
@@ -63,4 +80,12 @@ export function buildVendorEstimateInput({ draft, existing, creator, id }) {
     createdBy: creator,
     createdAt: existing?.createdAt,
   }
+}
+
+export function calculateVendorEstimateTotal(quantity, unitPrice) {
+  const numericQuantity = Number(quantity)
+  const numericUnitPrice = Number(unitPrice)
+
+  if (!Number.isFinite(numericQuantity) || !Number.isFinite(numericUnitPrice)) return 0
+  return Math.max(0, numericQuantity) * Math.max(0, numericUnitPrice)
 }

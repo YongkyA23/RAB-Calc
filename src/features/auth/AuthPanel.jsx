@@ -1,7 +1,7 @@
-import { LogIn, LockKeyhole, ShieldCheck } from 'lucide-react'
+import { ArrowRight, LockKeyhole, ShieldCheck } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 
-export function AuthPanel({ error, loading, onGoogleSignIn }) {
+export function AuthPanel({ error, loading, onPortalSignIn }) {
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#eef2f7] px-4 py-10">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.05)_1px,transparent_1px)] bg-[size:28px_28px] opacity-50" />
@@ -12,7 +12,7 @@ export function AuthPanel({ error, loading, onGoogleSignIn }) {
         <p className="mt-6 text-xs font-black uppercase tracking-[0.24em] text-blue-600">Secure workspace</p>
         <h1 className="mt-2 text-4xl font-black tracking-tight text-slate-950">RAB Calculator Login</h1>
         <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
-          Use your approved Google account to continue.
+          Continue through the LPHTM portal. Direct workspace login is disabled.
         </p>
 
         {error ? (
@@ -34,11 +34,11 @@ export function AuthPanel({ error, loading, onGoogleSignIn }) {
         <Button
           className="mt-8 w-full"
           disabled={loading}
-          onClick={onGoogleSignIn}
+          onClick={onPortalSignIn}
           variant="primary"
         >
-          <LogIn size={18} />
-          Sign in with Google
+          <ArrowRight size={18} />
+          Continue through portal
         </Button>
       </div>
     </section>

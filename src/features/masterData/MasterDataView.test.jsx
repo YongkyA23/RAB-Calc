@@ -90,8 +90,14 @@ describe("MasterDataView", () => {
     fireEvent.change(screen.getByLabelText("Nama item"), {
       target: { value: "Duplex Updated" },
     });
-    fireEvent.change(screen.getByLabelText("Harga B2"), {
+    fireEvent.change(screen.getByLabelText("Harga B2 (1–10)"), {
       target: { value: "45000" },
+    });
+    fireEvent.change(screen.getByLabelText("Harga B2 (> 10)"), {
+      target: { value: "42000" },
+    });
+    fireEvent.change(screen.getByLabelText("Harga Large Format (1–10)"), {
+      target: { value: "90000" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Simpan item" }));
 
@@ -99,6 +105,7 @@ describe("MasterDataView", () => {
       expect.objectContaining({
         name: "Duplex Updated",
         prices: expect.objectContaining({ B2: 45000 }),
+        pricesAbove10: expect.objectContaining({ B2: 42000 }),
       }),
     );
   });
@@ -122,8 +129,8 @@ describe("MasterDataView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Manual Finishing" }));
 
-    expect(screen.queryByLabelText("Harga A3")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Harga B2")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Harga A3 (1–10)")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Harga B2 (1–10)")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Tarif tenaga kerja per cm²")).toBeInTheDocument();
     expect(screen.getByLabelText("Tarif alat per cm² (opsional)")).toBeInTheDocument();
     expect(screen.getByLabelText("Biaya minimum tenaga kerja")).toBeInTheDocument();
@@ -191,8 +198,8 @@ describe("MasterDataView", () => {
     );
 
     fireEvent.change(screen.getByLabelText("Nama item"), { target: { value: "Art Paper" } });
-    fireEvent.change(screen.getByLabelText("Harga A3"), { target: { value: "20000" } });
-    fireEvent.change(screen.getByLabelText("Harga B2"), { target: { value: "30000" } });
+    fireEvent.change(screen.getByLabelText("Harga A3 (1–10)"), { target: { value: "20000" } });
+    fireEvent.change(screen.getByLabelText("Harga B2 (1–10)"), { target: { value: "30000" } });
     fireEvent.click(screen.getByRole("button", { name: "Tambah item" }));
 
     await waitFor(() => expect(onSaveItem).toHaveBeenCalledOnce());

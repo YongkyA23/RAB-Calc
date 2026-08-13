@@ -22,8 +22,12 @@ function readNumber(value, fallback = 0) {
 }
 
 function unitPrice(line) {
+  if (Number.isFinite(Number(line.unitPrice)) && Number(line.unitPrice) > 0) return Number(line.unitPrice)
   const size = line.inputs?.size
-  return readNumber(line.priceSnapshot?.prices?.[size])
+  const bulkPrice = readNumber(line.priceSnapshot?.pricesAbove10?.[size])
+  return Number(line.inputs?.qty) > 10 && bulkPrice > 0
+    ? bulkPrice
+    : readNumber(line.priceSnapshot?.prices?.[size])
 }
 
 function readableInputs(line) {
@@ -142,6 +146,7 @@ export function PriceEstimationDetailView({ estimate, loading, onBack, onDelete,
           <DetailField label="SKU" value={estimate.sku} />
           <DetailField label="Klien" value={estimate.client} />
           <DetailField label="Proyek" value={estimate.project} />
+          <DetailField label="Nama AE" value={estimate.aeName} />
           <DetailField label="Status" value={getStatusLabel(estimate)} />
           <DetailField label="Total" value={formatIdr(estimate.grandTotal)} />
           <DetailField label="Waktu pengerjaan" value={`${estimate.turnaroundDays ?? 0} hari`} />

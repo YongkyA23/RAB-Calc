@@ -14,9 +14,12 @@ describe('VendorEstimateListView', () => {
       {
         id: 've-1',
         projectTitle: 'Project A',
-        projectInfo: 'Info',
         vendorName: 'Vendor A',
-        price: 1000,
+        aeName: 'Ayu',
+        jobNo: 'JOB-001',
+        quantity: 2,
+        unitPrice: 1000,
+        price: 2000,
         attachmentUrl: 'https://res.cloudinary.com/demo/raw/upload/a.pdf',
         attachmentName: 'a.pdf',
         attachmentType: 'pdf',
@@ -39,6 +42,7 @@ describe('VendorEstimateListView', () => {
 
     expect(screen.getByText('Project A')).toBeInTheDocument()
     expect(screen.getByText('Vendor A')).toBeInTheDocument()
+    expect(screen.getByText('Ayu')).toBeInTheDocument()
     expect(screen.getByText('a.pdf')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('link', { name: /Lihat Project A/ }))

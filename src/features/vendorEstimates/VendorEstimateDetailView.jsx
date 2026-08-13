@@ -1,5 +1,5 @@
-import { ArrowLeft, Edit3, ExternalLink, FileText, Image as ImageIcon, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowLeft, Edit3, ExternalLink, FileDown, FileText, Image as ImageIcon, Loader2, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { formatIdr } from '../../lib/format'
 
 function DetailField({ label, value }) {
@@ -7,6 +7,75 @@ function DetailField({ label, value }) {
     <div className="rounded-3xl border border-slate-100 bg-slate-50/80 p-4">
       <dt className="text-xs font-black uppercase tracking-wide text-slate-400">{label}</dt>
       <dd className="mt-1 font-black text-slate-900">{value || '-'}</dd>
+    </div>
+  )
+}
+
+function PdfPreview({ name, url }) {
+  const [previewUrl, setPreviewUrl] = useState('')
+  const [usingFallback, setUsingFallback] = useState(false)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    let objectUrl = ''
+
+    async function loadPreview() {
+      try {
+        const response = await fetch(url, { signal: controller.signal })
+        if (!response.ok) throw new Error('PDF tidak dapat dimuat')
+
+        const sourceBlob = await response.blob()
+        const pdfBlob = sourceBlob.type === 'application/pdf'
+          ? sourceBlob
+          : new Blob([sourceBlob], { type: 'application/pdf' })
+        objectUrl = URL.createObjectURL(pdfBlob)
+        if (controller.signal.aborted) {
+          URL.revokeObjectURL(objectUrl)
+          objectUrl = ''
+          return
+        }
+        setPreviewUrl(objectUrl)
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          setUsingFallback(true)
+          setPreviewUrl(url)
+        }
+      }
+    }
+
+    loadPreview()
+
+    return () => {
+      controller.abort()
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [url])
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-white px-4 py-3">
+        <div>
+          <p className="text-sm font-black text-slate-900">Preview PDF</p>
+          <p className="mt-0.5 text-xs font-medium text-slate-500">{name || 'Lampiran PDF'}</p>
+        </div>
+        {usingFallback ? (
+          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">Mode preview langsung</span>
+        ) : null}
+      </div>
+      {previewUrl ? (
+        <iframe
+          className="h-[70vh] min-h-[520px] w-full bg-white"
+          src={`${previewUrl}#view=FitH&toolbar=1`}
+          title={`Preview PDF ${name || 'lampiran'}`}
+        />
+      ) : (
+        <div className="grid min-h-[520px] place-items-center bg-white">
+          <div className="flex flex-col items-center gap-3 text-slate-500">
+            <Loader2 className="animate-spin text-blue-600" size={28} />
+            <p className="text-sm font-bold">Menyiapkan preview PDF...</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -33,13 +102,13 @@ function AttachmentPreview({ estimate }) {
       {isImage ? (
         <img alt={estimate.attachmentName || 'Lampiran'} className="max-h-[600px] w-full rounded-2xl border border-slate-200 object-contain" src={estimate.attachmentUrl} />
       ) : (
-        <iframe className="h-[600px] w-full rounded-2xl border border-slate-200" src={estimate.attachmentUrl} title={estimate.attachmentName || 'Lampiran PDF'} />
+        <PdfPreview key={estimate.attachmentUrl} name={estimate.attachmentName} url={estimate.attachmentUrl} />
       )}
     </div>
   )
 }
 
-export function VendorEstimateDetailView({ estimate, loading, onBack, onDelete, onEdit }) {
+export function VendorEstimateDetailView({ estimate, loading, onBack, onDelete, onEdit, onGeneratePdf }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   if (!estimate) {
@@ -49,6 +118,9 @@ export function VendorEstimateDetailView({ estimate, loading, onBack, onDelete, 
       </section>
     )
   }
+
+  const quantity = Number(estimate.quantity) > 0 ? Number(estimate.quantity) : 1
+  const unitPrice = Number(estimate.unitPrice) > 0 ? Number(estimate.unitPrice) : Number(estimate.price) || 0
 
   return (
     <div className="space-y-6">
@@ -70,6 +142,9 @@ export function VendorEstimateDetailView({ estimate, loading, onBack, onDelete, 
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            {onGeneratePdf ? (
+              <button aria-label="Buat PDF vendor" className="inline-flex items-center gap-2 rounded-xl border border-blue-200 px-3 py-2 text-sm font-bold text-blue-700 transition hover:bg-blue-50" disabled={loading} onClick={() => onGeneratePdf(estimate)} type="button"><FileDown size={16} />PDF</button>
+            ) : null}
             <button aria-label="Edit estimasi vendor" className="inline-flex items-center gap-2 rounded-xl border border-amber-200 px-3 py-2 text-sm font-bold text-amber-700 transition hover:bg-amber-50" disabled={loading} onClick={() => onEdit(estimate)} type="button"><Edit3 size={16} />Edit</button>
             <button aria-label="Hapus estimasi vendor" className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-sm font-bold text-rose-700 transition hover:bg-rose-50" disabled={loading} onClick={() => setConfirmDelete(true)} type="button"><Trash2 size={16} />Hapus</button>
           </div>
@@ -89,10 +164,13 @@ export function VendorEstimateDetailView({ estimate, loading, onBack, onDelete, 
       <section className="rounded-4xl border border-white/80 bg-white p-6 shadow-xl shadow-slate-300/40">
         <h3 className="text-lg font-black tracking-tight text-slate-950">Ringkasan estimasi vendor</h3>
         <dl className="mt-4 grid gap-3 md:grid-cols-2">
-          <DetailField label="Judul proyek" value={estimate.projectTitle} />
+          <DetailField label="Nama Job" value={estimate.projectTitle} />
           <DetailField label="Nama vendor" value={estimate.vendorName} />
-          <DetailField label="Info proyek" value={estimate.projectInfo} />
-          <DetailField label="Harga" value={formatIdr(estimate.price)} />
+          <DetailField label="Nama AE" value={estimate.aeName} />
+          <DetailField label="No Job" value={estimate.jobNo} />
+          <DetailField label="Kuantiti" value={quantity} />
+          <DetailField label="Harga satuan" value={formatIdr(unitPrice)} />
+          <DetailField label="Total harga" value={formatIdr(estimate.price)} />
           <DetailField label="Diperbarui" value={estimate.updatedAt ? new Date(estimate.updatedAt).toLocaleString('id-ID') : '-'} />
         </dl>
       </section>

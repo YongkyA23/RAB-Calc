@@ -24,7 +24,7 @@ export function filterQuotes(quotes, filters) {
 
   return quotes.filter((quote) => {
     const haystack = normalizeSearchText(
-      [quote.jobNo, quote.sku, quote.client, quote.project, quote.createdByName].join(' '),
+      [quote.jobNo, quote.sku, quote.client, quote.project, quote.aeName, quote.createdByName].join(' '),
     )
     const date = quoteDateOnly(quote)
 
@@ -46,6 +46,7 @@ export function buildDraftFromQuote(quote) {
     sku: quote.sku ?? '',
     client: quote.client ?? '',
     project: quote.project ?? '',
+    aeName: quote.aeName ?? '',
   }
   draft.sourceQuoteId = quote.id
 

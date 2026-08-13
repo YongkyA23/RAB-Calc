@@ -6,7 +6,7 @@ import App from './App'
 
 const authMocks = vi.hoisted(() => ({
   currentUser: null,
-  signInWithGoogle: vi.fn(),
+  getPortalSessionClaims: vi.fn(),
   signOutUser: vi.fn(),
   subscribeToAuthState: vi.fn((callback) => {
     callback(authMocks.currentUser)
@@ -15,13 +15,9 @@ const authMocks = vi.hoisted(() => ({
 }))
 
 const firestoreMocks = vi.hoisted(() => ({
-  ensureInitialAllowlistEmails: vi.fn(),
-  getAllowlistEmails: vi.fn(),
-  getUserInviteByEmail: vi.fn(),
+  getSsoAccess: vi.fn(),
   getUserProfile: vi.fn(),
-  getUserProfileCount: vi.fn(),
-  normalizeEmail: vi.fn((email) => email.trim().toLowerCase()),
-  saveUserProfile: vi.fn(),
+  subscribeToSsoAccess: vi.fn(() => vi.fn()),
 }))
 
 vi.mock('./features/auth/authService', () => authMocks)
@@ -36,10 +32,9 @@ describe('App paper calculator route', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     authMocks.currentUser = null
-    firestoreMocks.ensureInitialAllowlistEmails.mockResolvedValue(undefined)
-    firestoreMocks.getAllowlistEmails.mockResolvedValue(['user@example.com'])
+    authMocks.getPortalSessionClaims.mockResolvedValue({ portalAccess: true, appId: 'rab-calc', ssoVersion: 2, centralUid: 'central-1', grantVersion: 1 })
+    firestoreMocks.getSsoAccess.mockResolvedValue({ id: 'u1', appId: 'rab-calc', centralUid: 'central-1', grantVersion: 1, enabled: true, role: 'estimator' })
     firestoreMocks.getUserProfile.mockResolvedValue({ uid: 'u1', email: 'user@example.com', name: 'User', role: 'Estimator', status: 'active' })
-    firestoreMocks.getUserProfileCount.mockResolvedValue(1)
   })
 
   it('keeps the calculator behind existing authentication', async () => {
@@ -55,4 +50,3 @@ describe('App paper calculator route', () => {
     expect(await screen.findByText('Internal paper calculator')).toBeInTheDocument()
   })
 })
-

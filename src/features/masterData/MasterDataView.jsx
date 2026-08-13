@@ -12,6 +12,7 @@ import {
 import { useMemo, useState } from 'react'
 import { TableSkeletonRows } from '../../components/ui/Table'
 import { formatIdr } from '../../lib/format'
+import { PRICE_SIZE_OPTIONS } from '../../lib/calculations'
 import {
   buildPriceItemPayload,
   createPriceItemId,
@@ -31,10 +32,10 @@ function Field({ children, label }) {
   )
 }
 
-function TextInput(props) {
+function TextInput({ className = '', ...props }) {
   return (
     <input
-      className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium outline-none transition hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+      className={`mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium outline-none transition hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 ${className}`}
       {...props}
     />
   )
@@ -55,9 +56,15 @@ function numberInputProps() {
 
 function formatRate(item) {
   if (item.categoryLayer === 'print' || item.categoryLayer === 'digital') {
-    const prices = [`A3 ${formatIdr(item.prices?.A3)}`]
-    if (!item.a3Only) prices.push(`B2 ${formatIdr(item.prices?.B2)}`)
-    return prices.join(' · ')
+    return PRICE_SIZE_OPTIONS
+      .filter(({ value }) => Number(item.prices?.[value]) > 0)
+      .map(({ label, value }) => {
+        const bulkPrice = Number(item.pricesAbove10?.[value]) > 0
+          ? formatIdr(item.pricesAbove10[value])
+          : formatIdr(item.prices?.[value])
+        return `${label}: 1–10 ${formatIdr(item.prices?.[value])}, >10 ${bulkPrice}`
+      })
+      .join(' · ')
   }
 
   if (item.categoryLayer === 'manual') {
@@ -112,11 +119,11 @@ export function MasterDataView({
   }
 
   function updateDraft(path, value) {
-    if (path.startsWith('prices.')) {
-      const size = path.split('.')[1]
+    if (path.startsWith('prices.') || path.startsWith('pricesAbove10.')) {
+      const [priceGroup, size] = path.split('.')
       setDraft((current) => ({
         ...current,
-        prices: { ...current.prices, [size]: value },
+        [priceGroup]: { ...current[priceGroup], [size]: value },
       }))
       return
     }
@@ -282,14 +289,26 @@ export function MasterDataView({
 
             {hasField('prices') ? (
               <>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Harga A3">
-                    <TextInput {...numberInputProps()} onChange={(event) => updateDraft('prices.A3', event.target.value)} value={draft.prices?.A3 ?? ''} />
-                  </Field>
-                  <Field label="Harga B2">
-                    <TextInput {...numberInputProps()} disabled={draft.a3Only} onChange={(event) => updateDraft('prices.B2', event.target.value)} value={draft.a3Only ? '' : draft.prices?.B2 ?? ''} />
-                  </Field>
+                <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                  <div className="grid min-w-[34rem] grid-cols-[minmax(7rem,0.8fr)_1fr_1fr] gap-3 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500">
+                    <span>Ukuran</span>
+                    <span>Harga 1–10</span>
+                    <span>Harga &gt; 10</span>
+                  </div>
+                  <div className="min-w-[34rem] divide-y divide-slate-100 bg-white">
+                    {PRICE_SIZE_OPTIONS.map(({ label, value }) => {
+                      const disabled = draft.a3Only && value !== 'A3'
+                      return (
+                        <div className="grid grid-cols-[minmax(7rem,0.8fr)_1fr_1fr] items-center gap-3 px-4 py-3" key={value}>
+                          <span className="text-sm font-black text-slate-800">{label}</span>
+                          <TextInput {...numberInputProps()} aria-label={`Harga ${label} (1–10)`} className="mt-0" disabled={disabled} onChange={(event) => updateDraft(`prices.${value}`, event.target.value)} value={disabled ? '' : draft.prices?.[value] ?? ''} />
+                          <TextInput {...numberInputProps()} aria-label={`Harga ${label} (> 10)`} className="mt-0" disabled={disabled} onChange={(event) => updateDraft(`pricesAbove10.${value}`, event.target.value)} value={disabled ? '' : draft.pricesAbove10?.[value] ?? ''} />
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
+                <p className="text-xs font-semibold leading-relaxed text-slate-500">Harga lama digunakan untuk jumlah 1–10. Jika harga &gt; 10 dikosongkan, estimasi memakai harga 1–10.</p>
                 {hasField('a3Only') ? (
                   <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700">
                     <input checked={Boolean(draft.a3Only)} onChange={(event) => updateDraft('a3Only', event.target.checked)} type="checkbox" />

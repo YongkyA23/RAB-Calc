@@ -42,6 +42,7 @@ export function createDraftForJob(group) {
     ...draft.header,
     jobNo: group.key === '__without-job' ? '' : group.jobNo,
     client: latestEstimate?.client ?? '',
+    aeName: latestEstimate?.aeName ?? '',
   }
   return draft
 }
@@ -50,7 +51,11 @@ export function buildDraftFromEstimate(estimate) {
   const draft = estimate.draft ? { ...estimate.draft } : buildDraftFromQuote(estimate)
   return {
     ...draft,
-    header: { ...draft.header, jobNo: estimate.jobNo ?? draft.header?.jobNo ?? '' },
+    header: {
+      ...draft.header,
+      jobNo: estimate.jobNo ?? draft.header?.jobNo ?? '',
+      aeName: estimate.aeName ?? draft.header?.aeName ?? '',
+    },
     sourceQuoteId: estimate.id,
   }
 }

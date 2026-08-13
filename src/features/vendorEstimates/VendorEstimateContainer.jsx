@@ -15,17 +15,25 @@ import {
   validateVendorEstimateDraft,
 } from './vendorEstimateModel'
 import { VendorEstimateListView } from './VendorEstimateListView'
+import { printVendorEstimatePdf } from '../../lib/vendorEstimatePdf'
 
 function buildVendorEstimateId() {
   return `vendor-estimate-${Date.now()}-${Math.floor(Math.random() * 10000)}`
 }
 
 function buildDraftFromEstimate(estimate) {
+  const quantity = Number(estimate?.quantity) > 0 ? Number(estimate.quantity) : 1
+  const unitPrice = Number(estimate?.unitPrice) > 0
+    ? Number(estimate.unitPrice)
+    : Number(estimate?.price) || ''
+
   return {
     projectTitle: estimate?.projectTitle ?? '',
-    projectInfo: estimate?.projectInfo ?? '',
     vendorName: estimate?.vendorName ?? '',
-    price: estimate?.price ?? '',
+    aeName: estimate?.aeName ?? '',
+    jobNo: estimate?.jobNo ?? '',
+    quantity,
+    unitPrice,
     attachmentUrl: estimate?.attachmentUrl ?? '',
     attachmentName: estimate?.attachmentName ?? '',
     attachmentType: estimate?.attachmentType ?? '',
@@ -222,6 +230,14 @@ export function VendorEstimateContainer({ profile }) {
     URL.revokeObjectURL(url)
   }
 
+  async function handleGeneratePdf(estimate) {
+    try {
+      await printVendorEstimatePdf(estimate)
+    } catch (exportError) {
+      toast.error(exportError.message)
+    }
+  }
+
   const currentEstimate = selectedEstimate ?? routeEstimate
 
   return (
@@ -246,6 +262,7 @@ export function VendorEstimateContainer({ profile }) {
           onBack={() => navigate('/vendor-estimates')}
           onDelete={handleDeleteEstimate}
           onEdit={handleEditEstimate}
+          onGeneratePdf={handleGeneratePdf}
         />
       ) : null}
 

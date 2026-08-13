@@ -34,6 +34,7 @@ export const DEFAULT_CATEGORIES = [
 const baseItem = {
   active: true,
   prices: {},
+  pricesAbove10: {},
   toolingRate: null,
   laborRate: null,
   minimumCharge: null,

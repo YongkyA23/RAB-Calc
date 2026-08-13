@@ -35,6 +35,24 @@ describe('calculation engine', () => {
     ).toBe(240000)
   })
 
+  it('uses the bulk price only when quantity is above 10', () => {
+    const item = {
+      prices: { A3: 25000 },
+      pricesAbove10: { A3: 20000 },
+    }
+
+    expect(calculatePrintLineTotal({ qty: 10, item, size: 'A3' })).toBe(250000)
+    expect(calculatePrintLineTotal({ qty: 11, item, size: 'A3' })).toBe(220000)
+  })
+
+  it('calculates Large Format and falls back to the 1–10 price for old data', () => {
+    expect(calculatePrintLineTotal({
+      qty: 12,
+      item: { prices: { LARGE_FORMAT: 75000 } },
+      size: 'LARGE_FORMAT',
+    })).toBe(900000)
+  })
+
   it('applies numeric manual finishing minimum when formula is lower', () => {
     expect(
       calculateManualLineTotal({

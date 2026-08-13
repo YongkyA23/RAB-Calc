@@ -13,7 +13,8 @@ describe('master data model', () => {
     expect(getEmptyPriceItemDraft('print')).toMatchObject({
       categoryLayer: 'print',
       name: '',
-      prices: { A3: 0, B2: 0 },
+      prices: { A3: 0, B2: 0, LARGE_FORMAT: 0 },
+      pricesAbove10: { A3: 0, B2: 0, LARGE_FORMAT: 0 },
       active: true,
     })
   })
@@ -25,7 +26,8 @@ describe('master data model', () => {
         categoryId: 'print-materials',
         categoryLayer: 'print',
         name: 'Duplex',
-        prices: { A3: '30000', B2: '40000' },
+        prices: { A3: '30000', B2: '40000', LARGE_FORMAT: '80000' },
+        pricesAbove10: { A3: '25000', B2: '35000', LARGE_FORMAT: '70000' },
         turnaroundDays: '2',
         active: true,
       }),
@@ -34,7 +36,8 @@ describe('master data model', () => {
       categoryId: 'print-materials',
       categoryLayer: 'print',
       name: 'Duplex',
-      prices: { A3: 30000, B2: 40000 },
+      prices: { A3: 30000, B2: 40000, LARGE_FORMAT: 80000 },
+      pricesAbove10: { A3: 25000, B2: 35000, LARGE_FORMAT: 70000 },
       turnaroundDays: 2,
       active: true,
     })
@@ -60,7 +63,20 @@ describe('master data model', () => {
       name: 'Sticker',
       prices: { A3: '25000', B2: '40000' },
       a3Only: true,
-    }).prices).toEqual({ A3: 25000, B2: null })
+    }).prices).toEqual({ A3: 25000, B2: null, LARGE_FORMAT: null })
+  })
+
+  it('keeps Large Format optional and rejects a bulk-only Large Format price', () => {
+    const draft = {
+      name: 'Sticker Large Format',
+      categoryId: 'print-materials',
+      prices: { A3: 25000, B2: 40000, LARGE_FORMAT: '' },
+      pricesAbove10: { LARGE_FORMAT: 60000 },
+    }
+
+    expect(validatePriceItemDraft(draft, ['name', 'prices'])).toContain(
+      'Isi harga Large Format 1–10 sebelum harga > 10',
+    )
   })
 
   it('validates only fields required by the selected category', () => {

@@ -9,6 +9,7 @@ const estimate = {
   sku: 'SKU-B',
   client: 'PT Beta',
   project: 'Label',
+  aeName: 'Ayu',
   grandTotal: 253000,
   turnaroundDays: 2,
   lineItems: [
@@ -53,6 +54,7 @@ describe('PriceEstimationDetailView', () => {
     expect(screen.getByText('SKU-B')).toBeInTheDocument()
     expect(screen.getByText('PT Beta')).toBeInTheDocument()
     expect(screen.getByText('Label')).toBeInTheDocument()
+    expect(screen.getByText('Ayu')).toBeInTheDocument()
     expect(screen.getByText('Art Carton')).toBeInTheDocument()
     expect(screen.getByText('Ukuran: A3')).toBeInTheDocument()
     expect(screen.getAllByText('Jumlah: 2').length).toBeGreaterThan(0)

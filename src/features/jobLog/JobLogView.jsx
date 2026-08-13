@@ -43,7 +43,14 @@ export function JobLogView({ loading, onDuplicateQuote, onExportCsv, quotes }) {
             <h2 className="text-xl font-bold text-slate-950">Log Pekerjaan</h2>
             <p className="mt-2 text-sm text-slate-600">Cari, tinjau, duplikat, dan ekspor quote tersimpan.</p>
           </div>
-
+          <button
+            className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+            disabled={loading || visibleQuotes.length === 0}
+            onClick={exportCsv}
+            type="button"
+          >
+            Export CSV
+          </button>
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">

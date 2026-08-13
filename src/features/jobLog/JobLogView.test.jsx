@@ -108,6 +108,7 @@ describe("JobLogView", () => {
     fireEvent.change(screen.getByLabelText("Cari"), {
       target: { value: "beta" },
     });
+    fireEvent.click(screen.getByRole("button", { name: "Export CSV" }));
 
     expect(onExportCsv).toHaveBeenCalledWith(
       [quotes[1]],

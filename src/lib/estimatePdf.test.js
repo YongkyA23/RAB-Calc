@@ -9,6 +9,7 @@ const estimate = {
   sku: 'SKU-1',
   client: 'PT <Client>',
   project: 'Carton & Label',
+  aeName: 'Ayu <AE>',
   createdByName: 'Admin',
   totals: { print: 1000, digital: 2000, manual: 3000, manpower: 4000, additional: 5000 },
   grandTotal: 15000,
@@ -40,6 +41,8 @@ describe('estimate PDF helpers', () => {
     expect(html).toContain('SKU-1')
     expect(html).toContain('PT &lt;Client&gt;')
     expect(html).toContain('Carton &amp; Label')
+    expect(html).toContain('Account Executive')
+    expect(html).toContain('Ayu &lt;AE&gt;')
     expect(html).toContain('Rp 15.000')
     expect(html).toContain('Duplex &lt;270&gt;')
     expect(html).toContain('Notes: &lt;rush&gt;')

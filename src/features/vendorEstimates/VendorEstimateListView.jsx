@@ -13,6 +13,8 @@ function sortValue(estimate, key) {
       return (estimate.projectTitle || '').toLowerCase()
     case 'vendor':
       return (estimate.vendorName || '').toLowerCase()
+    case 'ae':
+      return (estimate.aeName || '').toLowerCase()
     case 'price':
       return Number(estimate.price) || 0
     case 'updated':
@@ -136,9 +138,10 @@ export function VendorEstimateListView({ estimates, loading, onBulkDelete, onCre
               <th className="w-10 px-4 py-3">
                 <input aria-label="Pilih semua" checked={allVisibleSelected} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200" onChange={toggleSelectAll} type="checkbox" />
               </th>
-              <SortHeader onSort={handleSort} sort={sort} sortKey="project">Proyek</SortHeader>
+              <SortHeader onSort={handleSort} sort={sort} sortKey="project">Nama Job</SortHeader>
               <SortHeader onSort={handleSort} sort={sort} sortKey="vendor">Vendor</SortHeader>
-              <SortHeader onSort={handleSort} sort={sort} sortKey="price">Harga</SortHeader>
+              <SortHeader onSort={handleSort} sort={sort} sortKey="ae">Nama AE</SortHeader>
+              <SortHeader onSort={handleSort} sort={sort} sortKey="price">Total Harga</SortHeader>
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Lampiran</th>
               <SortHeader onSort={handleSort} sort={sort} sortKey="updated">Diperbarui</SortHeader>
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Aksi</th>
@@ -146,10 +149,10 @@ export function VendorEstimateListView({ estimates, loading, onBulkDelete, onCre
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
             {loading ? (
-              <TableSkeletonRows columns={7} />
+              <TableSkeletonRows columns={8} />
             ) : visibleEstimates.length === 0 ? (
               <tr>
-                <td className="px-4 py-16 text-center" colSpan={7}>
+                <td className="px-4 py-16 text-center" colSpan={8}>
                   <div className="flex flex-col items-center gap-3">
                     <span className="grid h-14 w-14 place-items-center rounded-2xl bg-slate-100 text-slate-400">
                       <FileText size={26} />
@@ -175,6 +178,7 @@ export function VendorEstimateListView({ estimates, loading, onBulkDelete, onCre
                 </td>
                 <td className="px-4 py-3 font-semibold text-slate-900">{estimate.projectTitle || '-'}</td>
                 <td className="px-4 py-3 text-slate-600">{estimate.vendorName || '-'}</td>
+                <td className="px-4 py-3 text-slate-600">{estimate.aeName || '-'}</td>
                 <td className="px-4 py-3 text-slate-600">{formatIdr(estimate.price)}</td>
                 <td className="px-4 py-3 text-slate-600">{estimate.attachmentName || '-'}</td>
                 <td className="px-4 py-3 text-slate-600">{estimate.updatedAt ? new Date(estimate.updatedAt).toLocaleDateString('id-ID') : '-'}</td>

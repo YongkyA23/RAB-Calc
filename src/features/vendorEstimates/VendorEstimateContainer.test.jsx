@@ -25,9 +25,12 @@ const { uploadToCloudinary } = await import('../../lib/cloudinary')
 const estimate = {
   id: 've-1',
   projectTitle: 'Project A',
-  projectInfo: 'Info A',
   vendorName: 'Vendor A',
-  price: 1000,
+  aeName: 'Ayu',
+  jobNo: 'JOB-001',
+  quantity: 2,
+  unitPrice: 1000,
+  price: 2000,
   attachmentUrl: 'https://res.cloudinary.com/demo/raw/upload/a.pdf',
   attachmentName: 'a.pdf',
   attachmentType: 'pdf',
@@ -61,21 +64,26 @@ describe('VendorEstimateContainer', () => {
   it('loads edit form values on route refresh', async () => {
     renderRoute('/vendor-estimates/ve-1/edit')
 
-    await waitFor(() => expect(screen.getByLabelText('Judul proyek')).toHaveValue('Project A'))
-    expect(screen.getByLabelText('Info proyek')).toHaveValue('Info A')
+    await waitFor(() => expect(screen.getByLabelText('Nama Job')).toHaveValue('Project A'))
     expect(screen.getByLabelText('Nama vendor')).toHaveValue('Vendor A')
-    expect(screen.getByLabelText('Harga')).toHaveValue(1000)
+    expect(screen.getByLabelText('Nama AE')).toHaveValue('Ayu')
+    expect(screen.getByLabelText('No Job')).toHaveValue('JOB-001')
+    expect(screen.getByLabelText('Kuantiti')).toHaveValue(2)
+    expect(screen.getByLabelText('Harga satuan')).toHaveValue(1000)
+    expect(screen.getByLabelText('Total harga')).toHaveValue('Rp 2.000')
   })
 
   it('submits create form after uploading an attachment', async () => {
     const { container } = renderRoute('/vendor-estimates/new')
 
-    await waitFor(() => expect(screen.getByLabelText('Judul proyek')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByLabelText('Nama Job')).toBeInTheDocument())
 
-    fireEvent.change(screen.getByLabelText('Judul proyek'), { target: { value: 'Project X' } })
-    fireEvent.change(screen.getByLabelText('Info proyek'), { target: { value: 'Info X' } })
+    fireEvent.change(screen.getByLabelText('Nama Job'), { target: { value: 'Project X' } })
     fireEvent.change(screen.getByLabelText('Nama vendor'), { target: { value: 'Vendor X' } })
-    fireEvent.change(screen.getByLabelText('Harga'), { target: { value: '2000' } })
+    fireEvent.change(screen.getByLabelText('Nama AE'), { target: { value: 'Ayu' } })
+    fireEvent.change(screen.getByLabelText('No Job'), { target: { value: 'JOB-X' } })
+    fireEvent.change(screen.getByLabelText('Kuantiti'), { target: { value: '3' } })
+    fireEvent.change(screen.getByLabelText('Harga satuan'), { target: { value: '2000' } })
 
     const file = new File(['pdf'], 'quote.pdf', { type: 'application/pdf' })
     const fileInput = container.querySelector('#vendor-attachment-upload')
@@ -85,6 +93,12 @@ describe('VendorEstimateContainer', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Simpan Estimasi Vendor' }))
 
-    await waitFor(() => expect(saveVendorEstimate).toHaveBeenCalled())
+    await waitFor(() => expect(saveVendorEstimate).toHaveBeenCalledWith(expect.objectContaining({
+      jobNo: 'JOB-X',
+      aeName: 'Ayu',
+      quantity: 3,
+      unitPrice: 2000,
+      price: 6000,
+    })))
   })
 })

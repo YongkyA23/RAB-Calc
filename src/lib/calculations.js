@@ -18,8 +18,17 @@ function optionalNumber(value, fallback = 0) {
   return number
 }
 
-function getUnitPrice(item, size) {
-  const price = item?.prices?.[size]
+export const PRICE_SIZE_OPTIONS = [
+  { value: 'A3', label: 'A3' },
+  { value: 'B2', label: 'B2' },
+  { value: 'LARGE_FORMAT', label: 'Large Format' },
+]
+
+export function getUnitPrice(item, size, qty = 1) {
+  const standardPrice = item?.prices?.[size]
+  const bulkPrice = item?.pricesAbove10?.[size]
+  const hasBulkPrice = Number.isFinite(Number(bulkPrice)) && Number(bulkPrice) > 0
+  const price = Number(qty) > 10 && hasBulkPrice ? bulkPrice : standardPrice
 
   if (!Number.isFinite(Number(price)) || Number(price) <= 0) {
     throw new Error(`No price is configured for ${size}`)
@@ -29,11 +38,13 @@ function getUnitPrice(item, size) {
 }
 
 export function calculatePrintLineTotal({ item, size, qty }) {
-  return getUnitPrice(item, size) * requirePositiveNumber(qty, 'Qty')
+  const quantity = requirePositiveNumber(qty, 'Qty')
+  return getUnitPrice(item, size, quantity) * quantity
 }
 
 export function calculateDigitalLineTotal({ item, size, qty }) {
-  return getUnitPrice(item, size) * requirePositiveNumber(qty, 'Qty')
+  const quantity = requirePositiveNumber(qty, 'Qty')
+  return getUnitPrice(item, size, quantity) * quantity
 }
 
 export function calculateManualLineTotal({ item, p, l, qty, jmlAlat = 1 }) {

@@ -6,7 +6,6 @@ import {
   LogOut,
   Ruler,
   Sparkles,
-  Users,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
@@ -18,7 +17,6 @@ const viewTitles = {
   paperCalculator: "Hitung Kertas",
   vendorEstimates: "Estimasi Vendor",
   masterData: "Daftar Harga / Master Data",
-  userManagement: "Manajemen Pengguna",
 };
 
 const viewDescriptions = {
@@ -30,7 +28,6 @@ const viewDescriptions = {
   vendorEstimates:
     "Simpan quote vendor beserta info proyek, harga, dan lampiran file.",
   masterData: "Kelola tarif katalog, default, dan riwayat audit.",
-  userManagement: "Kelola role pengguna dan status akses aplikasi.",
 };
 
 const navIcons = {
@@ -39,7 +36,6 @@ const navIcons = {
   paperCalculator: Ruler,
   vendorEstimates: FileText,
   masterData: Database,
-  userManagement: Users,
 };
 
 const routeByView = {
@@ -48,7 +44,6 @@ const routeByView = {
   paperCalculator: "/hitung-kertas",
   vendorEstimates: "/vendor-estimates",
   masterData: "/master-data",
-  userManagement: "/users",
 };
 
 function viewFromPath(pathname) {
@@ -56,7 +51,6 @@ function viewFromPath(pathname) {
   if (pathname.startsWith("/hitung-kertas")) return "paperCalculator";
   if (pathname.startsWith("/vendor-estimates")) return "vendorEstimates";
   if (pathname.startsWith("/master-data")) return "masterData";
-  if (pathname.startsWith("/users")) return "userManagement";
   if (pathname.startsWith("/estimates")) return "priceEstimation";
   return "dashboard";
 }

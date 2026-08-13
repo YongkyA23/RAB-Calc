@@ -8,6 +8,8 @@ import {
   calculateManualLineTotal,
   calculateManpowerLineTotal,
   calculatePrintLineTotal,
+  getUnitPrice,
+  PRICE_SIZE_OPTIONS,
 } from '../../lib/calculations'
 import { formatIdr } from '../../lib/format'
 import { createEmptyQuoteDraft, validateQuoteDraft, buildQuoteFromDraft } from './estimationModel'
@@ -227,13 +229,16 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
             <Field label="Proyek">
               <Input onChange={(event) => updateHeader('project', event.target.value)} value={draft.header.project} />
             </Field>
+            <Field label="Nama AE">
+              <Input onChange={(event) => updateHeader('aeName', event.target.value)} value={draft.header.aeName ?? ''} />
+            </Field>
           </div>
         </section>
 
         <LayerCard addLabel="Tambah baris print" icon={Printer} id="print-items" onAdd={() => addLine('print')} title="Print">
           {draft.print.map((line, index) => {
             const item = findItem(line.itemId)
-            const unitPrice = Number(item?.prices?.[line.size]) || 0
+            const unitPrice = safeLineTotal(() => getUnitPrice(item, line.size, line.qty))
             const total = safeLineTotal(() => calculatePrintLineTotal({ item, size: line.size ?? 'A3', qty: line.qty }))
             return (
               <LineRow key={index} onRemove={() => removeLine('print', index)} removeLabel={`Hapus baris print ${index + 1}`}>
@@ -245,8 +250,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
                   </Field>
                   <Field label="Ukuran">
                     <Select onChange={(event) => updateLine('print', index, 'size', event.target.value)} value={line.size}>
-                      <option value="A3">A3</option>
-                      <option value="B2">B2</option>
+                      {PRICE_SIZE_OPTIONS.map(({ label, value }) => <option key={value} value={value}>{label}</option>)}
                     </Select>
                   </Field>
                   <Field label="Jumlah">
@@ -262,7 +266,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
         <LayerCard addLabel="Tambah baris digital" icon={Sparkles} id="digital-finishing" onAdd={() => addLine('digital')} title="Digital Finishing">
           {draft.digital.map((line, index) => {
             const item = findItem(line.itemId)
-            const unitPrice = Number(item?.prices?.[line.size]) || 0
+            const unitPrice = safeLineTotal(() => getUnitPrice(item, line.size, line.qty))
             const total = safeLineTotal(() => calculateDigitalLineTotal({ item, size: line.size ?? 'A3', qty: line.qty }))
             return (
               <LineRow key={index} onRemove={() => removeLine('digital', index)} removeLabel={`Hapus baris digital ${index + 1}`}>
@@ -274,8 +278,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
                   </Field>
                   <Field label="Ukuran">
                     <Select onChange={(event) => updateLine('digital', index, 'size', event.target.value)} value={line.size}>
-                      <option value="A3">A3</option>
-                      <option value="B2">B2</option>
+                      {PRICE_SIZE_OPTIONS.map(({ label, value }) => <option key={value} value={value}>{label}</option>)}
                     </Select>
                   </Field>
                   <Field label="Jumlah">

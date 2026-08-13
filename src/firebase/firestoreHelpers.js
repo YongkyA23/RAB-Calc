@@ -7,6 +7,7 @@ import {
   getDocs,
   limit,
   orderBy,
+  onSnapshot,
   query,
   setDoc,
   updateDoc,
@@ -161,6 +162,19 @@ export async function listEstimates() {
 
 export async function listQuotes() {
   return listEstimates()
+}
+
+export async function getSsoAccess(uid) {
+  const snapshot = await getDoc(doc(db, 'ssoAccess', uid))
+  return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null
+}
+
+export function subscribeToSsoAccess(uid, onValue, onError) {
+  return onSnapshot(
+    doc(db, 'ssoAccess', uid),
+    (snapshot) => onValue(snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null),
+    onError,
+  )
 }
 
 export async function listActualCosts() {

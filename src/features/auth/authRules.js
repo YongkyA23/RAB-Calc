@@ -4,16 +4,11 @@ export const NAVIGATION_ITEMS = [
   { key: 'paperCalculator', label: 'Hitung Kertas', adminOnly: false },
   { key: 'vendorEstimates', label: 'Estimasi Vendor', adminOnly: false },
   { key: 'masterData', label: 'Daftar Harga / Master Data', adminOnly: true },
-  { key: 'userManagement', label: 'Manajemen Pengguna', adminOnly: true },
 ]
 
-export function getAccessState({ user, profile, profileCount }) {
+export function getAccessState({ user, profile }) {
   if (!user) {
     return 'signedOut'
-  }
-
-  if (!profile && profileCount === 0) {
-    return 'needsBootstrap'
   }
 
   if (!profile) {

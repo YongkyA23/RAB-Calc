@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { EstimationView } from './EstimationView'
 
 const priceItems = [
-  { id: 'print-duplex', categoryLayer: 'print', name: 'Duplex', prices: { A3: 30000, B2: 40000 }, turnaroundDays: 1 },
+  { id: 'print-duplex', categoryLayer: 'print', name: 'Duplex', prices: { A3: 30000, B2: 40000, LARGE_FORMAT: 80000 }, pricesAbove10: { A3: 25000, B2: 35000, LARGE_FORMAT: 70000 }, turnaroundDays: 1 },
   { id: 'digital-lam', categoryLayer: 'digital', name: 'Laminating', prices: { A3: 10000, B2: 15000 }, turnaroundDays: 1 },
   { id: 'manual-die', categoryLayer: 'manual', name: 'Die Cut Manual', toolingRate: 3500, laborRate: 15, minimumType: 'numeric', minimumCharge: 250000, turnaroundDays: 3 },
   { id: 'manpower-default', categoryLayer: 'manpower', name: 'Default Manpower', dailyRate: 275000, turnaroundDays: 0 },
@@ -17,6 +17,7 @@ describe('EstimationView', () => {
     render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
 
     expect(screen.getByLabelText('No Job')).toBeInTheDocument()
+    expect(screen.getByLabelText('Nama AE')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Tambah baris print' })).toBeInTheDocument()
     expect(screen.getByText('Total Keseluruhan')).toBeInTheDocument()
   })
@@ -29,8 +30,18 @@ describe('EstimationView', () => {
     fireEvent.change(screen.getByLabelText('Ukuran'), { target: { value: 'B2' } })
     fireEvent.change(screen.getByLabelText('Jumlah'), { target: { value: '110' } })
 
-    expect(screen.getAllByText('Rp 4.400.000')).toHaveLength(2)
-    expect(screen.getByText('Rp 40.000 × 110 = Rp 4.400.000')).toBeInTheDocument()
+    expect(screen.getAllByText('Rp 3.850.000')).toHaveLength(2)
+    expect(screen.getByText('Rp 35.000 × 110 = Rp 3.850.000')).toBeInTheDocument()
+  })
+
+  it('offers Large Format and uses its bulk price', () => {
+    render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tambah baris print' }))
+    fireEvent.change(screen.getByLabelText('Ukuran'), { target: { value: 'LARGE_FORMAT' } })
+    fireEvent.change(screen.getByLabelText('Jumlah'), { target: { value: '11' } })
+
+    expect(screen.getByText('Rp 70.000 × 11 = Rp 770.000')).toBeInTheDocument()
   })
 
   it('uses the paper purchase rate from master data', () => {
@@ -83,6 +94,7 @@ describe('EstimationView', () => {
     fireEvent.change(screen.getByLabelText('SKU'), { target: { value: 'SKU-1' } })
     fireEvent.change(screen.getByLabelText('Klien'), { target: { value: 'PT Client' } })
     fireEvent.change(screen.getByLabelText('Proyek'), { target: { value: 'Mockup' } })
+    fireEvent.change(screen.getByLabelText('Nama AE'), { target: { value: 'Ayu' } })
     fireEvent.click(screen.getByRole('button', { name: 'Tambah baris print' }))
     fireEvent.change(screen.getByLabelText('Material'), { target: { value: 'print-duplex' } })
     fireEvent.change(screen.getByLabelText('Jumlah'), { target: { value: '2' } })

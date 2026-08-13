@@ -24,7 +24,8 @@ export function getEmptyPriceItemDraft(layer) {
     categoryId: '',
     categoryLayer: layer,
     name: '',
-    prices: { A3: 0, B2: 0 },
+    prices: { A3: 0, B2: 0, LARGE_FORMAT: 0 },
+    pricesAbove10: { A3: 0, B2: 0, LARGE_FORMAT: 0 },
     toolingRate: null,
     laborRate: null,
     minimumCharge: null,
@@ -41,6 +42,10 @@ export function getEmptyPriceItemDraft(layer) {
 
 export function buildPriceItemPayload(draft) {
   const a3Only = Boolean(draft.a3Only)
+  const optionalPrice = (value) => {
+    const parsed = parseNumberInput(value)
+    return parsed > 0 ? parsed : null
+  }
 
   return {
     ...draft,
@@ -48,6 +53,12 @@ export function buildPriceItemPayload(draft) {
     prices: {
       A3: parseNumberInput(draft.prices?.A3),
       B2: a3Only ? null : parseNumberInput(draft.prices?.B2),
+      LARGE_FORMAT: a3Only ? null : optionalPrice(draft.prices?.LARGE_FORMAT),
+    },
+    pricesAbove10: {
+      A3: optionalPrice(draft.pricesAbove10?.A3),
+      B2: a3Only ? null : optionalPrice(draft.pricesAbove10?.B2),
+      LARGE_FORMAT: a3Only ? null : optionalPrice(draft.pricesAbove10?.LARGE_FORMAT),
     },
     toolingRate: draft.toolingRate === null || draft.toolingRate === '' ? null : Number(draft.toolingRate),
     laborRate: draft.laborRate === null || draft.laborRate === '' ? null : Number(draft.laborRate),
@@ -79,6 +90,10 @@ export function validatePriceItemDraft(draft, fieldSchema) {
 
   if (hasField('prices') && !draft.a3Only && !positive(draft.prices?.B2)) {
     errors.push('Harga B2 harus lebih dari 0, atau pilih hanya A3')
+  }
+
+  if (hasField('prices') && positive(draft.pricesAbove10?.LARGE_FORMAT) && !positive(draft.prices?.LARGE_FORMAT)) {
+    errors.push('Isi harga Large Format 1–10 sebelum harga > 10')
   }
 
   if (hasField('laborRate') && !positive(draft.laborRate)) {

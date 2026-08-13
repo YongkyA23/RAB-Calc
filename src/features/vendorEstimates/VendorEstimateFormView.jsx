@@ -4,6 +4,8 @@ import { Button } from '../../components/ui/Button'
 import { Field, Input } from '../../components/ui/Form'
 import { useToast } from '../../components/ui/Toast'
 import { isCloudinaryConfigured, uploadToCloudinary } from '../../lib/cloudinary'
+import { formatIdr } from '../../lib/format'
+import { calculateVendorEstimateTotal } from './vendorEstimateModel'
 
 export function VendorEstimateFormView({
   draft,
@@ -17,6 +19,7 @@ export function VendorEstimateFormView({
   const toast = useToast()
   const [uploading, setUploading] = useState(false)
   const cloudinaryReady = isCloudinaryConfigured()
+  const totalPrice = calculateVendorEstimateTotal(draft.quantity, draft.unitPrice)
 
   async function handleUpload(file) {
     if (!file) return
@@ -59,18 +62,29 @@ export function VendorEstimateFormView({
       ) : null}
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
-        <Field label="Judul proyek">
+        <Field label="Nama Job">
           <Input onChange={(event) => onChange('projectTitle', event.target.value)} value={draft.projectTitle} />
         </Field>
         <Field label="Nama vendor">
           <Input onChange={(event) => onChange('vendorName', event.target.value)} value={draft.vendorName} />
         </Field>
-        <Field label="Info proyek">
-          <Input onChange={(event) => onChange('projectInfo', event.target.value)} value={draft.projectInfo} />
+        <Field label="No Job">
+          <Input onChange={(event) => onChange('jobNo', event.target.value)} value={draft.jobNo} />
         </Field>
-        <Field label="Harga">
-          <Input min="0" onChange={(event) => onChange('price', event.target.value)} step="1" type="number" value={draft.price} />
+        <Field label="Nama AE">
+          <Input onChange={(event) => onChange('aeName', event.target.value)} value={draft.aeName ?? ''} />
         </Field>
+        <Field label="Kuantiti">
+          <Input min="1" onChange={(event) => onChange('quantity', event.target.value)} step="1" type="number" value={draft.quantity} />
+        </Field>
+        <Field label="Harga satuan">
+          <Input min="0" onChange={(event) => onChange('unitPrice', event.target.value)} step="1" type="number" value={draft.unitPrice} />
+        </Field>
+        <div className="md:col-span-2">
+          <Field label="Total harga">
+            <Input aria-live="polite" className="cursor-not-allowed bg-blue-50 font-black text-blue-900" readOnly value={formatIdr(totalPrice)} />
+          </Field>
+        </div>
       </div>
 
       <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">

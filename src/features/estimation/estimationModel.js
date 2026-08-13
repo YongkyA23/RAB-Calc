@@ -6,12 +6,13 @@ import {
   calculateManpowerLineTotal,
   calculatePrintLineTotal,
   calculateTurnaroundDays,
+  getUnitPrice,
   sumLayerTotals,
 } from '../../lib/calculations'
 
 export function createEmptyQuoteDraft() {
   return {
-    header: { jobNo: '', sku: '', client: '', project: '' },
+    header: { jobNo: '', sku: '', client: '', project: '', aeName: '' },
     print: [],
     digital: [],
     manual: [],
@@ -46,6 +47,15 @@ function validateNonNegative(errors, value, message) {
   if (!isNonNegativeNumber(value)) errors.push(message)
 }
 
+function validateConfiguredPrice(errors, item, line, layerLabel) {
+  try {
+    getUnitPrice(item, line.size ?? 'A3', line.qty)
+  } catch {
+    const sizeLabel = line.size === 'LARGE_FORMAT' ? 'Large Format' : line.size ?? 'A3'
+    errors.push(`Harga ${layerLabel} untuk ukuran ${sizeLabel} belum tersedia`)
+  }
+}
+
 export function validateQuoteDraft(draft, priceItems) {
   const errors = []
 
@@ -53,14 +63,17 @@ export function validateQuoteDraft(draft, priceItems) {
   if (!draft.header.sku?.trim()) errors.push('SKU is required')
   if (!draft.header.client?.trim()) errors.push('Client is required')
   if (!draft.header.project?.trim()) errors.push('Project is required')
+  if (!draft.header.aeName?.trim()) errors.push('Nama AE wajib diisi')
   if (!hasAnyLine(draft)) errors.push('At least one cost line is required')
 
   for (const line of draft.print ?? []) {
     validatePositive(errors, line.qty, 'Print quantity must be greater than 0')
+    validateConfiguredPrice(errors, findItem(priceItems, line.itemId), line, 'print')
   }
 
   for (const line of draft.digital ?? []) {
     validatePositive(errors, line.qty, 'Digital quantity must be greater than 0')
+    validateConfiguredPrice(errors, findItem(priceItems, line.itemId), line, 'digital')
   }
 
   for (const line of draft.manual ?? []) {
@@ -116,13 +129,13 @@ export function buildQuoteFromDraft(draft, priceItems, createdBy) {
   const printLines = (draft.print ?? []).map((line) => {
     const item = findItem(priceItems, line.itemId)
     const computedTotal = calculatePrintLineTotal({ item, size: line.size ?? 'A3', qty: line.qty })
-    return buildLine({ layer: 'print', input: line, item, computedTotal })
+    return buildLine({ layer: 'print', input: line, item, computedTotal, details: { unitPrice: getUnitPrice(item, line.size ?? 'A3', line.qty) } })
   })
 
   const digitalLines = (draft.digital ?? []).map((line) => {
     const item = findItem(priceItems, line.itemId)
     const computedTotal = calculateDigitalLineTotal({ item, size: line.size ?? 'A3', qty: line.qty })
-    return buildLine({ layer: 'digital', input: line, item, computedTotal })
+    return buildLine({ layer: 'digital', input: line, item, computedTotal, details: { unitPrice: getUnitPrice(item, line.size ?? 'A3', line.qty) } })
   })
 
   const manualLines = (draft.manual ?? []).map((line) => {
