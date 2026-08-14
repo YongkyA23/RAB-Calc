@@ -38,7 +38,7 @@ function portalUrl() {
     configured ||
     (import.meta.env.DEV
       ? "http://localhost:5173"
-      : "https://portal.collabproject.web.id")
+      : "https://staging-portal.collabproject.web.id")
   );
 }
 

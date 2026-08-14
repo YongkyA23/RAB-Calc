@@ -10,7 +10,7 @@ export function portalLoginUrl() {
     import.meta.env.VITE_SSO_PORTAL_URL ||
     (import.meta.env.DEV
       ? "http://localhost:5173"
-      : "https://portal.collabproject.web.id/")
+      : "https://staging-portal.collabproject.web.id/")
   );
 }
 

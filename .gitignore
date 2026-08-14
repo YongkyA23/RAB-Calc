@@ -29,3 +29,5 @@ firebase.json
 .firebaserc
 firebase.json
 src/firebase/config.js
+.env.production
+.env.staging
