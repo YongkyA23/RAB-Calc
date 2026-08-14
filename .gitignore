@@ -24,10 +24,3 @@ dist-ssr
 *.sw?
 .env
 rab-calc-firebase-adminsdk-fbsvc-3e69b649bb.json
-src/firebase/config.js
-firebase.json
-.firebaserc
-firebase.json
-src/firebase/config.js
-.env.production
-.env.staging
