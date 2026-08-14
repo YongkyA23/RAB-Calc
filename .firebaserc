@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "rab-calc"
+    "default": "rab-staging",
+    "staging": "rab-staging",
+    "production": "rab-calc"
   }
 }
