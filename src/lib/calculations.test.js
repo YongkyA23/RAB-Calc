@@ -110,7 +110,7 @@ describe('calculation engine', () => {
 
   it('calculates additional manual amount and rate based totals', () => {
     expect(calculateAdditionalLineTotal({ mode: 'manual', amount: 125000 })).toBe(125000)
-    expect(calculateAdditionalLineTotal({ mode: 'manual', amount: 125000, quantity: 3 })).toBe(125000)
+    expect(calculateAdditionalLineTotal({ mode: 'manual', amount: 125000, quantity: 3 })).toBe(375000)
     expect(calculateAdditionalLineTotal({ mode: 'rate', quantity: 200, rate: 5000 })).toBe(1000000)
   })
 
@@ -121,7 +121,7 @@ describe('calculation engine', () => {
   })
 
   it('calculates additional area-rate totals', () => {
-    expect(calculateAdditionalLineTotal({ mode: 'area', lengthCm: 10, widthCm: 20, quantity: 2, rate: 5 })).toBe(1000)
+    expect(calculateAdditionalLineTotal({ mode: 'area', lengthCm: 10, widthCm: 20, quantity: 3, rate: 5 })).toBe(3000)
   })
 
   it('calculates grand total from layer totals', () => {

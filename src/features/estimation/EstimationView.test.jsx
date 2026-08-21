@@ -9,6 +9,7 @@ const priceItems = [
   { id: 'manpower-default', categoryLayer: 'manpower', name: 'Default Manpower', dailyRate: 275000, turnaroundDays: 0 },
   { id: 'additional-paper', categoryLayer: 'additional', name: 'Paper Purchase', additionalMode: 'rate', rate: 5000, unitLabel: 'sheet', turnaroundDays: 0 },
   { id: 'additional-metalize', categoryLayer: 'additional', name: 'Metalize Material', additionalMode: 'area', rate: 5, unitLabel: 'cm²', turnaroundDays: 0 },
+  { id: 'additional-operator', categoryLayer: 'additional', name: 'Operator Fee', additionalMode: 'manual', turnaroundDays: 0 },
   { id: 'additional-rush', categoryLayer: 'additional', name: 'Rush Job', additionalMode: 'percent', rate: 10, unitLabel: '%', turnaroundDays: 0 },
 ]
 
@@ -49,21 +50,32 @@ describe('EstimationView', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Tambah baris tambahan' }))
 
-    expect(screen.getByLabelText('Jumlah')).toHaveValue('1')
+    expect(screen.getByLabelText('Quantity')).toHaveValue(1)
     expect(screen.getByText('1 × Rp 5.000 = Rp 5.000')).toBeInTheDocument()
   })
 
-  it('shows metalize length width fields and calculates area price', () => {
+  it('shows quantity and uses it for a manual additional cost', () => {
+    render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tambah baris tambahan' }))
+    fireEvent.change(screen.getByLabelText('Jenis biaya'), { target: { value: 'additional-operator' } })
+    fireEvent.change(screen.getByLabelText('Nominal'), { target: { value: '45000' } })
+    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '2' } })
+
+    expect(screen.getByText('Rp 45.000 × 2 = Rp 90.000')).toBeInTheDocument()
+  })
+
+  it('shows quantity and uses it for an area additional cost', () => {
     render(<EstimationView loading={false} onCancel={vi.fn()} onCreateEstimate={vi.fn()} onSaveDraft={vi.fn()} priceItems={priceItems} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Tambah baris tambahan' }))
     fireEvent.change(screen.getByLabelText('Jenis biaya'), { target: { value: 'additional-metalize' } })
     fireEvent.change(screen.getByLabelText('Panjang (cm)'), { target: { value: '10' } })
     fireEvent.change(screen.getByLabelText('Lebar (cm)'), { target: { value: '20' } })
+    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '3' } })
 
     expect(screen.getByLabelText('Catatan')).toBeInTheDocument()
-    expect(screen.queryByLabelText('Jumlah')).not.toBeInTheDocument()
-    expect(screen.getByText('10 × 20 × Rp 5 = Rp 1.000')).toBeInTheDocument()
+    expect(screen.getByText('10 × 20 × 3 × Rp 5 = Rp 3.000')).toBeInTheDocument()
   })
 
   it('uses percentage mode and rate configured in master data', () => {

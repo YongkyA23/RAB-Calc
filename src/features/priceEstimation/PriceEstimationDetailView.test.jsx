@@ -34,6 +34,13 @@ const estimate = {
       priceSnapshot: { name: 'Metalize Material', additionalMode: 'area', rate: 5 },
       computedTotal: 3000,
     },
+    {
+      id: 'l4',
+      layer: 'additional',
+      inputs: { itemId: 'additional-operator', amount: 45000, quantity: 2 },
+      priceSnapshot: { name: 'Operator Fee', additionalMode: 'manual' },
+      computedTotal: 90000,
+    },
   ],
 }
 
@@ -64,10 +71,11 @@ describe('PriceEstimationDetailView', () => {
     expect(screen.getAllByText('Lebar: 20 cm').length).toBeGreaterThan(0)
     expect(screen.getByText('Jumlah alat: 1')).toBeInTheDocument()
     expect(screen.getByText('10 × 20 × 3 × Rp 5 = Rp 3.000')).toBeInTheDocument()
+    expect(screen.getByText('Rp 45.000 × 2 = Rp 90.000')).toBeInTheDocument()
     expect(screen.queryByText(/itemId:/)).not.toBeInTheDocument()
     expect(screen.queryByText(/jmlAlat:/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/p:/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/l:/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^p:/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^l:/)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Kembali ke estimasi' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Edit estimasi' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Duplikat estimasi' })).toBeInTheDocument()

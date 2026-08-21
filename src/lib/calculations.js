@@ -76,22 +76,24 @@ export function calculateManpowerLineTotal({ days, rate }) {
 
 export function calculateAdditionalLineTotal({ mode, amount, quantity, rate, lengthCm, widthCm, percent, baseTotal }) {
   const percentage = percent || (mode === 'percent' ? rate : 0)
+  const resolvedQuantity = quantity ?? 1
 
   if (percentage) {
     return optionalNumber(baseTotal, 0) * requirePositiveNumber(percentage, 'Percent') / 100
   }
 
   if (mode === 'manual') {
-    return requirePositiveNumber(amount, 'Amount')
+    return requirePositiveNumber(amount, 'Amount') * requirePositiveNumber(resolvedQuantity, 'Quantity')
   }
 
   if (mode === 'rate') {
-    return requirePositiveNumber(quantity, 'Quantity') * requirePositiveNumber(rate, 'Rate')
+    return requirePositiveNumber(resolvedQuantity, 'Quantity') * requirePositiveNumber(rate, 'Rate')
   }
 
   if (mode === 'area') {
     return requirePositiveNumber(lengthCm, 'Length')
       * requirePositiveNumber(widthCm, 'Width')
+      * requirePositiveNumber(resolvedQuantity, 'Quantity')
       * requirePositiveNumber(rate, 'Rate')
   }
 

@@ -365,7 +365,7 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
             }))
             return (
               <LineRow key={index} onRemove={() => removeLine('additional', index)} removeLabel={`Hapus baris tambahan ${index + 1}`}>
-                <div className="grid gap-3 md:grid-cols-3">
+                <div className={`grid gap-3 ${isArea ? 'md:grid-cols-4' : isRate || isPercent ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
                   <Field label="Jenis biaya">
                     <Select onChange={(event) => changeAdditionalItem(index, event.target.value)} value={line.itemId}>
                       {priceItems?.filter((item) => item.categoryLayer === 'additional').map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
@@ -380,10 +380,6 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
                         <Input onChange={(event) => updateLine('additional', index, 'widthCm', event.target.value)} value={line.widthCm ?? ''} />
                       </Field>
                     </>
-                  ) : isRate ? (
-                      <Field label="Jumlah">
-                        <Input onChange={(event) => updateLine('additional', index, 'quantity', event.target.value)} value={line.quantity} />
-                      </Field>
                   ) : isPercent ? (
                     <Field label="Persentase (%)">
                       <Input onChange={(event) => updateLine('additional', index, 'percent', event.target.value)} value={percent} />
@@ -393,6 +389,11 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
                       <Input onChange={(event) => updateLine('additional', index, 'amount', event.target.value)} value={amount} />
                     </Field>
                   )}
+                  {!isPercent ? (
+                    <Field label="Quantity">
+                      <Input min="1" onChange={(event) => updateLine('additional', index, 'quantity', event.target.value)} step="1" type="number" value={line.quantity ?? 1} />
+                    </Field>
+                  ) : null}
                 </div>
                 <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
                   <Field label="Catatan">
@@ -400,13 +401,13 @@ export function EstimationView({ initialDraft, loading, onCancel, onCreateEstima
                   </Field>
                   <p className="text-sm font-semibold text-slate-700">
                     {isArea
-                      ? `${line.lengthCm || 0} × ${line.widthCm || 0} × Rp ${item?.rate || 0} = ${formatIdr(total)}`
+                      ? `${line.lengthCm || 0} × ${line.widthCm || 0} × ${line.quantity ?? 1} × Rp ${item?.rate || 0} = ${formatIdr(total)}`
                       : isPercent
                         ? `${percent || 0}% × ${formatIdr(baseTotal)} = ${formatIdr(total)}`
                         : isRate
-                          ? `${line.quantity || 0} × ${formatIdr(item?.rate)} = ${formatIdr(total)}`
+                          ? `${line.quantity ?? 1} × ${formatIdr(item?.rate)} = ${formatIdr(total)}`
                           : total
-                            ? `Total = ${formatIdr(total)}`
+                            ? `${formatIdr(amount)} × ${line.quantity ?? 1} = ${formatIdr(total)}`
                             : 'Isi nominal untuk melihat total'}
                   </p>
                 </div>

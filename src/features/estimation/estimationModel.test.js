@@ -8,6 +8,7 @@ const items = [
   { id: 'manual-request', categoryLayer: 'manual', name: 'UV Matte', toolingRate: null, laborRate: 0.75, minimumType: 'byRequest', minimumCharge: null, turnaroundDays: 2 },
   { id: 'manpower-default', categoryLayer: 'manpower', name: 'Default Manpower', dailyRate: 275000, turnaroundDays: 0 },
   { id: 'additional-paper', categoryLayer: 'additional', name: 'Paper Purchase', additionalMode: 'rate', rate: 5000, unitLabel: 'sheet', turnaroundDays: 0 },
+  { id: 'additional-operator', categoryLayer: 'additional', name: 'Operator Fee', additionalMode: 'manual', turnaroundDays: 0 },
   { id: 'additional-rush', categoryLayer: 'additional', name: 'Rush Job', additionalMode: 'percent', rate: 10, unitLabel: '%', turnaroundDays: 0 },
 ]
 
@@ -74,6 +75,22 @@ describe('estimation model', () => {
 
     expect(quote.totals.additional).toBe(30000)
     expect(quote.grandTotal).toBe(605000)
+  })
+
+  it('multiplies a manual additional amount by its quantity', () => {
+    const draft = {
+      header: { jobNo: 'JOB-004', sku: 'SKU-4', client: 'PT Client', project: 'Install', aeName: 'Ayu' },
+      print: [],
+      digital: [],
+      manual: [],
+      manpower: [],
+      additional: [{ itemId: 'additional-operator', amount: 45000, quantity: 2 }],
+    }
+
+    const quote = buildQuoteFromDraft(draft, items, { uid: 'u1', name: 'Admin' })
+
+    expect(quote.totals.additional).toBe(90000)
+    expect(quote.grandTotal).toBe(90000)
   })
 
   it('reports an unavailable Large Format price before estimate creation', () => {

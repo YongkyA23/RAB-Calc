@@ -94,14 +94,16 @@ export function validateQuoteDraft(draft, priceItems) {
     if (mode === 'area') {
       validatePositive(errors, line.lengthCm, 'Additional length must be greater than 0')
       validatePositive(errors, line.widthCm, 'Additional width must be greater than 0')
+      validatePositive(errors, line.quantity ?? 1, 'Additional quantity must be greater than 0')
       validatePositive(errors, item?.rate, 'Additional area rate must be greater than 0')
     } else if (mode === 'rate') {
-      validatePositive(errors, line.quantity, 'Additional quantity must be greater than 0')
+      validatePositive(errors, line.quantity ?? 1, 'Additional quantity must be greater than 0')
       validatePositive(errors, item?.rate, 'Additional rate must be greater than 0')
     } else if (mode === 'percent') {
       validatePositive(errors, line.percent || item?.rate, 'Additional percent must be greater than 0')
     } else {
       validatePositive(errors, line.amount, 'Additional amount must be greater than 0')
+      validatePositive(errors, line.quantity ?? 1, 'Additional quantity must be greater than 0')
     }
   }
 

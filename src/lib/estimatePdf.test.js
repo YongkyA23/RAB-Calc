@@ -29,6 +29,13 @@ const estimate = {
       inputs: { days: 2 },
       priceSnapshot: { name: 'Installer', dailyRate: 2000 },
     },
+    {
+      id: 'line-3',
+      layer: 'additional',
+      computedTotal: 90000,
+      inputs: { amount: 45000, quantity: 2 },
+      priceSnapshot: { name: 'Operator Fee', additionalMode: 'manual' },
+    },
   ],
 }
 
@@ -48,6 +55,7 @@ describe('estimate PDF helpers', () => {
     expect(html).toContain('Notes: &lt;rush&gt;')
     expect(html).toContain('Rp 500 × 2 = Rp 1.000')
     expect(html).toContain('Rp 2.000 × 2 day = Rp 4.000')
+    expect(html).toContain('Rp 45.000 × 2 = Rp 90.000')
     expect(html).not.toContain('PT <Client>')
     expect(html).not.toContain('<rush>')
   })

@@ -59,7 +59,7 @@ function formulaSummary(line) {
   }
 
   if (line.layer === 'additional' && line.priceSnapshot?.additionalMode === 'area') {
-    return `${inputs.lengthCm || 0} × ${inputs.widthCm || 0} × ${inputs.quantity || 0} × Rp ${line.priceSnapshot?.rate || 0} = ${total}`
+    return `${inputs.lengthCm || 0} × ${inputs.widthCm || 0} × ${inputs.quantity ?? 1} × Rp ${line.priceSnapshot?.rate || 0} = ${total}`
   }
 
   if (line.layer === 'additional' && line.priceSnapshot?.additionalMode === 'rate') {
@@ -71,7 +71,7 @@ function formulaSummary(line) {
   }
 
   if (line.layer === 'additional' && inputs.amount) {
-    return `${formatIdr(inputs.amount)} = ${total}`
+    return `${formatIdr(inputs.amount)} × ${inputs.quantity ?? 1} = ${total}`
   }
 
   return `Line total = ${total}`
