@@ -6,15 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-<<<<<<< HEAD
     "build:staging": "vite build --mode staging",
     "build:production": "vite build --mode production",
-    "lint": "eslint .",
-    "test": "vitest run",
-    "test:rules": "firebase emulators:exec --only firestore \"node scripts/test-firestore-rules.mjs\"",
-=======
     "lint": "oxlint",
->>>>>>> 59e83e8 (RAB-jason)
     "preview": "vite preview"
   },
   "dependencies": {
