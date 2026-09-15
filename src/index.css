@@ -481,6 +481,15 @@ input {
   gap: 4px;
 }
 
+.sidebar-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(168, 85, 247, 0.5);
+  margin: 6px 12px 8px 12px;
+  text-transform: uppercase;
+}
+
 .sidebar-nav-group {
   display: flex;
   flex-direction: column;
@@ -721,7 +730,7 @@ input {
 
 .dashboard-top-section {
   display: grid;
-  grid-template-columns: 290px 1fr;
+  grid-template-columns: 280px 1fr;
   gap: 16px;
   align-items: stretch;
 }
@@ -744,22 +753,17 @@ input {
   height: 100%;
 }
 
-.dashboard-right-top-row {
+.dashboard-right-bottom-row {
   display: grid;
-  grid-template-columns: 1fr 250px;
+  grid-template-columns: 1.15fr 1fr;
   gap: 16px;
+  align-items: stretch;
 }
 
 @media (max-width: 840px) {
-  .dashboard-right-top-row {
+  .dashboard-right-bottom-row {
     grid-template-columns: 1fr;
   }
-}
-
-.dashboard-right-bottom-row {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
 }
 
 /* 1. Donut Card */
@@ -916,15 +920,16 @@ input {
   color: #0F172A;
 }
 
-/* 2. Cost Allocation Area Chart */
+/* 2. Cost Allocation Horizontal Bar Chart */
 .cost-allocation-card {
   position: relative;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
 }
 
 .allocation-header {
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .allocation-legends {
@@ -940,7 +945,7 @@ input {
   font-size: 11.5px;
   color: #64748B;
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 2px 6px;
   border-radius: 4px;
   transition: all 0.2s;
 }
@@ -957,51 +962,298 @@ input {
   border-radius: 50%;
 }
 
-.allocation-chart-wrapper {
+.horizontal-bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding-bottom: 4px;
+}
+
+.bars-rows-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.bar-row-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.bar-row-item:hover,
+.bar-row-item.is-hovered {
+  background: #F8FAFC;
+}
+
+.bar-row-label {
+  width: 65px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.bar-row-track-wrapper {
+  position: relative;
+  flex: 1;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.bar-track-grid-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.grid-vertical-line {
+  position: absolute;
+  top: -8px;
+  bottom: -8px;
+  width: 1px;
+  border-left: 1px dashed #E2E8F0;
+}
+
+.bar-fill-wrapper {
+  position: relative;
+  height: 18px;
+  z-index: 2;
+  transition: width 0.4s ease;
+}
+
+.bar-row-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.bar-row-percent-text {
+  position: absolute;
+  font-size: 11.5px;
+  font-weight: 700;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  white-space: nowrap;
+}
+
+.horizontal-bars-xaxis {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.xaxis-labels-offset {
+  position: relative;
+  flex: 1;
+  height: 18px;
+  margin-left: 79px;
+}
+
+.xaxis-tick-label {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+/* 3. Realisasi Comparison Card (Estimasi vs Realisasi) */
+.realisasi-comparison-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.realisasi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.realisasi-percent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #D1FAE5;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.badge-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10B981;
+}
+
+.realisasi-body-split {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 14px;
+  align-items: center;
+  flex: 1;
+}
+
+.realisasi-chart-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.realisasi-chart-wrapper {
   position: relative;
   width: 100%;
-  margin-top: 10px;
+  height: 115px;
+  margin: 2px 0;
 }
 
-.allocation-svg {
+.realisasi-grid-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.realisasi-grid-line {
   width: 100%;
-  height: 220px;
-  overflow: visible;
+  border-bottom: 1px dashed #F1F5F9;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
 }
 
-.axis-label {
-  font-size: 10px;
-  fill: #94A3B8;
-  font-family: inherit;
+.grid-tick-text {
+  font-size: 9px;
+  color: #CBD5E1;
+  font-weight: 600;
+  margin-left: 2px;
+  margin-bottom: 2px;
 }
 
-.category-name {
+.realisasi-bars-group {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 28px;
+}
+
+.realisasi-bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.realisasi-bar-col:hover {
+  transform: translateY(-2px);
+}
+
+.realisasi-bar-value-top {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  margin-bottom: 4px;
+}
+
+.bar-val-prefix {
+  font-size: 9.5px;
+  color: #64748B;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.bar-val-main {
+  font-size: 12px;
+  color: #0F172A;
+  font-weight: 800;
+}
+
+.realisasi-bar-track {
+  width: 44px;
+  height: 72px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.realisasi-bar-fill {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  transition: all 0.3s ease;
+}
+
+.realisasi-bar-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  margin-top: 4px;
+}
+
+/* Right Vertical Legend (Atas Estimasi, Bawah Realisasi) */
+.realisasi-vertical-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: 6px;
+}
+
+.realisasi-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-row-text {
   font-size: 11.5px;
-  fill: #1E293B;
-  font-family: inherit;
+  font-weight: 600;
+  color: #334155;
 }
 
-.category-subvalue {
-  font-size: 10px;
-  fill: #94A3B8;
-  font-family: inherit;
-}
-
-/* 3. Total Estimasi Card */
+/* 4. Total Estimasi Card */
 .total-estimasi-card {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
 }
 
 .rab-hero-section {
   display: flex;
   align-items: baseline;
   gap: 6px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .rab-big-number {
-  font-size: 34px;
+  font-size: 32px;
   font-weight: 800;
   color: #0F172A;
   line-height: 1;
@@ -1014,13 +1266,13 @@ input {
 }
 
 .rab-multi-progress-bar {
-  height: 7px;
+  height: 6px;
   background-color: #F1F5F9;
-  border-radius: 4px;
+  border-radius: 3px;
   display: flex;
   overflow: hidden;
   gap: 2px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .rab-segment-fill {
@@ -1031,14 +1283,14 @@ input {
 .rab-breakdown-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .rab-breakdown-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 .rab-breakdown-left {
@@ -1048,8 +1300,8 @@ input {
 }
 
 .rab-item-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
 }
 
@@ -1061,149 +1313,21 @@ input {
 .rab-breakdown-right {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .rab-item-count {
   font-weight: 700;
   color: #0F172A;
-  min-width: 16px;
+  min-width: 14px;
   text-align: right;
 }
 
 .rab-item-percent {
   color: #94A3B8;
-  font-size: 11.5px;
-  min-width: 28px;
-  text-align: right;
-}
-
-/* =========================================
-   MIDDLE ROW: PROGRESS SUMMARY CARDS
-   ========================================= */
-
-.summary-cards-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  height: 100%;
-  flex: 1;
-}
-
-@media (max-width: 640px) {
-  .summary-cards-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.mini-summary-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 10px;
-  height: 100%;
-}
-
-.mini-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.mini-icon-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.mini-card-title {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #1E293B;
-}
-
-.mini-card-value {
-  font-size: 20px;
-  font-weight: 800;
-  color: #0F172A;
-  margin-top: 2px;
-}
-
-.mini-progress-section {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 2px;
-}
-
-.progress-labels {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   font-size: 11px;
-}
-
-.progress-desc {
-  color: #64748B;
-}
-
-.progress-percent {
-  font-weight: 700;
-  color: #059669;
-}
-
-.progress-bar-bg {
-  height: 5px;
-  background-color: #E2E8F0;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-bar-fill-emerald {
-  height: 100%;
-  background: linear-gradient(90deg, #10B981, #059669);
-  border-radius: 3px;
-}
-
-.progress-footer {
-  font-size: 10.5px;
-  color: #94A3B8;
-}
-
-.vendor-summary-value-row {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin: 4px 0;
-}
-
-.vendor-count-number {
-  font-size: 20px;
-  font-weight: 800;
-  color: #0F172A;
-}
-
-.vendor-count-unit {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #64748B;
-}
-
-.vendor-card-footer {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  margin-top: 6px;
-}
-
-.vendor-footer-label {
-  color: #64748B;
-}
-
-.vendor-footer-amount {
-  font-weight: 700;
-  color: #0F172A;
+  min-width: 24px;
+  text-align: right;
 }
 
 /* =========================================

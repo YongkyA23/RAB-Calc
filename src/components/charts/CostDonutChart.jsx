@@ -27,7 +27,6 @@ export default function CostDonutChart() {
 
   const handleMouseEnter = (item, e) => {
     setHoveredSegment(item);
-    const rect = e.currentTarget.getBoundingClientRect();
     setTooltipPos({
       x: e.clientX,
       y: e.clientY,
@@ -103,8 +102,8 @@ export default function CostDonutChart() {
           {/* Donut Center Label */}
           <div className="donut-center-label">
             <span className="center-subtext">Total</span>
-            <span className="center-primary">20.5jt</span>
-            <span className="center-amount">Rp 20.520.884</span>
+            <span className="center-primary">18.4jt</span>
+            <span className="center-amount">Rp 18.388.560</span>
           </div>
 
           {/* Tooltip on Hover (Matching Image 4 Left) */}
@@ -183,7 +182,7 @@ export default function CostDonutChart() {
       {/* Grand Total Footer */}
       <div className="donut-footer">
         <span className="grand-total-label">Grand Total</span>
-        <span className="grand-total-value">Rp 20.520.884</span>
+        <span className="grand-total-value">Rp 18.388.560</span>
       </div>
     </div>
   );

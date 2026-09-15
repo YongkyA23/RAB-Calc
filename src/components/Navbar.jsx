@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Grid, Bell } from 'lucide-react';
+import { Search, Grid } from 'lucide-react';
 
 export default function Navbar({ currentModule, activeNav = 'Dashboard', activeSubNav, onGoHome, onNavigate }) {
   const getBreadcrumbTitle = () => {
@@ -49,15 +49,6 @@ export default function Navbar({ currentModule, activeNav = 'Dashboard', activeS
         <button className="nav-action-btn" title="Modul Lainnya" onClick={onGoHome}>
           <Grid size={18} />
         </button>
-
-        <button className="nav-action-btn has-notification" title="Notifikasi">
-          <Bell size={18} />
-          <span className="notification-dot"></span>
-        </button>
-
-        <div className="user-avatar-badge" title="Ananda Rafii">
-          <span>AR</span>
-        </div>
       </div>
     </header>
   );

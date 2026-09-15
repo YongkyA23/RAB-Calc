@@ -42,6 +42,7 @@ export default function Sidebar({ activeNav = 'Dashboard', activeSubNav = 'Estim
   return (
     <aside className={`prenexus-sidebar ${collapsed ? 'is-collapsed' : ''}`}>
       <div className="sidebar-top">
+        {!collapsed && <div className="sidebar-section-title">APLIKASI AKTIF</div>}
         <nav className="sidebar-nav">
           {/* Dashboard */}
           <button

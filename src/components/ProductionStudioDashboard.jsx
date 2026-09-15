@@ -3,7 +3,7 @@ import Sidebar from './Sidebar';
 import CostDonutChart from './charts/CostDonutChart';
 import CostAllocationChart from './charts/CostAllocationChart';
 import TotalEstimasiCard from './charts/TotalEstimasiCard';
-import ProgressSummaryCards from './cards/ProgressSummaryCards';
+import RealisasiComparisonCard from './charts/RealisasiComparisonCard';
 import ActivityTable from './ActivityTable';
 import EstimasiHargaList from './estimasi/EstimasiHargaList';
 import EstimasiHargaForm from './estimasi/EstimasiHargaForm';
@@ -54,12 +54,10 @@ export default function ProductionStudioDashboard({
                 <CostDonutChart />
               </div>
               <div className="dashboard-right-col">
-                <div className="dashboard-right-top-row">
-                  <CostAllocationChart />
-                  <TotalEstimasiCard />
-                </div>
+                <CostAllocationChart />
                 <div className="dashboard-right-bottom-row">
-                  <ProgressSummaryCards />
+                  <RealisasiComparisonCard />
+                  <TotalEstimasiCard />
                 </div>
               </div>
             </div>

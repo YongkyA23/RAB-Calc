@@ -34,15 +34,15 @@ export const DONUT_DATA = [
   {
     id: 'estimasi-internal',
     label: 'Estimasi Internal',
-    percentage: 24,
-    exactPercentage: '23.8%',
+    percentage: 34,
+    exactPercentage: '34.0%',
     valueFormatted: 'Rp 4.888.560',
     valueNum: 4888560,
     color: '#3B82F6',
     hoverTooltip: {
       title: 'Estimasi Internal',
       value: 'Rp 4.888.560',
-      percentage: '23.8%',
+      percentage: '34.0%',
       color: '#3B82F6',
     },
   },
@@ -50,30 +50,15 @@ export const DONUT_DATA = [
     id: 'vendor',
     label: 'Vendor',
     percentage: 66,
-    exactPercentage: '65.8%',
+    exactPercentage: '66.0%',
     valueFormatted: 'Rp 13.500.000',
     valueNum: 13500000,
     color: '#8B5CF6',
     hoverTooltip: {
       title: 'Vendor',
       value: 'Rp 13.500.000',
-      percentage: '65.8%',
+      percentage: '66.0%',
       color: '#8B5CF6',
-    },
-  },
-  {
-    id: 'terealisasi',
-    label: 'Terealisasi',
-    percentage: 10,
-    exactPercentage: '10.4%',
-    valueFormatted: 'Rp 2.132.324',
-    valueNum: 2132324,
-    color: '#10B981',
-    hoverTooltip: {
-      title: 'Terealisasi',
-      value: 'Rp 2.132.324',
-      percentage: '10.4%',
-      color: '#10B981',
     },
   },
 ];
@@ -86,8 +71,8 @@ export const COST_ALLOCATION_DATA = [
     summaryValue: '9.0jt',
     exactValue: 'Rp 9.024.353',
     description: 'Bahan baku utama proses cetak',
-    color: '#3B82F6',
-    dotColor: '#3B82F6',
+    color: '#8B5CF6',
+    dotColor: '#8B5CF6',
     items: [
       'Kertas HVS / Art Paper',
       'Tinta CMYK & Specialty',
@@ -102,8 +87,8 @@ export const COST_ALLOCATION_DATA = [
     summaryValue: '6.0jt',
     exactValue: 'Rp 6.016.235',
     description: 'Proses penyempurnaan produk akhir',
-    color: '#8B5CF6',
-    dotColor: '#8B5CF6',
+    color: '#3B82F6',
+    dotColor: '#3B82F6',
     items: [
       'Laminasi Glossy / Matte',
       'UV Coating & Varnish',
@@ -134,8 +119,8 @@ export const COST_ALLOCATION_DATA = [
     summaryValue: '2.0jt',
     exactValue: 'Rp 2.005.412',
     description: 'Biaya overhead & lain-lain',
-    color: '#EAB308',
-    dotColor: '#EAB308',
+    color: '#F59E0B',
+    dotColor: '#F59E0B',
     items: [
       'Biaya Listrik & Air',
       'Perawatan Mesin',
@@ -144,6 +129,25 @@ export const COST_ALLOCATION_DATA = [
     ],
   },
 ];
+
+export const REALISASI_COMPARISON_DATA = {
+  estimasi: {
+    label: 'Estimasi',
+    subLabel: 'Estimasi (Internal + Vendor)',
+    amountFormatted: 'Rp 18.4jt',
+    amountFull: 'Rp 18.388.560',
+    valueNum: 18388560,
+    color: '#8B5CF6',
+  },
+  realisasi: {
+    label: 'Realisasi',
+    subLabel: 'Realisasi',
+    amountFormatted: 'Rp 2.1jt',
+    amountFull: 'Rp 2.132.324',
+    valueNum: 2132324,
+    color: '#10B981',
+  },
+};
 
 export const RAB_STATUS_DATA = {
   total: 14,
