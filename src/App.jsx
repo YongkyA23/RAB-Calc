@@ -1,153 +1,55 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import './App.css'
-import { getSsoAccess, getUserProfile, subscribeToSsoAccess } from './firebase/firestoreHelpers'
-import { BlockedAccessPanel } from './features/auth/AccessStatePanels'
-import { AuthPanel } from './features/auth/AuthPanel'
-import { getAccessState, getVisibleNavigation } from './features/auth/authRules'
-import { getPortalSessionClaims, portalLoginUrl, signOutUser, subscribeToAuthState } from './features/auth/authService'
-import { AppShell } from './features/shell/AppShell'
-import { SsoRoute } from './features/sso/SsoRoute'
+import React, { useState } from 'react';
+import Navbar from './components/Navbar';
+import ModuleSelector from './components/ModuleSelector';
+import ProductionStudioDashboard from './components/ProductionStudioDashboard';
 
-const DashboardContainer = lazy(() => import('./features/dashboard/DashboardContainer').then((module) => ({ default: module.DashboardContainer })))
-const MasterDataContainer = lazy(() => import('./features/masterData/MasterDataContainer').then((module) => ({ default: module.MasterDataContainer })))
-const PaperCalculatorContainer = lazy(() => import('./features/paperCalculator/PaperCalculatorContainer').then((module) => ({ default: module.PaperCalculatorContainer })))
-const PriceEstimationContainer = lazy(() => import('./features/priceEstimation/PriceEstimationContainer').then((module) => ({ default: module.PriceEstimationContainer })))
-const VendorEstimateContainer = lazy(() => import('./features/vendorEstimates/VendorEstimateContainer').then((module) => ({ default: module.VendorEstimateContainer })))
+export default function App() {
+  const [currentModule, setCurrentModule] = useState('production-studio'); // default to production studio for fast workflow
+  const [activeNav, setActiveNav] = useState('Dashboard'); // default to Dashboard
+  const [activeSubNav, setActiveSubNav] = useState('');
 
-function validAccess(claims, access, uid) {
-  return claims.portalAccess === true
-    && claims.appId === 'rab-calc'
-    && claims.ssoVersion === 2
-    && claims.centralUid === access?.centralUid
-    && Number(claims.grantVersion) === access?.grantVersion
-    && access?.appId === 'rab-calc'
-    && access?.enabled === true
-    && access?.id === uid
-    && ['admin', 'estimator'].includes(access?.role)
-}
+  const handleSelectModule = (moduleId) => {
+    if (moduleId === 'production-studio') {
+      setCurrentModule('production-studio');
+    } else {
+      alert(`Modul "${moduleId.toUpperCase()}" sedang dalam pengembangan. Membuka modul Production Studio.`);
+      setCurrentModule('production-studio');
+    }
+  };
 
-function portalProfile(profile, access, user) {
-  return {
-    ...(profile ?? {}),
-    uid: user.uid,
-    email: user.email,
-    name: profile?.name || user.displayName || user.email,
-    role: access.role === 'admin' ? 'Admin' : 'Estimator',
-    status: 'active',
-  }
-}
+  const handleGoHome = () => {
+    setCurrentModule('portal');
+  };
 
-function accessFromClaims(claims, uid) {
-  return {
-    id: uid,
-    appId: claims.appId,
-    centralUid: claims.centralUid,
-    grantVersion: Number(claims.grantVersion),
-    role: claims.role,
-    enabled: true,
-  }
-}
+  const handleNavigate = (nav, subNav) => {
+    setActiveNav(nav);
+    setActiveSubNav(subNav || (nav === 'Estimasi Harga' ? 'Estimasi Harga' : ''));
+  };
 
-function App() {
-  const location = useLocation()
-  const [authError, setAuthError] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [profile, setProfile] = useState(null)
-  const [user, setUser] = useState(null)
-
-  useEffect(() => {
-    let unsubscribeAccess = () => {}
-    const unsubscribeAuth = subscribeToAuthState(async (nextUser) => {
-      unsubscribeAccess()
-      setLoading(true)
-      setUser(nextUser)
-      if (!nextUser) {
-        setProfile(null)
-        setLoading(false)
-        return
-      }
-
-      try {
-        const claims = await getPortalSessionClaims(nextUser)
-        let projectionReadable = true
-        let access
-        try {
-          access = await getSsoAccess(nextUser.uid)
-        } catch (reason) {
-          if (reason?.code !== 'permission-denied') throw reason
-          projectionReadable = false
-          access = accessFromClaims(claims, nextUser.uid)
-        }
-        const compatibilityProfile = await getUserProfile(nextUser.uid)
-        if (!validAccess(claims, access, nextUser.uid)) {
-          throw new Error('Open RAB-Calc from the LPHTM portal. This session is not authorized.')
-        }
-        setAuthError('')
-        setProfile(portalProfile(compatibilityProfile, access, nextUser))
-        if (projectionReadable) unsubscribeAccess = subscribeToSsoAccess(nextUser.uid, async (nextAccess) => {
-          if (!validAccess(claims, nextAccess, nextUser.uid)) {
-            await signOutUser()
-            setAuthError('Your RAB-Calc access changed. Open the workspace again from the LPHTM portal.')
-            return
-          }
-          setProfile((current) => portalProfile(current, nextAccess, nextUser))
-        }, async () => {
-          await signOutUser()
-          setAuthError('RAB-Calc could not verify the current portal grant.')
-        })
-      } catch (error) {
-        await signOutUser()
-        setUser(null)
-        setProfile(null)
-        setAuthError(error instanceof Error ? error.message : 'RAB-Calc access could not be verified.')
-      } finally {
-        setLoading(false)
-      }
-    })
-    return () => { unsubscribeAccess(); unsubscribeAuth() }
-  }, [])
-
-  async function handleSignOut() {
-    setLoading(true)
-    await signOutUser()
-  }
-
-  if (location.pathname === '/sso/start') return <SsoRoute mode="start" />
-  if (location.pathname === '/sso') return <SsoRoute mode="callback" />
-  if (loading) return null
-
-  const accessState = getAccessState({ user, profile })
-  if (accessState === 'signedOut') {
-    return <AuthPanel error={authError} loading={loading} onPortalSignIn={() => window.location.assign(portalLoginUrl())} />
-  }
-  if (accessState === 'missingProfile' || accessState === 'inactive') {
-    return <BlockedAccessPanel onSignOut={handleSignOut} reason={accessState} />
-  }
-
-  const visibleViews = getVisibleNavigation(profile).map((item) => item.key)
-  const canAccess = (view) => visibleViews.includes(view)
   return (
-    <AppShell onSignOut={handleSignOut} profile={profile}>
-      <Suspense fallback={null}>
-        <Routes>
-          <Route element={<Navigate replace to="/dashboard" />} path="/" />
-          <Route element={<DashboardContainer profile={profile} />} path="/dashboard" />
-          <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates" />
-          <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/new" />
-          <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/:estimateId" />
-          <Route element={<PriceEstimationContainer profile={profile} />} path="/estimates/:estimateId/edit" />
-          <Route element={<PaperCalculatorContainer profile={profile} />} path="/hitung-kertas" />
-          <Route element={canAccess('vendorEstimates') ? <VendorEstimateContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/vendor-estimates" />
-          <Route element={canAccess('vendorEstimates') ? <VendorEstimateContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/vendor-estimates/new" />
-          <Route element={canAccess('vendorEstimates') ? <VendorEstimateContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/vendor-estimates/:vendorEstimateId" />
-          <Route element={canAccess('vendorEstimates') ? <VendorEstimateContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/vendor-estimates/:vendorEstimateId/edit" />
-          <Route element={canAccess('masterData') ? <MasterDataContainer profile={profile} /> : <Navigate replace to="/estimates" />} path="/master-data" />
-          <Route element={<Navigate replace to="/estimates" />} path="*" />
-        </Routes>
-      </Suspense>
-    </AppShell>
-  )
-}
+    <div className="prenexus-root">
+      {/* Top Navbar */}
+      <Navbar 
+        currentModule={currentModule}
+        activeNav={activeNav}
+        activeSubNav={activeSubNav}
+        onSelectModule={handleSelectModule}
+        onGoHome={handleGoHome}
+        onNavigate={handleNavigate}
+      />
 
-export default App
+      {/* Dynamic View Rendering */}
+      {currentModule === 'portal' ? (
+        <ModuleSelector onSelectModule={handleSelectModule} />
+      ) : (
+        <ProductionStudioDashboard 
+          activeNav={activeNav}
+          setActiveNav={setActiveNav}
+          activeSubNav={activeSubNav}
+          setActiveSubNav={setActiveSubNav}
+          onLogout={handleGoHome} 
+        />
+      )}
+    </div>
+  );
+}

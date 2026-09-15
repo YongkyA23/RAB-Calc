@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { COLLECTIONS } from '../../firebase/collections'
-import { db } from '../../firebase/app'
-import { doc, deleteDoc } from 'firebase/firestore'
-import { listActivePriceItems, listActualCosts, listEstimates, saveActualCost, saveEstimate } from '../../firebase/firestoreHelpers'
+import {
+  deleteEstimate,
+  deleteEstimatesBulk,
+  listActivePriceItems,
+  listActualCosts,
+  listEstimates,
+  saveActualCost,
+  saveEstimate,
+} from '../../firebase/firestoreHelpers'
 import { printInternalEstimatePdf } from '../../lib/estimatePdf'
 import { useToast } from '../../components/ui/Toast'
 import { createEmptyQuoteDraft, buildDraftEstimateFromDraft } from '../estimation/estimationModel'
@@ -147,7 +152,7 @@ export function PriceEstimationContainer({ profile }) {
     setLoading(true)
 
     try {
-      await deleteDoc(doc(db, COLLECTIONS.quotes, estimate.id))
+      await deleteEstimate(estimate.id)
       await loadData()
       navigate('/estimates')
       setSelectedEstimate(null)
@@ -169,7 +174,7 @@ export function PriceEstimationContainer({ profile }) {
     setLoading(true)
 
     try {
-      await Promise.all(items.map((estimate) => deleteDoc(doc(db, COLLECTIONS.quotes, estimate.id))))
+      await deleteEstimatesBulk(items.map((estimate) => estimate.id))
       await loadData()
       toast.success(`${items.length} estimate${items.length > 1 ? 's' : ''} deleted`)
     } catch (deleteError) {
