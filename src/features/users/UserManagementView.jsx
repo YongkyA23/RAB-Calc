@@ -103,7 +103,7 @@ export function UserManagementView({ loading, onAddUser, onUpdateUser, users }) 
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
-            <thead className="bg-slate-50/80 text-slate-600">
+            <thead className="bg-slate-50/80 text-slate-900">
               <tr>
                 <th className="px-5 py-3 font-black">Nama</th>
                 <th className="px-5 py-3 font-black">Email</th>

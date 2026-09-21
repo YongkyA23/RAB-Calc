@@ -189,11 +189,11 @@ export function MasterDataView({
         </div>
 
         <div className="border-b border-slate-100 bg-slate-50/70 px-6 py-4">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-nowrap overflow-x-auto pb-1 gap-2">
             {categories.map((category) => (
               <button
                 aria-label={category.name}
-                className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-bold transition ${
+                className={`inline-flex shrink-0 whitespace-nowrap items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-bold transition ${
                   selectedLayer === category.layer
                     ? 'border-blue-200 bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                     : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
@@ -214,7 +214,7 @@ export function MasterDataView({
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
-            <thead className="bg-slate-50/80 text-slate-600">
+            <thead className="bg-slate-50/80 text-slate-900">
               <tr>
                 <th className="px-5 py-3 font-black">Item</th>
                 <th className="px-5 py-3 font-black">Tarif</th>
@@ -346,9 +346,14 @@ export function MasterDataView({
             ) : null}
 
             {hasField('dailyRate') ? (
-              <Field label="Tarif harian">
-                <TextInput {...numberInputProps()} onChange={(event) => updateDraft('dailyRate', event.target.value)} value={draft.dailyRate ?? ''} />
-              </Field>
+              <>
+                <Field label="Tarif harian">
+                  <TextInput {...numberInputProps()} onChange={(event) => updateDraft('dailyRate', event.target.value)} value={draft.dailyRate ?? ''} />
+                </Field>
+                <Field label="Jumlah orang">
+                  <TextInput {...numberInputProps()} min="1" onChange={(event) => updateDraft('people', event.target.value)} value={draft.people ?? '1'} />
+                </Field>
+              </>
             ) : null}
 
             {hasField('additionalMode') ? (

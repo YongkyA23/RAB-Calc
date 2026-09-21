@@ -69,10 +69,10 @@ export function DashboardView({ activity, loading, profile, stats }) {
             <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
               <thead className="bg-slate-50/80">
                 <tr>
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Tipe</th>
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Nama</th>
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Nilai</th>
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Tanggal</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-900">Tipe</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-900">Nama</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-900">Nilai</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-900">Tanggal</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">

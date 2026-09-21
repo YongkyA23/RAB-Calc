@@ -143,7 +143,7 @@ export function VendorEstimateDetailView({ estimate, loading, onBack, onDelete, 
           </div>
           <div className="flex flex-wrap gap-2">
             {onGeneratePdf ? (
-              <button aria-label="Buat PDF vendor" className="inline-flex items-center gap-2 rounded-xl border border-blue-200 px-3 py-2 text-sm font-bold text-blue-700 transition hover:bg-blue-50" disabled={loading} onClick={() => onGeneratePdf(estimate)} type="button"><FileDown size={16} />PDF</button>
+              <button aria-label="Buat PDF vendor" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50" disabled={loading} onClick={() => onGeneratePdf(estimate)} type="button"><FileDown size={16} />PDF</button>
             ) : null}
             <button aria-label="Edit estimasi vendor" className="inline-flex items-center gap-2 rounded-xl border border-amber-200 px-3 py-2 text-sm font-bold text-amber-700 transition hover:bg-amber-50" disabled={loading} onClick={() => onEdit(estimate)} type="button"><Edit3 size={16} />Edit</button>
             <button aria-label="Hapus estimasi vendor" className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-sm font-bold text-rose-700 transition hover:bg-rose-50" disabled={loading} onClick={() => setConfirmDelete(true)} type="button"><Trash2 size={16} />Hapus</button>

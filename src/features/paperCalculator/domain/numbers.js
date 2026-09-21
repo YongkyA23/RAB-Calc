@@ -53,12 +53,15 @@ export function formatDecimal(value, maximumFractionDigits = 2) {
 export function formatDuration(totalMinutes) {
   if (!Number.isFinite(totalMinutes)) return '—'
   const minutes = Math.max(0, Math.ceil(totalMinutes))
-  const days = Math.floor(minutes / 1440)
-  const hours = Math.floor((minutes % 1440) / 60)
+  if (minutes < 60) {
+    return `${minutes} menit`
+  }
+  const hours = Math.floor(minutes / 60)
   const rest = minutes % 60
-  return [days ? `${days} hari` : '', hours ? `${hours} jam` : '', rest || (!days && !hours) ? `${rest} menit` : '']
-    .filter(Boolean)
-    .join(' ')
+  if (rest === 0) {
+    return `${hours} jam`
+  }
+  return `${hours} jam ${rest} menit`
 }
 
 export function addCalendarMinutes(value, minutes) {

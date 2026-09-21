@@ -1,24 +1,14 @@
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
-import ModuleSelector from './components/ModuleSelector';
 import ProductionStudioDashboard from './components/ProductionStudioDashboard';
 
 export default function App() {
-  const [currentModule, setCurrentModule] = useState('production-studio'); // default to production studio for fast workflow
-  const [activeNav, setActiveNav] = useState('Dashboard'); // default to Dashboard
+  const [activeNav, setActiveNav] = useState('Dashboard');
   const [activeSubNav, setActiveSubNav] = useState('');
 
-  const handleSelectModule = (moduleId) => {
-    if (moduleId === 'production-studio') {
-      setCurrentModule('production-studio');
-    } else {
-      alert(`Modul "${moduleId.toUpperCase()}" sedang dalam pengembangan. Membuka modul Production Studio.`);
-      setCurrentModule('production-studio');
-    }
-  };
-
   const handleGoHome = () => {
-    setCurrentModule('portal');
+    setActiveNav('Dashboard');
+    setActiveSubNav('');
   };
 
   const handleNavigate = (nav, subNav) => {
@@ -30,26 +20,21 @@ export default function App() {
     <div className="prenexus-root">
       {/* Top Navbar */}
       <Navbar 
-        currentModule={currentModule}
+        currentModule="production-studio"
         activeNav={activeNav}
         activeSubNav={activeSubNav}
-        onSelectModule={handleSelectModule}
         onGoHome={handleGoHome}
         onNavigate={handleNavigate}
       />
 
-      {/* Dynamic View Rendering */}
-      {currentModule === 'portal' ? (
-        <ModuleSelector onSelectModule={handleSelectModule} />
-      ) : (
-        <ProductionStudioDashboard 
-          activeNav={activeNav}
-          setActiveNav={setActiveNav}
-          activeSubNav={activeSubNav}
-          setActiveSubNav={setActiveSubNav}
-          onLogout={handleGoHome} 
-        />
-      )}
+      {/* Direct Production Studio Dashboard View */}
+      <ProductionStudioDashboard 
+        activeNav={activeNav}
+        setActiveNav={setActiveNav}
+        activeSubNav={activeSubNav}
+        setActiveSubNav={setActiveSubNav}
+        onLogout={handleGoHome} 
+      />
     </div>
   );
 }

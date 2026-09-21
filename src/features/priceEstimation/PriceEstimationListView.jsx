@@ -50,10 +50,10 @@ function SortHeader({ children, onSort, sort, sortKey }) {
   const active = sort.key === sortKey
   const Icon = active ? (sort.dir === 'asc' ? ArrowUp : ArrowDown) : ArrowUpDown
   return (
-    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-      <button className="inline-flex items-center gap-1 transition hover:text-slate-800" onClick={() => onSort(sortKey)} type="button">
+    <th className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-900">
+      <button className="inline-flex items-center gap-1 transition hover:text-blue-600" onClick={() => onSort(sortKey)} type="button">
         {children}
-        <Icon className={active ? 'text-blue-600' : 'text-slate-300'} size={13} />
+        <Icon className={active ? 'text-blue-600' : 'text-slate-400'} size={13} />
       </button>
     </th>
   )

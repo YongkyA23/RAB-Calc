@@ -15,28 +15,35 @@ export default function RealisasiComparisonCard() {
             <TrendingUp size={16} />
           </div>
           <div>
-            <h3 className="card-title">Total Nilai Realisasi</h3>
+            <h3 className="card-title">Estimasi vs Realisasi</h3>
           </div>
         </div>
       </div>
 
-      {/* Main Split Body: Left Bar Chart + Right Vertical Legend */}
+      {/* Main Body: Left Legend + Right Bar Chart */}
       <div className="realisasi-body-split">
-        {/* Left: Bar Chart */}
+        {/* Left: Legend */}
+        <div className="realisasi-vertical-legend">
+          <div className="realisasi-legend-row">
+            <span className="legend-square" style={{ backgroundColor: estimasi.color }} />
+            <div className="legend-row-text">
+              <span>Estimasi</span>
+              <span className="legend-subtext">(Internal + Vendor)</span>
+            </div>
+          </div>
+          <div className="realisasi-legend-row">
+            <span className="legend-square" style={{ backgroundColor: realisasi.color }} />
+            <div className="legend-row-text">
+              <span>Realisasi</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Bar Chart */}
         <div className="realisasi-chart-col">
           <div className="realisasi-chart-wrapper">
-            {/* Grid Lines */}
-            <div className="realisasi-grid-bg">
-              <div className="realisasi-grid-line">
-                <span className="grid-tick-text">20jt</span>
-              </div>
-              <div className="realisasi-grid-line">
-                <span className="grid-tick-text">10jt</span>
-              </div>
-              <div className="realisasi-grid-line">
-                <span className="grid-tick-text">0</span>
-              </div>
-            </div>
+            {/* Top subtle dashed line */}
+            <div className="realisasi-dashed-guide"></div>
 
             {/* Bars */}
             <div className="realisasi-bars-group">
@@ -47,22 +54,21 @@ export default function RealisasiComparisonCard() {
                 onMouseLeave={() => setHoveredBar(null)}
               >
                 <div className="realisasi-bar-value-top">
-                  <span className="bar-val-prefix">Rp</span>
-                  <span className="bar-val-main">18.4jt</span>
+                  {estimasi.amountFormatted || 'Rp 18.4jt'}
                 </div>
 
                 <div className="realisasi-bar-track">
                   <div 
                     className="realisasi-bar-fill"
                     style={{
-                      height: '92%',
+                      height: '80px',
                       backgroundColor: estimasi.color,
-                      boxShadow: hoveredBar === 'estimasi' ? `0 6px 18px ${estimasi.color}66` : `0 2px 8px ${estimasi.color}33`,
+                      boxShadow: hoveredBar === 'estimasi' ? `0 4px 12px ${estimasi.color}55` : 'none',
                     }}
                   />
                 </div>
 
-                <span className="realisasi-bar-label">{estimasi.label}</span>
+                <span className="realisasi-bar-label">{estimasi.label || 'Estimasi'}</span>
               </div>
 
               {/* Realisasi Bar */}
@@ -72,36 +78,23 @@ export default function RealisasiComparisonCard() {
                 onMouseLeave={() => setHoveredBar(null)}
               >
                 <div className="realisasi-bar-value-top">
-                  <span className="bar-val-prefix">Rp</span>
-                  <span className="bar-val-main">2.1jt</span>
+                  {realisasi.amountFormatted || 'Rp 2.1jt'}
                 </div>
 
                 <div className="realisasi-bar-track">
                   <div 
                     className="realisasi-bar-fill"
                     style={{
-                      height: '24%',
+                      height: '18px',
                       backgroundColor: realisasi.color,
-                      boxShadow: hoveredBar === 'realisasi' ? `0 6px 18px ${realisasi.color}66` : `0 2px 8px ${realisasi.color}33`,
+                      boxShadow: hoveredBar === 'realisasi' ? `0 4px 12px ${realisasi.color}55` : 'none',
                     }}
                   />
                 </div>
 
-                <span className="realisasi-bar-label">{realisasi.label}</span>
+                <span className="realisasi-bar-label">{realisasi.label || 'Realisasi'}</span>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Right: Vertical Legend (Atas Estimasi, Bawah Realisasi) */}
-        <div className="realisasi-vertical-legend">
-          <div className="realisasi-legend-row">
-            <span className="legend-dot" style={{ backgroundColor: estimasi.color }} />
-            <span className="legend-row-text">{estimasi.subLabel || estimasi.label}</span>
-          </div>
-          <div className="realisasi-legend-row">
-            <span className="legend-dot" style={{ backgroundColor: realisasi.color }} />
-            <span className="legend-row-text">{realisasi.subLabel || realisasi.label}</span>
           </div>
         </div>
       </div>

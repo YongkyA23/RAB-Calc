@@ -76,13 +76,13 @@ export function JobLogView({ loading, onDuplicateQuote, onExportCsv, quotes }) {
 
         <div className="mt-6 overflow-hidden rounded-lg border border-slate-200">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600">
+            <thead className="bg-slate-50 text-slate-900">
               <tr>
-                <th className="px-4 py-3 font-semibold">No Job</th>
-                <th className="px-4 py-3 font-semibold">Klien</th>
-                <th className="px-4 py-3 font-semibold">Proyek</th>
-                <th className="px-4 py-3 font-semibold">Total</th>
-                <th className="px-4 py-3 font-semibold">Aksi</th>
+                <th className="px-4 py-3 font-bold">No Job</th>
+                <th className="px-4 py-3 font-bold">Klien</th>
+                <th className="px-4 py-3 font-bold">Proyek</th>
+                <th className="px-4 py-3 font-bold">Total</th>
+                <th className="px-4 py-3 font-bold">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">

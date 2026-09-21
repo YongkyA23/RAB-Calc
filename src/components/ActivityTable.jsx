@@ -27,6 +27,8 @@ export default function ActivityTable({ activeTab = 'Estimasi', setActiveTab }) 
         return 'badge-realisation';
       case 'progress':
         return 'badge-progress';
+      case 'canceled':
+        return 'badge-canceled';
       default:
         return 'badge-default';
     }
@@ -90,7 +92,7 @@ export default function ActivityTable({ activeTab = 'Estimasi', setActiveTab }) 
 
             {showFilterDropdown && (
               <div className="filter-dropdown-menu">
-                {['All', 'Draft', 'Completed', 'Realisation', 'On Progress'].map((status) => (
+                {['All', 'Draf', 'Proses', 'Realisasi', 'Selesai', 'Batal'].map((status) => (
                   <button
                     key={status}
                     className={`filter-dropdown-item ${statusFilter === status ? 'is-selected' : ''}`}

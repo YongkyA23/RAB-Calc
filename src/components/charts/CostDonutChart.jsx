@@ -149,27 +149,29 @@ export default function CostDonutChart() {
                 onMouseEnter={(e) => handleMouseEnter(item, e)}
                 onMouseLeave={handleMouseLeave}
               >
-                <div className="breakdown-header">
-                  <div className="breakdown-name-wrapper">
-                    <span 
-                      className="breakdown-dot" 
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="breakdown-name">{item.label}</span>
-                  </div>
-                  <span className="breakdown-percent" style={{ color: item.color }}>{item.percentage}%</span>
-                </div>
-
-                <div className="breakdown-amount">{item.valueFormatted}</div>
-
-                <div className="breakdown-bar-track">
-                  <div
-                    className="breakdown-bar-fill"
-                    style={{
-                      width: `${item.percentage}%`,
-                      backgroundColor: item.color,
-                    }}
+                <div className="breakdown-left-dot-col">
+                  <span 
+                    className="breakdown-dot" 
+                    style={{ backgroundColor: item.color }}
                   />
+                </div>
+                <div className="breakdown-content-col">
+                  <div className="breakdown-header">
+                    <span className="breakdown-name">{item.label}</span>
+                    <span className="breakdown-percent" style={{ color: item.color }}>{item.percentage}%</span>
+                  </div>
+
+                  <div className="breakdown-bar-track">
+                    <div
+                      className="breakdown-bar-fill"
+                      style={{
+                        width: `${item.percentage}%`,
+                        backgroundColor: item.color,
+                      }}
+                    />
+                  </div>
+
+                  <div className="breakdown-amount">{item.valueFormatted}</div>
                 </div>
               </div>
             );

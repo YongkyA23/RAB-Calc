@@ -10,37 +10,41 @@ import {
   Save 
 } from 'lucide-react';
 
-export default function EstimasiVendorForm({ onBack }) {
+export default function EstimasiVendorForm({ onBack, initialData }) {
   // Vendor Info State
   const [vendorData, setVendorData] = useState({
-    jobName: '',
-    vendorName: '',
-    noJob: '',
-    aeName: '',
-    quantity: 0,
-    unitPrice: 0,
-    fileName: '',
+    jobName: initialData?.project || initialData?.jobName || '',
+    vendorName: initialData?.vendor || initialData?.vendorName || '',
+    noJob: initialData?.noJob || '',
+    aeName: initialData?.aeName || '',
+    quantity: initialData?.quantity || '',
+    unitPrice: initialData?.valueNum || (initialData?.value ? Number(String(initialData.value).replace(/[^0-9]/g, '')) : ''),
+    fileName: initialData?.attachment || '',
   });
 
   // Manpower Rows
-  const [manpowerRows, setManpowerRows] = useState([
-    {
-      id: 1,
-      costDescription: 'Packing Bubble & Dus',
-      price: 10000,
-      quantity: 1,
-    }
-  ]);
+  const [manpowerRows, setManpowerRows] = useState(
+    initialData?.manpowerRows || (initialData ? [
+      {
+        id: 1,
+        costDescription: 'Packing Bubble & Dus',
+        price: 10000,
+        quantity: 1,
+      }
+    ] : [])
+  );
 
   // Biaya Tambahan Rows
-  const [additionalRows, setAdditionalRows] = useState([
-    {
-      id: 1,
-      costDescription: 'Packing Bubble & Dus',
-      price: 10000,
-      quantity: 1,
-    }
-  ]);
+  const [additionalRows, setAdditionalRows] = useState(
+    initialData?.additionalRows || (initialData ? [
+      {
+        id: 1,
+        costDescription: 'Packing Bubble & Dus',
+        price: 10000,
+        quantity: 1,
+      }
+    ] : [])
+  );
 
   // Calculations
   const baseVendorTotal = (Number(vendorData.quantity) || 0) * (Number(vendorData.unitPrice) || 0);

@@ -4,9 +4,6 @@ import {
   FileText, 
   Layers, 
   Database, 
-  LogOut, 
-  ChevronLeft,
-  ChevronRight,
   Store,
   Printer,
   BookOpen,
@@ -35,14 +32,14 @@ export default function Sidebar({ activeNav = 'Dashboard', activeSubNav = 'Estim
   const HITUNG_KERTAS_SUBNAV = [
     { id: 'Layout Cetak',    icon: Printer,   label: 'Layout Cetak' },
     { id: 'Kalkulator Buku', icon: BookOpen,   label: 'Kalkulator Buku' },
-    { id: 'Potong Piano',    icon: Scissors,   label: 'Potong Piano' },
+    { id: 'Potong Plano',    icon: Scissors,   label: 'Potong Plano' },
     { id: 'Estimasi Waktu',  icon: Clock,      label: 'Estimasi Waktu' },
   ];
 
   return (
     <aside className={`prenexus-sidebar ${collapsed ? 'is-collapsed' : ''}`}>
       <div className="sidebar-top">
-        {!collapsed && <div className="sidebar-section-title">APLIKASI AKTIF</div>}
+        {!collapsed && <div className="sidebar-section-title">Aplikasi Aktif</div>}
         <nav className="sidebar-nav">
           {/* Dashboard */}
           <button
@@ -50,18 +47,18 @@ export default function Sidebar({ activeNav = 'Dashboard', activeSubNav = 'Estim
             onClick={() => handleNavClick('Dashboard')}
             title="Dashboard"
           >
-            <LayoutGrid size={18} className="nav-icon" />
+            <LayoutGrid size={16} className="nav-icon" />
             {!collapsed && <span className="nav-label">Dashboard</span>}
           </button>
 
           {/* Estimasi Harga (with sub-menu) */}
           <div className="sidebar-nav-group">
             <button
-              className={`sidebar-nav-item ${activeNav === 'Estimasi Harga' ? 'is-active-parent' : ''}`}
+              className={`sidebar-nav-item ${activeNav === 'Estimasi Harga' ? (activeSubNav ? 'is-active-parent' : 'is-active') : ''}`}
               onClick={() => handleNavClick('Estimasi Harga')}
               title="Estimasi Harga"
             >
-              <FileText size={18} className="nav-icon" />
+              <FileText size={16} className="nav-icon" />
               {!collapsed && <span className="nav-label">Estimasi Harga</span>}
             </button>
 
@@ -73,14 +70,14 @@ export default function Sidebar({ activeNav = 'Dashboard', activeSubNav = 'Estim
                     className={`sidebar-submenu-item ${activeSubNav === 'Estimasi Harga' ? 'is-active' : ''}`}
                     onClick={(e) => handleSubNavClick('Estimasi Harga', 'Estimasi Harga', e)}
                   >
-                    <FileText size={14} className="subnav-icon" />
+                    <FileText size={13} className="subnav-icon" />
                     <span>Estimasi Harga</span>
                   </button>
                   <button
                     className={`sidebar-submenu-item ${activeSubNav === 'Estimasi Vendor' ? 'is-active' : ''}`}
                     onClick={(e) => handleSubNavClick('Estimasi Harga', 'Estimasi Vendor', e)}
                   >
-                    <Store size={14} className="subnav-icon" />
+                    <Store size={13} className="subnav-icon" />
                     <span>Estimasi Vendor</span>
                   </button>
                 </div>
@@ -91,11 +88,11 @@ export default function Sidebar({ activeNav = 'Dashboard', activeSubNav = 'Estim
           {/* Hitung Kertas (with sub-menu) */}
           <div className="sidebar-nav-group">
             <button
-              className={`sidebar-nav-item ${activeNav === 'Hitung Kertas' ? 'is-active-parent' : ''}`}
+              className={`sidebar-nav-item ${activeNav === 'Hitung Kertas' ? (activeSubNav ? 'is-active-parent' : 'is-active') : ''}`}
               onClick={() => handleNavClick('Hitung Kertas')}
               title="Hitung Kertas"
             >
-              <Layers size={18} className="nav-icon" />
+              <Layers size={16} className="nav-icon" />
               {!collapsed && <span className="nav-label">Hitung Kertas</span>}
             </button>
 
@@ -111,7 +108,7 @@ export default function Sidebar({ activeNav = 'Dashboard', activeSubNav = 'Estim
                         className={`sidebar-submenu-item ${activeSubNav === sub.id ? 'is-active' : ''}`}
                         onClick={(e) => handleSubNavClick('Hitung Kertas', sub.id, e)}
                       >
-                        <Icon size={14} className="subnav-icon" />
+                        <Icon size={13} className="subnav-icon" />
                         <span>{sub.label}</span>
                       </button>
                     );
@@ -127,7 +124,7 @@ export default function Sidebar({ activeNav = 'Dashboard', activeSubNav = 'Estim
             onClick={() => handleNavClick('Master Data')}
             title="Master Data"
           >
-            <Database size={18} className="nav-icon" />
+            <Database size={16} className="nav-icon" />
             {!collapsed && <span className="nav-label">Master Data</span>}
           </button>
         </nav>
@@ -141,8 +138,8 @@ export default function Sidebar({ activeNav = 'Dashboard', activeSubNav = 'Estim
           </div>
           {!collapsed && (
             <div className="user-info">
-              <div className="user-name">Ananda Rafii</div>
-              <div className="user-email">anandarafii@gmail.com</div>
+              <div className="user-name">Ananda Rafli</div>
+              <div className="user-email">anandaraflialfarizi@gmail.com</div>
             </div>
           )}
         </div>
@@ -154,16 +151,32 @@ export default function Sidebar({ activeNav = 'Dashboard', activeSubNav = 'Estim
             onClick={onLogout}
             title="Keluar ke Pemilihan Modul"
           >
-            <LogOut size={16} />
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
             {!collapsed && <span>Keluar</span>}
           </button>
 
           <button 
             className="sidebar-action-item" 
             onClick={() => setCollapsed(!collapsed)}
-            title={collapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
+            title={collapsed ? 'Perluas Sidebar' : 'Ciutkan'}
           >
-            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            <svg 
+              width="13" 
+              height="13" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+              style={{ transform: collapsed ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
             {!collapsed && <span>Ciutkan</span>}
           </button>
         </div>

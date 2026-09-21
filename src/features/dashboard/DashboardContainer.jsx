@@ -40,11 +40,12 @@ export function DashboardContainer({ profile }) {
 
   const stats = useMemo(() => {
     const draftCount = estimates.filter((estimate) => normalizeEstimateStatus(estimate) === 'draft').length
+    const onProgressEstimates = estimates.filter((estimate) => estimate.status === 'on-progress' || estimate.status === 'progress')
     return {
       estimateCount: estimates.length,
       draftCount,
       createdCount: estimates.length - draftCount,
-      estimateValue: estimates.reduce((sum, estimate) => sum + (Number(estimate.grandTotal) || 0), 0),
+      estimateValue: onProgressEstimates.reduce((sum, estimate) => sum + (Number(estimate.grandTotal) || 0), 0),
       vendorCount: vendorEstimates.length,
       vendorValue: vendorEstimates.reduce((sum, vendor) => sum + (Number(vendor.price) || 0), 0),
     }

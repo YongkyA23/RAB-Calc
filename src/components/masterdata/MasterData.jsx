@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Edit3, Trash2, Clock, Check, Plus, AlertCircle } from 'lucide-react';
+import { Layers, Edit3, Trash2, Clock } from 'lucide-react';
 
 const INITIAL_MASTER_CATEGORIES = [
   { id: 'operational', name: 'Operational Costs', count: 9 },
@@ -33,13 +33,13 @@ const INITIAL_MASTER_ITEMS = {
     { id: 'mp-1', name: 'Default Manpower', tariff: 'Rp 275.000/hari', days: '0 hari', active: true },
   ],
   'manual-finishing': [
-    { id: 'mf-1', name: 'WB Varnish', tariff: 'Tenaga 0.75/cm² · Min. Rp 600.000', days: '2 hari', active: true },
-    { id: 'mf-2', name: 'Die Cut Manual', tariff: 'Alat Rp 3.500/cm² · Tenaga 15/cm² · Min. Rp 250.000', days: '3 hari', active: true },
-    { id: 'mf-3', name: 'Emboss', tariff: 'Alat Rp 2.500/cm² · Tenaga 25/cm² · Min. Rp 250.000', days: '3 hari', active: true },
-    { id: 'mf-4', name: 'Spot UV', tariff: 'Tenaga 0.75/cm² · Min. Rp 650.000', days: '2 hari', active: true },
-    { id: 'mf-5', name: 'UV Varnish Glossy', tariff: 'Tenaga 0.75/cm² · Min. Rp 600.000', days: '2 hari', active: true },
-    { id: 'mf-6', name: 'UV Varnish Matte', tariff: 'Tenaga 0.75/cm²', days: '2 hari', active: true },
-    { id: 'mf-7', name: 'Spot UV / Varnish Effect', tariff: 'Tenaga 0.75/cm²', days: '2 hari', active: true },
+    { id: 'mf-1', name: 'WB Varnish', tariff: 'Tenaga Rp 0,75/cm² · Min. Rp 600.000', days: '2 hari', active: true },
+    { id: 'mf-2', name: 'Die Cut Manual', tariff: 'Alat Rp 3.500/cm² · Tenaga Rp 15/cm² · Min. Rp 250.000', days: '3 hari', active: true },
+    { id: 'mf-3', name: 'Emboss', tariff: 'Alat Rp 2.500/cm² · Tenaga Rp 25/cm² · Min. Rp 250.000', days: '3 hari', active: true },
+    { id: 'mf-4', name: 'Spot UV', tariff: 'Tenaga Rp 0,75/cm² · Min. Rp 650.000', days: '2 hari', active: true },
+    { id: 'mf-5', name: 'UV Varnish Glossy', tariff: 'Tenaga Rp 0,75/cm² · Min. Rp 600.000', days: '2 hari', active: true },
+    { id: 'mf-6', name: 'UV Varnish Matte', tariff: 'Tenaga Rp 0,75/cm²', days: '2 hari', active: true },
+    { id: 'mf-7', name: 'Spot UV / Varnish Effect', tariff: 'Tenaga Rp 0,75/cm²', days: '2 hari', active: true },
   ],
   'print-materials': [
     { id: 'pm-1', name: 'Kertas Fancy', tariff: 'A3: 1–10 Rp 30.000, >10 Rp 40.000 · B2: 1–10 Rp 40.000, >10 Rp 50.000', days: '1 hari', active: true },
@@ -128,6 +128,22 @@ const INITIAL_AUDITS = [
   },
 ];
 
+// Helper to format currency input string with dots and commas
+const formatCurrencyValue = (val) => {
+  if (!val && val !== 0) return '';
+  const clean = String(val).replace(/[^0-9,.]/g, '');
+  // If user entered decimal comma
+  if (clean.includes(',')) {
+    const parts = clean.split(',');
+    const integerPart = parts[0].replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return integerPart ? `${integerPart},${parts.slice(1).join('').substring(0, 2)}` : `0,${parts.slice(1).join('').substring(0, 2)}`;
+  }
+  // Otherwise regular thousand dots
+  const integerVal = clean.replace(/\D/g, '');
+  if (!integerVal) return '';
+  return integerVal.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+};
+
 export default function MasterData() {
   const [activeTab, setActiveTab] = useState('operational');
   const [itemsData, setItemsData] = useState(INITIAL_MASTER_ITEMS);
@@ -136,18 +152,30 @@ export default function MasterData() {
   // Form State
   const [itemName, setItemName] = useState('');
   const [calcMode, setCalcMode] = useState('Nominal manual');
+  const [opRate, setOpRate] = useState('');
   const [days, setDays] = useState(0);
 
   // Price tier state for Digital Finishing & Print Materials
   const [priceTiers, setPriceTiers] = useState({
-    A3: { p1: '0', p2: '0' },
-    B2: { p1: '0', p2: '0' },
-    LargeFormat: { p1: '0', p2: '0' },
+    A3: { p1: '15.000', p2: '15.000' },
+    B2: { p1: '40.000', p2: '40.000' },
   });
+  
+  // Custom Format State
+  const [customFormat, setCustomFormat] = useState({
+    enabled: true,
+    length: '100',
+    width: '100',
+    unit: 'per m²', // 'per m²' or 'per cm²'
+    p1: '25.000',
+    p2: '20.000',
+  });
+
   const [onlyA3, setOnlyA3] = useState(false);
 
   // Manpower specific
-  const [dailyRate, setDailyRate] = useState('');
+  const [dailyRate, setDailyRate] = useState('275.000');
+  const [people, setPeople] = useState(1);
 
   // Manual Finishing specific
   const [toolTariff, setToolTariff] = useState('');
@@ -159,12 +187,21 @@ export default function MasterData() {
   const currentItems = itemsData[activeTab] || [];
 
   const handlePriceTierChange = (size, field, val) => {
+    const formatted = formatCurrencyValue(val);
     setPriceTiers((prev) => ({
       ...prev,
       [size]: {
         ...prev[size],
-        [field]: val,
+        [field]: formatted,
       },
+    }));
+  };
+
+  const handleCustomFormatChange = (field, val) => {
+    const isPrice = field === 'p1' || field === 'p2';
+    setCustomFormat((prev) => ({
+      ...prev,
+      [field]: isPrice ? formatCurrencyValue(val) : val,
     }));
   };
 
@@ -177,15 +214,28 @@ export default function MasterData() {
 
     let formattedTariff = 'Nominal saat estimasi';
     if (activeTab === 'operational') {
-      formattedTariff = calcMode;
+      if (calcMode === 'Nominal manual') {
+        formattedTariff = 'Nominal saat estimasi';
+      } else if (calcMode === 'Jumlah × tarif') {
+        formattedTariff = opRate ? `Rp ${opRate}/unit` : 'Jumlah × tarif';
+      } else if (calcMode === 'Panjang × lebar × tarif') {
+        formattedTariff = opRate ? `Rp ${opRate}/cm²` : 'Panjang × lebar × tarif';
+      } else if (calcMode === 'Persentase biaya produksi') {
+        formattedTariff = opRate ? `${opRate}% dari total` : 'Persentase biaya produksi';
+      } else {
+        formattedTariff = calcMode;
+      }
     } else if (activeTab === 'manpower') {
-      formattedTariff = dailyRate ? `Rp ${dailyRate}/hari` : 'Rp 275.000/hari';
+      const pCount = Number(people) || 1;
+      formattedTariff = dailyRate 
+        ? `Rp ${dailyRate}/hari · ${pCount} orang` 
+        : `Rp 275.000/hari · ${pCount} orang`;
     } else if (activeTab === 'manual-finishing') {
       let parts = [];
       if (toolTariff) parts.push(`Alat Rp ${toolTariff}/cm²`);
-      if (laborTariff) parts.push(`Tenaga ${laborTariff}/cm²`);
+      if (laborTariff) parts.push(`Tenaga Rp ${laborTariff}/cm²`);
       if (minLaborCost) parts.push(`Min. Rp ${minLaborCost}`);
-      formattedTariff = parts.length > 0 ? parts.join(' · ') : 'Tenaga 0.75/cm²';
+      formattedTariff = parts.length > 0 ? parts.join(' · ') : 'Tenaga Rp 0,75/cm²';
     } else if (activeTab === 'digital-finishing' || activeTab === 'print-materials') {
       let parts = [];
       if (priceTiers.A3.p1 && priceTiers.A3.p1 !== '0') {
@@ -193,6 +243,14 @@ export default function MasterData() {
       }
       if (!onlyA3 && priceTiers.B2.p1 && priceTiers.B2.p1 !== '0') {
         parts.push(`B2: 1–10 Rp ${priceTiers.B2.p1}, >10 Rp ${priceTiers.B2.p2 || priceTiers.B2.p1}`);
+      }
+      if (!onlyA3 && customFormat.enabled && (customFormat.p1 || customFormat.p2)) {
+        const dimStr = customFormat.length && customFormat.width ? `${customFormat.length}×${customFormat.width} cm` : '';
+        const unitStr = customFormat.unit;
+        const p1Str = customFormat.p1 ? `1–10 Rp ${customFormat.p1}` : '';
+        const p2Str = customFormat.p2 ? `>10 Rp ${customFormat.p2}` : '';
+        const priceStr = [p1Str, p2Str].filter(Boolean).join(', ');
+        parts.push(`Custom (${[dimStr, unitStr].filter(Boolean).join(' · ')}): ${priceStr}`);
       }
       formattedTariff = parts.length > 0 ? parts.join(' · ') : 'A3: 1–10 Rp 20.000, >10 Rp 20.000';
     }
@@ -222,15 +280,25 @@ export default function MasterData() {
 
     // Reset Form
     setItemName('');
+    setCalcMode('Nominal manual');
+    setOpRate('');
     setDays(0);
-    setDailyRate('');
+    setDailyRate('275.000');
+    setPeople(1);
     setToolTariff('');
     setLaborTariff('');
     setMinLaborCost('');
     setPriceTiers({
-      A3: { p1: '0', p2: '0' },
-      B2: { p1: '0', p2: '0' },
-      LargeFormat: { p1: '0', p2: '0' },
+      A3: { p1: '15.000', p2: '15.000' },
+      B2: { p1: '40.000', p2: '40.000' },
+    });
+    setCustomFormat({
+      enabled: true,
+      length: '100',
+      width: '100',
+      unit: 'per m²',
+      p1: '25.000',
+      p2: '20.000',
     });
     setOnlyA3(false);
   };
@@ -243,7 +311,6 @@ export default function MasterData() {
       ),
     }));
 
-    const targetItem = currentItems.find((i) => i.id === id);
     const newAudit = {
       id: Date.now(),
       type: 'UPDATE',
@@ -261,11 +328,11 @@ export default function MasterData() {
       case 'digital-finishing':
         return 'Field menyesuaikan Digital Finishing.';
       case 'manpower':
-        return 'Field menyesuaikan Additional / Operational Costs.';
+        return 'Field menyesuaikan Manpower Rates.';
       case 'manual-finishing':
         return 'Field menyesuaikan Manual Finishing.';
       case 'print-materials':
-        return 'Field menyesuaikan Digital Finishing.';
+        return 'Field menyesuaikan Print Materials.';
       default:
         return 'Field menyesuaikan kategori.';
     }
@@ -368,29 +435,99 @@ export default function MasterData() {
 
             {/* Category: Operational Costs */}
             {activeTab === 'operational' && (
-              <div className="master-form-group">
-                <label className="master-field-label">Mode perhitungan</label>
-                <input
-                  type="text"
-                  className="master-input-text"
-                  value={calcMode}
-                  onChange={(e) => setCalcMode(e.target.value)}
-                />
-              </div>
+              <>
+                <div className="master-form-group">
+                  <label className="master-field-label">Mode perhitungan</label>
+                  <select
+                    className="master-input-select"
+                    value={calcMode}
+                    onChange={(e) => {
+                      setCalcMode(e.target.value);
+                      setOpRate('');
+                    }}
+                  >
+                    <option value="Nominal manual">Nominal manual</option>
+                    <option value="Jumlah × tarif">Jumlah × tarif</option>
+                    <option value="Panjang × lebar × tarif">Panjang × lebar × tarif</option>
+                    <option value="Persentase biaya produksi">Persentase biaya produksi</option>
+                  </select>
+                </div>
+
+                {calcMode === 'Jumlah × tarif' && (
+                  <div className="master-form-group">
+                    <label className="master-field-label">Tarif per unit</label>
+                    <div className="input-with-prefix">
+                      <span className="input-prefix">Rp</span>
+                      <input
+                        type="text"
+                        placeholder="5.000"
+                        value={opRate}
+                        onChange={(e) => setOpRate(formatCurrencyValue(e.target.value))}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {calcMode === 'Panjang × lebar × tarif' && (
+                  <div className="master-form-group">
+                    <label className="master-field-label">Tarif per cm²</label>
+                    <div className="input-with-prefix">
+                      <span className="input-prefix">Rp</span>
+                      <input
+                        type="text"
+                        placeholder="10"
+                        value={opRate}
+                        onChange={(e) => setOpRate(formatCurrencyValue(e.target.value))}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {calcMode === 'Persentase biaya produksi' && (
+                  <div className="master-form-group">
+                    <label className="master-field-label">Persentase dari total biaya</label>
+                    <div className="input-with-suffix">
+                      <input
+                        type="text"
+                        placeholder="10"
+                        value={opRate}
+                        onChange={(e) => setOpRate(e.target.value.replace(/[^0-9,.]/g, ''))}
+                      />
+                      <span className="input-suffix">%</span>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Category: Manpower */}
             {activeTab === 'manpower' && (
-              <div className="master-form-group">
-                <label className="master-field-label">Tarif harian</label>
-                <input
-                  type="text"
-                  className="master-input-text"
-                  placeholder="275.000"
-                  value={dailyRate}
-                  onChange={(e) => setDailyRate(e.target.value)}
-                />
-              </div>
+              <>
+                <div className="master-form-group">
+                  <label className="master-field-label">Tarif harian</label>
+                  <div className="input-with-prefix">
+                    <span className="input-prefix">Rp</span>
+                    <input
+                      type="text"
+                      placeholder="275.000"
+                      value={dailyRate}
+                      onChange={(e) => setDailyRate(formatCurrencyValue(e.target.value))}
+                    />
+                  </div>
+                </div>
+
+                <div className="master-form-group">
+                  <label className="master-field-label">Jumlah orang</label>
+                  <input
+                    type="number"
+                    className="master-input-text"
+                    min="1"
+                    placeholder="1"
+                    value={people}
+                    onChange={(e) => setPeople(e.target.value)}
+                  />
+                </div>
+              </>
             )}
 
             {/* Category: Manual Finishing */}
@@ -398,24 +535,28 @@ export default function MasterData() {
               <>
                 <div className="master-form-group">
                   <label className="master-field-label">Tarif alat per cm² (opsional)</label>
-                  <input
-                    type="text"
-                    className="master-input-text"
-                    placeholder="mis. 2.500"
-                    value={toolTariff}
-                    onChange={(e) => setToolTariff(e.target.value)}
-                  />
+                  <div className="input-with-prefix">
+                    <span className="input-prefix">Rp</span>
+                    <input
+                      type="text"
+                      placeholder="2.500"
+                      value={toolTariff}
+                      onChange={(e) => setToolTariff(formatCurrencyValue(e.target.value))}
+                    />
+                  </div>
                 </div>
 
                 <div className="master-form-group">
                   <label className="master-field-label">Tarif tenaga kerja per cm²</label>
-                  <input
-                    type="text"
-                    className="master-input-text"
-                    placeholder="mis. 0.75"
-                    value={laborTariff}
-                    onChange={(e) => setLaborTariff(e.target.value)}
-                  />
+                  <div className="input-with-prefix">
+                    <span className="input-prefix">Rp</span>
+                    <input
+                      type="text"
+                      placeholder="0,75"
+                      value={laborTariff}
+                      onChange={(e) => setLaborTariff(e.target.value.replace(/[^0-9,.]/g, ''))}
+                    />
+                  </div>
                 </div>
 
                 <div className="master-form-group">
@@ -430,13 +571,15 @@ export default function MasterData() {
 
                 <div className="master-form-group">
                   <label className="master-field-label">Biaya minimum tenaga kerja</label>
-                  <input
-                    type="text"
-                    className="master-input-text"
-                    placeholder="mis. 250.000"
-                    value={minLaborCost}
-                    onChange={(e) => setMinLaborCost(e.target.value)}
-                  />
+                  <div className="input-with-prefix">
+                    <span className="input-prefix">Rp</span>
+                    <input
+                      type="text"
+                      placeholder="250.000"
+                      value={minLaborCost}
+                      onChange={(e) => setMinLaborCost(formatCurrencyValue(e.target.value))}
+                    />
+                  </div>
                 </div>
               </>
             )}
@@ -453,55 +596,124 @@ export default function MasterData() {
                 {/* Size: A3 */}
                 <div className="matrix-row">
                   <span className="matrix-row-label">A3</span>
-                  <input
-                    type="text"
-                    className="matrix-input"
-                    value={priceTiers.A3.p1}
-                    onChange={(e) => handlePriceTierChange('A3', 'p1', e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    className="matrix-input"
-                    value={priceTiers.A3.p2}
-                    onChange={(e) => handlePriceTierChange('A3', 'p2', e.target.value)}
-                  />
+                  <div className="input-with-prefix">
+                    <span className="input-prefix">Rp</span>
+                    <input
+                      type="text"
+                      value={priceTiers.A3.p1}
+                      onChange={(e) => handlePriceTierChange('A3', 'p1', e.target.value)}
+                    />
+                  </div>
+                  <div className="input-with-prefix">
+                    <span className="input-prefix">Rp</span>
+                    <input
+                      type="text"
+                      value={priceTiers.A3.p2}
+                      onChange={(e) => handlePriceTierChange('A3', 'p2', e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 {/* Size: B2 */}
                 {!onlyA3 && (
                   <div className="matrix-row">
                     <span className="matrix-row-label">B2</span>
-                    <input
-                      type="text"
-                      className="matrix-input"
-                      value={priceTiers.B2.p1}
-                      onChange={(e) => handlePriceTierChange('B2', 'p1', e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="matrix-input"
-                      value={priceTiers.B2.p2}
-                      onChange={(e) => handlePriceTierChange('B2', 'p2', e.target.value)}
-                    />
+                    <div className="input-with-prefix">
+                      <span className="input-prefix">Rp</span>
+                      <input
+                        type="text"
+                        value={priceTiers.B2.p1}
+                        onChange={(e) => handlePriceTierChange('B2', 'p1', e.target.value)}
+                      />
+                    </div>
+                    <div className="input-with-prefix">
+                      <span className="input-prefix">Rp</span>
+                      <input
+                        type="text"
+                        value={priceTiers.B2.p2}
+                        onChange={(e) => handlePriceTierChange('B2', 'p2', e.target.value)}
+                      />
+                    </div>
                   </div>
                 )}
 
-                {/* Size: Large Format */}
+                {/* Size: Custom Format (Replaced Large Format) */}
                 {!onlyA3 && (
-                  <div className="matrix-row">
-                    <span className="matrix-row-label">Large Format</span>
-                    <input
-                      type="text"
-                      className="matrix-input"
-                      value={priceTiers.LargeFormat.p1}
-                      onChange={(e) => handlePriceTierChange('LargeFormat', 'p1', e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="matrix-input"
-                      value={priceTiers.LargeFormat.p2}
-                      onChange={(e) => handlePriceTierChange('LargeFormat', 'p2', e.target.value)}
-                    />
+                  <div className="custom-format-box">
+                    <div className="custom-format-title">
+                      <span>Custom Format</span>
+                      <label className="matrix-checkbox-row" style={{ margin: 0 }}>
+                        <input
+                          type="checkbox"
+                          checked={customFormat.enabled}
+                          onChange={(e) => setCustomFormat((p) => ({ ...p, enabled: e.target.checked }))}
+                        />
+                        <span style={{ fontSize: '10px' }}>Aktifkan</span>
+                      </label>
+                    </div>
+
+                    {customFormat.enabled && (
+                      <>
+                        <div className="custom-format-dim-grid">
+                          <div className="custom-dim-group">
+                            <label>Panjang (cm)</label>
+                            <input
+                              type="number"
+                              placeholder="100"
+                              value={customFormat.length}
+                              onChange={(e) => handleCustomFormatChange('length', e.target.value)}
+                            />
+                          </div>
+                          <div className="custom-dim-group">
+                            <label>Lebar (cm)</label>
+                            <input
+                              type="number"
+                              placeholder="100"
+                              value={customFormat.width}
+                              onChange={(e) => handleCustomFormatChange('width', e.target.value)}
+                            />
+                          </div>
+                          <div className="custom-dim-group">
+                            <label>Satuan Harga</label>
+                            <select
+                              value={customFormat.unit}
+                              onChange={(e) => handleCustomFormatChange('unit', e.target.value)}
+                            >
+                              <option value="per m²">per m²</option>
+                              <option value="per cm²">per cm²</option>
+                              <option value="per pcs">per pcs</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="custom-price-grid">
+                          <div className="custom-dim-group">
+                            <label>Harga 1–10 ({customFormat.unit})</label>
+                            <div className="input-with-prefix">
+                              <span className="input-prefix">Rp</span>
+                              <input
+                                type="text"
+                                placeholder="25.000"
+                                value={customFormat.p1}
+                                onChange={(e) => handleCustomFormatChange('p1', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                          <div className="custom-dim-group">
+                            <label>Harga &gt; 10 ({customFormat.unit})</label>
+                            <div className="input-with-prefix">
+                              <span className="input-prefix">Rp</span>
+                              <input
+                                type="text"
+                                placeholder="20.000"
+                                value={customFormat.p2}
+                                onChange={(e) => handleCustomFormatChange('p2', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 

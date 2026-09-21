@@ -22,7 +22,7 @@ const ALIGNMENTS = [
   { id: 'br', label: 'Bawah Kanan' },
 ];
 
-function LayoutPreview({ paperW, paperH, designW, designH, bleed, qty, orientation, alignment }) {
+function LayoutPreview({ paperW, paperH, designW, designH, bleed, qty, orientation, alignment, areaCetak }) {
   const canvasRef = useRef(null);
 
   const draw = useCallback(() => {
@@ -35,7 +35,7 @@ function LayoutPreview({ paperW, paperH, designW, designH, bleed, qty, orientati
     ctx.clearRect(0, 0, cvW, cvH);
 
     // Canvas background
-    ctx.fillStyle = '#F8FAFC';
+    ctx.fillStyle = '#F1F5F9';
     ctx.fillRect(0, 0, cvW, cvH);
 
     const pw = orientation === 'landscape' ? Math.max(paperW, paperH) : Math.min(paperW, paperH);
@@ -43,8 +43,8 @@ function LayoutPreview({ paperW, paperH, designW, designH, bleed, qty, orientati
 
     if (pw <= 0 || ph <= 0) return;
 
-    // Scale calculation with padding
-    const PAD = 30;
+    // Scale calculation with padding (scaled down to leave room around sheet)
+    const PAD = 55;
     const scaleX = (cvW - PAD * 2) / pw;
     const scaleY = (cvH - PAD * 2) / ph;
     const scale = Math.min(scaleX, scaleY);
@@ -54,9 +54,9 @@ function LayoutPreview({ paperW, paperH, designW, designH, bleed, qty, orientati
     const ox = (cvW - drawW) / 2;
     const oy = (cvH - drawH) / 2;
 
-    // 1. Draw Paper Sheet (Light blue sheet like in user images)
+    // 1. Draw Paper Sheet (Light blue sheet)
     ctx.fillStyle = '#EFF6FF';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.06)';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
     ctx.shadowBlur = 10;
     ctx.shadowOffsetY = 3;
     ctx.fillRect(ox, oy, drawW, drawH);
@@ -68,9 +68,44 @@ function LayoutPreview({ paperW, paperH, designW, designH, bleed, qty, orientati
     ctx.lineWidth = 1.5;
     ctx.strokeRect(ox, oy, drawW, drawH);
 
-    const dw = Number(designW);
-    const dh = Number(designH);
-    const bleedVal = Number(bleed) || 0;
+    // Margin from Area Cetak (clamped to non-negative)
+    const marginVal = Math.max(0, Number(areaCetak) || 0);
+    const marginPx = marginVal * scale;
+    const printX = ox + marginPx;
+    const printY = oy + marginPx;
+    const printW = Math.max(0, drawW - 2 * marginPx);
+    const printH = Math.max(0, drawH - 2 * marginPx);
+
+    // If margin is present, draw shaded margin bands around sheet
+    if (marginVal > 0 && marginPx > 0) {
+      ctx.fillStyle = 'rgba(241, 245, 249, 0.65)';
+      // Top margin
+      ctx.fillRect(ox, oy, drawW, Math.min(marginPx, drawH));
+      // Bottom margin
+      if (drawH - marginPx > 0) {
+        ctx.fillRect(ox, oy + drawH - marginPx, drawW, marginPx);
+      }
+      // Left margin
+      ctx.fillRect(ox, oy, Math.min(marginPx, drawW), drawH);
+      // Right margin
+      if (drawW - marginPx > 0) {
+        ctx.fillRect(ox + drawW - marginPx, oy, marginPx, drawH);
+      }
+
+      // Dashed printable area outline
+      if (printW > 0 && printH > 0) {
+        ctx.save();
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = '#60A5FA';
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(printX, printY, printW, printH);
+        ctx.restore();
+      }
+    }
+
+    const dw = Math.max(0, Number(designW) || 0);
+    const dh = Math.max(0, Number(designH) || 0);
+    const bleedVal = Math.max(0, Number(bleed) || 0);
 
     if (dw <= 0 || dh <= 0) return;
 
@@ -80,9 +115,9 @@ function LayoutPreview({ paperW, paperH, designW, designH, bleed, qty, orientati
     const stepX = w + gap;
     const stepY = h + gap;
 
-    // Number of columns and rows that fit inside paper boundary
-    const colsFit = Math.max(1, Math.floor((drawW + gap + 0.0001) / (w + gap)));
-    const rowsFit = Math.max(1, Math.floor((drawH + gap + 0.0001) / (h + gap)));
+    // Number of columns and rows that physically fit inside printable area
+    const colsFit = (printW > 0 && w > 0) ? Math.floor((printW + gap + 0.0001) / (w + gap)) : 0;
+    const rowsFit = (printH > 0 && h > 0) ? Math.floor((printH + gap + 0.0001) / (h + gap)) : 0;
     const totalCapacity = colsFit * rowsFit;
 
     const qtyNum = parseInt(qty) || 0;
@@ -90,8 +125,150 @@ function LayoutPreview({ paperW, paperH, designW, designH, bleed, qty, orientati
 
     let itemsToDraw = [];
 
+    // Helper to draw an item with blue inside printable area & red overflow outside printable area
+    const renderItem = (item) => {
+      const { x, y, w: iw, h: ih, isGhost } = item;
+
+      if (isGhost) {
+        ctx.save();
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = '#94A3B8';
+        ctx.lineWidth = 1.2;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fillRect(x, y, iw, ih);
+        ctx.strokeRect(x, y, iw, ih);
+        ctx.restore();
+        return;
+      }
+
+      // Valid printable area intersection
+      const inX1 = Math.max(x, printX);
+      const inY1 = Math.max(y, printY);
+      const inX2 = Math.min(x + iw, printX + printW);
+      const inY2 = Math.min(y + ih, printY + printH);
+      const inW = Math.max(0, inX2 - inX1);
+      const inH = Math.max(0, inY2 - inY1);
+
+      // Draw inside portion (Solid Blue)
+      if (inW > 0 && inH > 0) {
+        ctx.fillStyle = '#3B82F6';
+        ctx.fillRect(inX1, inY1, inW, inH);
+        ctx.strokeStyle = bleedVal === 0 ? '#FFFFFF' : '#2563EB';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(inX1, inY1, inW, inH);
+      }
+
+      // Draw Overflow Portions (Red transparent with dashed red border)
+      // Left overflow beyond printable area
+      if (x < printX) {
+        const ovX = x;
+        const ovW = printX - x;
+        const ovY = y;
+        const ovH = ih;
+        if (ovW > 0 && ovH > 0) {
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+          ctx.fillRect(ovX, ovY, ovW, ovH);
+          ctx.save();
+          ctx.setLineDash([5, 4]);
+          ctx.strokeStyle = '#EF4444';
+          ctx.lineWidth = 1.2;
+          ctx.strokeRect(ovX, ovY, ovW, ovH);
+          ctx.restore();
+        }
+      }
+
+      // Right overflow beyond printable area
+      if (x + iw > printX + printW) {
+        const ovX = Math.max(x, printX + printW);
+        const ovW = (x + iw) - ovX;
+        const ovY = y;
+        const ovH = ih;
+        if (ovW > 0 && ovH > 0) {
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+          ctx.fillRect(ovX, ovY, ovW, ovH);
+          ctx.save();
+          ctx.setLineDash([5, 4]);
+          ctx.strokeStyle = '#EF4444';
+          ctx.lineWidth = 1.2;
+          ctx.strokeRect(ovX, ovY, ovW, ovH);
+          ctx.restore();
+        }
+      }
+
+      // Top overflow beyond printable area
+      if (y < printY) {
+        const ovX = Math.max(x, printX);
+        const ovW = Math.min(x + iw, printX + printW) - ovX;
+        const ovY = y;
+        const ovH = printY - y;
+        if (ovW > 0 && ovH > 0) {
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+          ctx.fillRect(ovX, ovY, ovW, ovH);
+          ctx.save();
+          ctx.setLineDash([5, 4]);
+          ctx.strokeStyle = '#EF4444';
+          ctx.lineWidth = 1.2;
+          ctx.strokeRect(ovX, ovY, ovW, ovH);
+          ctx.restore();
+        }
+      }
+
+      // Bottom overflow beyond printable area
+      if (y + ih > printY + printH) {
+        const ovX = Math.max(x, printX);
+        const ovW = Math.min(x + iw, printX + printW) - ovX;
+        const ovY = Math.max(y, printY + printH);
+        const ovH = (y + ih) - ovY;
+        if (ovW > 0 && ovH > 0) {
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+          ctx.fillRect(ovX, ovY, ovW, ovH);
+          ctx.save();
+          ctx.setLineDash([5, 4]);
+          ctx.strokeStyle = '#EF4444';
+          ctx.lineWidth = 1.2;
+          ctx.strokeRect(ovX, ovY, ovW, ovH);
+          ctx.restore();
+        }
+      }
+    };
+
+    if (colsFit === 0 || rowsFit === 0) {
+      // Design does NOT fit in printable area (0 items fit)
+      // Show 1 sample item aligned according to alignment option so user clearly sees the overflow in RED
+      let itemX = printX;
+      let itemY = printY;
+
+      if (alignment.includes('r')) {
+        itemX = printX + (printW - w);
+      } else if (alignment === 'tc' || alignment === 'mc' || alignment === 'bc' || alignment.includes('c')) {
+        itemX = printX + (printW - w) / 2;
+      }
+
+      if (alignment.startsWith('b')) {
+        itemY = printY + (printH - h);
+      } else if (alignment.startsWith('m')) {
+        itemY = printY + (printH - h) / 2;
+      }
+
+      renderItem({
+        x: itemX,
+        y: itemY,
+        w: w,
+        h: h,
+        isGhost: false,
+        isNeeded: true,
+      });
+
+      // Paper boundary stroke
+      ctx.strokeStyle = '#EF4444';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([]);
+      ctx.strokeRect(ox, oy, drawW, drawH);
+      return;
+    }
+
     if (isAutoFit) {
-      // Auto fit: draw all slots that fit inside sheet as solid blue
+      // Auto fit: draw all slots that fit inside printable area as solid blue
       for (let r = 0; r < rowsFit; r++) {
         for (let c = 0; c < colsFit; c++) {
           itemsToDraw.push({
@@ -105,12 +282,43 @@ function LayoutPreview({ paperW, paperH, designW, designH, bleed, qty, orientati
         }
       }
     } else if (qtyNum <= totalCapacity) {
-      // qtyNum <= totalCapacity:
-      // Fill all slots that fit; first qtyNum are solid blue, remainder are transparent dashed
-      let count = 0;
+      // Target center/position based on alignment
+      let targetR = 0;
+      let targetC = 0;
+
+      if (alignment.startsWith('t')) targetR = 0;
+      else if (alignment.startsWith('m')) targetR = (rowsFit - 1) / 2;
+      else if (alignment.startsWith('b')) targetR = rowsFit - 1;
+
+      if (alignment.endsWith('l')) targetC = 0;
+      else if (alignment.endsWith('c')) targetC = (colsFit - 1) / 2;
+      else if (alignment.endsWith('r')) targetC = colsFit - 1;
+
+      // Calculate distance score for all cells
+      let allCells = [];
       for (let r = 0; r < rowsFit; r++) {
         for (let c = 0; c < colsFit; c++) {
-          const needed = count < qtyNum;
+          const distR = Math.abs(r - targetR);
+          const distC = Math.abs(c - targetC);
+          const distSq = distR * distR + distC * distC;
+          allCells.push({ r, c, distSq, distR, distC });
+        }
+      }
+
+      // Sort by proximity to target alignment
+      allCells.sort((a, b) => {
+        if (a.distSq !== b.distSq) return a.distSq - b.distSq;
+        if (a.distR !== b.distR) return a.distR - b.distR;
+        return a.distC - b.distC;
+      });
+
+      const neededSet = new Set(
+        allCells.slice(0, qtyNum).map(item => `${item.r}-${item.c}`)
+      );
+
+      for (let r = 0; r < rowsFit; r++) {
+        for (let c = 0; c < colsFit; c++) {
+          const needed = neededSet.has(`${r}-${c}`);
           itemsToDraw.push({
             col: c,
             row: r,
@@ -119,7 +327,6 @@ function LayoutPreview({ paperW, paperH, designW, designH, bleed, qty, orientati
             isNeeded: needed,
             isGhost: !needed,
           });
-          count++;
         }
       }
     } else {
@@ -139,7 +346,7 @@ function LayoutPreview({ paperW, paperH, designW, designH, bleed, qty, orientati
       }
     }
 
-    // Grid dimension calculation for alignment
+    // Grid dimension calculation for alignment within printable area
     const maxCol = itemsToDraw.length > 0 ? Math.max(...itemsToDraw.map(it => it.col)) : 0;
     const maxRow = itemsToDraw.length > 0 ? Math.max(...itemsToDraw.map(it => it.row)) : 0;
     const gridCols = maxCol + 1;
@@ -151,131 +358,37 @@ function LayoutPreview({ paperW, paperH, designW, designH, bleed, qty, orientati
     let alignOffsetY = 0;
 
     if (alignment.includes('r')) {
-      alignOffsetX = (drawW - totalGridW);
+      alignOffsetX = (printW - totalGridW);
     } else if (alignment === 'tc' || alignment === 'mc' || alignment === 'bc' || alignment.includes('c')) {
-      alignOffsetX = (drawW - totalGridW) / 2;
+      alignOffsetX = (printW - totalGridW) / 2;
     }
 
     if (alignment.startsWith('b')) {
-      alignOffsetY = (drawH - totalGridH);
+      alignOffsetY = (printH - totalGridH);
     } else if (alignment.startsWith('m')) {
-      alignOffsetY = (drawH - totalGridH) / 2;
+      alignOffsetY = (printH - totalGridH) / 2;
     }
 
-    // Calculate actual coordinate for each item
+    // Calculate actual coordinate for each item starting from printable area (printX, printY)
     itemsToDraw = itemsToDraw.map(it => ({
       ...it,
-      x: ox + alignOffsetX + it.col * stepX,
-      y: oy + alignOffsetY + it.row * stepY,
+      x: printX + alignOffsetX + it.col * stepX,
+      y: printY + alignOffsetY + it.row * stepY,
     }));
 
-    // 1. Draw Ghost / Unused Slots (transparent with dashed border - Gambar 1)
-    itemsToDraw.filter(it => it.isGhost).forEach(item => {
-      const { x, y, w, h } = item;
-      ctx.save();
-      ctx.setLineDash([4, 3]);
-      ctx.strokeStyle = '#94A3B8';
-      ctx.lineWidth = 1.2;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-      ctx.fillRect(x, y, w, h);
-      ctx.strokeRect(x, y, w, h);
-      ctx.restore();
-    });
+    // Draw all items
+    itemsToDraw.forEach(item => renderItem(item));
 
-    // 2. Draw Needed / Active Slots
-    itemsToDraw.filter(it => it.isNeeded).forEach(item => {
-      const { x, y, w, h } = item;
-
-      // Inside paper intersection
-      const inX1 = Math.max(x, ox);
-      const inY1 = Math.max(y, oy);
-      const inX2 = Math.min(x + w, ox + drawW);
-      const inY2 = Math.min(y + h, oy + drawH);
-      const inW = inX2 - inX1;
-      const inH = inY2 - inY1;
-
-      // Draw inside portion (Solid Blue)
-      if (inW > 0 && inH > 0) {
-        ctx.fillStyle = '#3B82F6';
-        ctx.fillRect(inX1, inY1, inW, inH);
-        // If bleed/jarak is 0 (Gambar 2), stroke with 1px white border
-        ctx.strokeStyle = bleedVal === 0 ? '#FFFFFF' : '#2563EB';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(inX1, inY1, inW, inH);
-      }
-
-      // Draw Overflow Portions (Red transparent with dashed border)
-      // Left overflow
-      if (x < ox) {
-        const ovW = ox - x;
-        const ovH = Math.min(y + h, cvH) - Math.max(y, 0);
-        if (ovW > 0 && ovH > 0) {
-          ctx.fillStyle = 'rgba(239, 68, 68, 0.22)';
-          ctx.fillRect(x, Math.max(y, 0), ovW, ovH);
-          ctx.setLineDash([5, 4]);
-          ctx.strokeStyle = '#EF4444';
-          ctx.lineWidth = 1.2;
-          ctx.strokeRect(x, Math.max(y, 0), ovW, ovH);
-          ctx.setLineDash([]);
-        }
-      }
-
-      // Right overflow
-      if (x + w > ox + drawW) {
-        const ovX = ox + drawW;
-        const ovW = (x + w) - ovX;
-        const ovH = Math.min(y + h, cvH) - Math.max(y, 0);
-        if (ovW > 0 && ovH > 0) {
-          ctx.fillStyle = 'rgba(239, 68, 68, 0.22)';
-          ctx.fillRect(ovX, Math.max(y, 0), ovW, ovH);
-          ctx.setLineDash([5, 4]);
-          ctx.strokeStyle = '#EF4444';
-          ctx.lineWidth = 1.2;
-          ctx.strokeRect(ovX, Math.max(y, 0), ovW, ovH);
-          ctx.setLineDash([]);
-        }
-      }
-
-      // Top overflow
-      if (y < oy) {
-        const ovH = oy - y;
-        const ovW = Math.min(x + w, cvW) - Math.max(x, 0);
-        if (ovW > 0 && ovH > 0) {
-          ctx.fillStyle = 'rgba(239, 68, 68, 0.22)';
-          ctx.fillRect(Math.max(x, 0), y, ovW, ovH);
-          ctx.setLineDash([5, 4]);
-          ctx.strokeStyle = '#EF4444';
-          ctx.lineWidth = 1.2;
-          ctx.strokeRect(Math.max(x, 0), y, ovW, ovH);
-          ctx.setLineDash([]);
-        }
-      }
-
-      // Bottom overflow
-      if (y + h > oy + drawH) {
-        const ovY = oy + drawH;
-        const ovH = (y + h) - ovY;
-        const ovW = Math.min(x + w, cvW) - Math.max(x, 0);
-        if (ovW > 0 && ovH > 0) {
-          ctx.fillStyle = 'rgba(239, 68, 68, 0.22)';
-          ctx.fillRect(Math.max(x, 0), ovY, ovW, ovH);
-          ctx.setLineDash([5, 4]);
-          ctx.strokeStyle = '#EF4444';
-          ctx.lineWidth = 1.2;
-          ctx.strokeRect(Math.max(x, 0), ovY, ovW, ovH);
-          ctx.setLineDash([]);
-        }
-      }
-    });
-
-    // Re-stroke Paper boundary on top for clear visibility
-    const hasOverflow = itemsToDraw.some(it => it.isNeeded && (it.x < ox || it.y < oy || it.x + it.w > ox + drawW || it.y + it.h > oy + drawH));
-    ctx.strokeStyle = hasOverflow ? '#EF4444' : '#93C5FD';
+    // Stroke Paper boundary
+    const hasAnyOverflow = itemsToDraw.some(it => it.isNeeded && (
+      it.x < printX || it.y < printY || it.x + it.w > printX + printW || it.y + it.h > printY + printH
+    ));
+    ctx.strokeStyle = hasAnyOverflow ? '#EF4444' : '#93C5FD';
     ctx.lineWidth = 1.5;
     ctx.setLineDash([]);
     ctx.strokeRect(ox, oy, drawW, drawH);
 
-  }, [paperW, paperH, designW, designH, bleed, qty, orientation, alignment]);
+  }, [paperW, paperH, designW, designH, bleed, qty, orientation, alignment, areaCetak]);
 
   useEffect(() => {
     draw();
@@ -302,24 +415,67 @@ export default function LayoutCetak() {
   const [qty, setQty] = useState('');
   const [alignment, setAlignment] = useState('tl');
   const [areaCetak, setAreaCetak] = useState('');
-  const [hargaLembar, setHargaLembar] = useState(1000);
+  const [hargaPerRim, setHargaPerRim] = useState(500000);
+  const [isiPerRim, setIsiPerRim] = useState(500);
+  const [wasteProduksi, setWasteProduksi] = useState('');
 
-  // Derived values
+  // Derived values including areaCetak (margin on all 4 sides)
   const pw = orientation === 'landscape' ? Math.max(paperW, paperH) : Math.min(paperW, paperH);
   const ph = orientation === 'landscape' ? Math.min(paperW, paperH) : Math.max(paperW, paperH);
-  const dw = Number(designW);
-  const dh = Number(designH);
-  const bleedVal = Number(bleed) || 0;
-  const cols = dw > 0 ? Math.floor((pw + bleedVal) / (dw + bleedVal)) : 0;
-  const rows = dh > 0 ? Math.floor((ph + bleedVal) / (dh + bleedVal)) : 0;
+  const marginVal = Math.max(0, Number(areaCetak) || 0);
+  const marginTooBig = marginVal * 2 >= pw || marginVal * 2 >= ph;
+  const printW = Math.max(0, pw - 2 * marginVal);
+  const printH = Math.max(0, ph - 2 * marginVal);
+  const dw = Math.max(0, Number(designW) || 0);
+  const dh = Math.max(0, Number(designH) || 0);
+  const bleedVal = Math.max(0, Number(bleed) || 0);
+  const cols = (dw > 0 && printW > 0) ? Math.floor((printW + bleedVal + 0.0001) / (dw + bleedVal)) : 0;
+  const rows = (dh > 0 && printH > 0) ? Math.floor((printH + bleedVal + 0.0001) / (dh + bleedVal)) : 0;
   const maxFit = Math.max(0, cols * rows);
   const qtyNum = parseInt(qty) || 0;
   const fcsPerSheet = maxFit;
-  const sheetsNeeded = qtyNum > 0 ? Math.ceil(qtyNum / Math.max(fcsPerSheet, 1)) : null;
-  const wasteArea = pw > 0 && ph > 0 ? (((pw * ph) - (cols * dw * rows * dh)) / (pw * ph) * 100) : 0;
-  const designExceedsW = dw > pw;
-  const designExceedsH = dh > ph;
-  const isWarning = designExceedsW || designExceedsH;
+  const isiPerRimNum = Math.max(1, Number(isiPerRim) || 500);
+  const hargaPerRimNum = Math.max(0, Number(hargaPerRim) || 0);
+  const hargaLembarCalc = isiPerRimNum > 0 ? Math.round(hargaPerRimNum / isiPerRimNum) : 0;
+  const wastePercentNum = Math.max(0, Number(wasteProduksi) || 0);
+  const sheetsNeededRaw = (qtyNum > 0 && fcsPerSheet > 0) ? Math.ceil(qtyNum / fcsPerSheet) : null;
+  const totalOrderSheets = sheetsNeededRaw !== null ? Math.ceil(sheetsNeededRaw * (1 + wastePercentNum / 100)) : null;
+  const estimasiBiaya = totalOrderSheets !== null ? totalOrderSheets * hargaLembarCalc : null;
+  const wasteArea = (pw > 0 && ph > 0 && maxFit > 0) ? Math.max(0, Math.min(100, (((pw * ph) - (cols * dw * rows * dh)) / (pw * ph)) * 100)) : 0;
+  const designExceedsW = dw > printW;
+  const designExceedsH = dh > printH;
+  const isWarning = dw <= 0 || dh <= 0 || designExceedsW || designExceedsH || marginTooBig;
+
+  const getWarningInfo = () => {
+    if (marginTooBig) {
+      return {
+        title: 'Area cetak (margin) — melebihi kertas',
+        sub: `(Maks margin ${(Math.min(pw, ph) / 2).toFixed(1)} cm)`
+      };
+    }
+    if (designExceedsW && designExceedsH) {
+      return {
+        title: `Ukuran desain — melebihi ${marginVal > 0 ? 'area cetak' : 'kertas'}`,
+        sub: `(Maks ${printW.toFixed(1)} × ${printH.toFixed(1)} cm)`
+      };
+    }
+    if (designExceedsW) {
+      return {
+        title: `Lebar desain — melebihi ${marginVal > 0 ? 'area cetak' : 'kertas'}`,
+        sub: `(Maks ${printW.toFixed(1)} cm)`
+      };
+    }
+    if (designExceedsH) {
+      return {
+        title: `Tinggi desain — melebihi ${marginVal > 0 ? 'area cetak' : 'kertas'}`,
+        sub: `(Maks ${printH.toFixed(1)} cm)`
+      };
+    }
+    return {
+      title: 'Ukuran tidak valid',
+      sub: ''
+    };
+  };
 
   const selectPreset = (preset) => {
     setPaperPreset(preset.id);
@@ -363,8 +519,8 @@ export default function LayoutCetak() {
               {isWarning && (
                 <span className="hk-badge hk-badge-red">
                   <AlertTriangle size={12} />
-                  {designExceedsW ? 'Lebar desain — melebihi kertas' : 'Tinggi desain — melebihi kertas'}
-                  <span className="hk-badge-sub">(Max {pw} cm)</span>
+                  {getWarningInfo().title}
+                  <span className="hk-badge-sub">{getWarningInfo().sub}</span>
                 </span>
               )}
             </div>
@@ -390,13 +546,23 @@ export default function LayoutCetak() {
                 <div className="hk-input-suffix-row">
                   <input
                     type="number"
+                    min="0"
                     className="hk-input"
                     placeholder="—"
                     value={areaCetak}
-                    onChange={e => setAreaCetak(e.target.value)}
+                    onChange={e => {
+                      const val = e.target.value;
+                      if (val === '') {
+                        setAreaCetak('');
+                      } else {
+                        const num = Number(val);
+                        setAreaCetak(num < 0 ? '0' : val);
+                      }
+                    }}
                   />
                   <span className="hk-suffix">cm</span>
                 </div>
+                <span className="hk-muted-hint">Margin semua sisi</span>
               </div>
               <div className="hk-field-group">
                 <label className="hk-label">ORIENTASI KERTAS</label>
@@ -416,17 +582,14 @@ export default function LayoutCetak() {
             {/* Divider */}
             <div className="hk-divider" />
 
-            {/* Hasil Real-Time */}
-            <div className="hk-section-label hk-blue-label">HASIL REAL-TIME</div>
-            <div className="hk-section-title">Susunan produksi</div>
             <div className="hk-stats-grid">
               <div className="hk-stat">
-                <div className="hk-stat-label">FCS / LEMBAR</div>
+                <div className="hk-stat-label">PCS / LEMBAR</div>
                 <div className="hk-stat-value">{fcsPerSheet > 0 ? fcsPerSheet : '—'}</div>
               </div>
               <div className="hk-stat">
                 <div className="hk-stat-label">LEMBAR DIBUTUHKAN</div>
-                <div className="hk-stat-value">{sheetsNeeded !== null ? sheetsNeeded : '—'}</div>
+                <div className="hk-stat-value">{sheetsNeededRaw !== null ? sheetsNeededRaw : '—'}</div>
               </div>
               <div className="hk-stat">
                 <div className="hk-stat-label">GRID</div>
@@ -442,16 +605,16 @@ export default function LayoutCetak() {
               </div>
               <div className="hk-stat">
                 <div className="hk-stat-label">TOTAL ORDER</div>
-                <div className="hk-stat-value">{qtyNum > 0 ? `${qtyNum} pcs` : '—'}</div>
+                <div className="hk-stat-value">{totalOrderSheets !== null ? `${totalOrderSheets} lembar` : (qtyNum > 0 ? `${qtyNum} pcs` : '—')}</div>
               </div>
               <div className="hk-stat">
                 <div className="hk-stat-label">HARGA / LEMBAR</div>
-                <div className="hk-stat-value">Rp {hargaLembar.toLocaleString('id-ID')}</div>
+                <div className="hk-stat-value">Rp {hargaLembarCalc.toLocaleString('id-ID')}</div>
               </div>
               <div className="hk-stat">
                 <div className="hk-stat-label">ESTIMASI BIAYA</div>
                 <div className="hk-stat-value">
-                  {sheetsNeeded != null ? `Rp ${(sheetsNeeded * hargaLembar).toLocaleString('id-ID')}` : '—'}
+                  {estimasiBiaya !== null ? `Rp ${estimasiBiaya.toLocaleString('id-ID')}` : '—'}
                 </div>
               </div>
             </div>
@@ -478,16 +641,16 @@ export default function LayoutCetak() {
                   <div className="hk-field-group">
                     <label className="hk-label">Lebar Kertas (CM)</label>
                     <div className="hk-input-suffix-row">
-                      <input type="number" className="hk-input" value={paperW}
-                        onChange={e => { setPaperW(Number(e.target.value)); setPaperPreset('custom'); }} />
+                      <input type="number" min="1" className="hk-input" value={paperW}
+                        onChange={e => { setPaperW(Math.max(0, Number(e.target.value))); setPaperPreset('custom'); }} />
                       <span className="hk-suffix">CM</span>
                     </div>
                   </div>
                   <div className="hk-field-group">
                     <label className="hk-label">Tinggi Kertas (CM)</label>
                     <div className="hk-input-suffix-row">
-                      <input type="number" className="hk-input" value={paperH}
-                        onChange={e => { setPaperH(Number(e.target.value)); setPaperPreset('custom'); }} />
+                      <input type="number" min="1" className="hk-input" value={paperH}
+                        onChange={e => { setPaperH(Math.max(0, Number(e.target.value))); setPaperPreset('custom'); }} />
                       <span className="hk-suffix">CM</span>
                     </div>
                   </div>
@@ -500,43 +663,85 @@ export default function LayoutCetak() {
                   <div className="hk-field-group">
                     <label className="hk-label">Lebar desain</label>
                     <div className={`hk-input-suffix-row ${designExceedsW ? 'is-error' : ''}`}>
-                      <input type="number" className="hk-input" value={designW}
-                        onChange={e => setDesignW(Number(e.target.value))} />
+                      <input type="number" min="1" className="hk-input" value={designW}
+                        onChange={e => setDesignW(Math.max(0, Number(e.target.value)))} />
                       <span className="hk-suffix">CM</span>
                     </div>
                   </div>
                   <div className="hk-field-group">
                     <label className="hk-label">Tinggi desain</label>
                     <div className={`hk-input-suffix-row ${designExceedsH ? 'is-error' : ''}`}>
-                      <input type="number" className="hk-input" value={designH}
-                        onChange={e => setDesignH(Number(e.target.value))} />
+                      <input type="number" min="1" className="hk-input" value={designH}
+                        onChange={e => setDesignH(Math.max(0, Number(e.target.value)))} />
                       <span className="hk-suffix">CM</span>
                     </div>
                   </div>
                   <div className="hk-field-group">
                     <label className="hk-label">Bleed / jarak</label>
                     <div className="hk-input-suffix-row">
-                      <input type="number" className="hk-input" value={bleed}
-                        onChange={e => setBleed(Number(e.target.value))} />
+                      <input type="number" min="0" className="hk-input" value={bleed}
+                        onChange={e => setBleed(Math.max(0, Number(e.target.value)))} />
                       <span className="hk-suffix">CM</span>
                     </div>
                   </div>
                   <div className="hk-field-group">
                     <label className="hk-label">Jumlah dibutuhkan</label>
                     <div className="hk-input-suffix-row">
-                      <input type="number" className="hk-input" value={qty}
+                      <input type="number" min="0" className="hk-input" value={qty}
                         onChange={e => setQty(e.target.value)}
                         placeholder="Opsional" />
                       <span className="hk-suffix">PCS</span>
                     </div>
                   </div>
-                  <div className="hk-field-group">
-                    <label className="hk-label">Harga / Lembar</label>
-                    <div className="hk-input-suffix-row">
-                      <input type="number" className="hk-input" value={hargaLembar}
-                        onChange={e => setHargaLembar(Number(e.target.value))} />
-                      <span className="hk-suffix">RP</span>
-                    </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Section: Estimasi harga kertas */}
+            <div className="hk-paper-pricing-section" style={{ marginTop: '22px', borderTop: '1px solid #F1F5F9', paddingTop: '18px' }}>
+              <div className="hk-section-title" style={{ marginBottom: 12, fontWeight: 800, color: '#0F172A', fontSize: '13px' }}>Estimasi harga kertas</div>
+              <div className="hk-three-col-inputs" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
+                <div className="hk-field-group">
+                  <label className="hk-label">Harga per rim</label>
+                  <div className="hk-input-suffix-row">
+                    <input 
+                      type="number" 
+                      min="0" 
+                      className="hk-input" 
+                      placeholder="500000"
+                      value={hargaPerRim}
+                      onChange={e => setHargaPerRim(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))} 
+                    />
+                    <span className="hk-suffix">RP</span>
+                  </div>
+                </div>
+                <div className="hk-field-group">
+                  <label className="hk-label">Isi per rim</label>
+                  <div className="hk-input-suffix-row">
+                    <input 
+                      type="number" 
+                      min="1" 
+                      className="hk-input" 
+                      placeholder="500"
+                      value={isiPerRim}
+                      onChange={e => setIsiPerRim(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))} 
+                    />
+                    <span className="hk-suffix">LEMBAR</span>
+                  </div>
+                </div>
+                <div className="hk-field-group">
+                  <label className="hk-label">Waste produksi</label>
+                  <div className="hk-input-suffix-row">
+                    <input 
+                      type="number" 
+                      min="0" 
+                      max="100" 
+                      className="hk-input" 
+                      placeholder="0"
+                      value={wasteProduksi}
+                      onChange={e => setWasteProduksi(e.target.value)} 
+                    />
+                    <span className="hk-suffix">%</span>
                   </div>
                 </div>
               </div>
@@ -570,18 +775,19 @@ export default function LayoutCetak() {
               qty={qtyNum}
               orientation={orientation}
               alignment={alignment}
+              areaCetak={areaCetak}
             />
           </div>
           {isWarning && (
             <div className="hk-preview-warning">
               <AlertTriangle size={13} style={{ color: '#EF4444', flexShrink: 0 }} />
-              <span>Area merah = bagian desain yang melebihi batas kertas</span>
+              <span>Area merah = bagian desain yang melebihi batas {marginVal > 0 ? 'area cetak' : 'kertas'}</span>
             </div>
           )}
           {!isWarning && fcsPerSheet > 0 && (
             <div className="hk-preview-info">
               <Info size={13} style={{ color: '#3B82F6', flexShrink: 0 }} />
-              <span>{fcsPerSheet} objek muat · grid {cols}×{rows} · waste {wasteArea.toFixed(1)}%</span>
+              <span>{fcsPerSheet} objek muat · grid {cols}×{rows} · waste {wasteArea.toFixed(2)}%</span>
             </div>
           )}
         </div>
